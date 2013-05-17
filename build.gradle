@@ -22,3 +22,9 @@ artifacts {
     archives sourcesJar
     archives javadocJar
 }
+
+sourceSets {
+    sample {
+      compileClasspath += main.output
+    }
+}
