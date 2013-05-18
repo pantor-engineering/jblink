@@ -141,7 +141,6 @@ CompactReader rd = new CompactReader (om, oreg);</pre></blockquote>
    subsequent releases:</p>
 
    <ul>
-   <li>Provide build scripts for Gradle</li>
    <li>JSON writer and reader</li>
    <li>Blink Tag format writer and reader</li>
    <li>Allow sequences to be represented as {@code Collections} as
