@@ -767,7 +767,7 @@ public class TestCases
 
       DefaultBlock result = new DefaultBlock ();
       CompactReader rd = new CompactReader (om, oreg);
-      rd.read (new Buf (os.toByteArray ()), result);
+      rd.read (new ByteBuf (os.toByteArray ()), result);
       assertEquals (1, result.size ());
       Object o = result.getObjects ().get (0);  
       assertEquals (in.getClass (), o.getClass ());
@@ -783,7 +783,7 @@ public class TestCases
       CompactWriter wr = new CompactWriter (om, os);
       wr.write (in);
       wr.close ();
-      Buf result = new Buf (os.toByteArray ());
+      ByteBuf result = new ByteBuf (os.toByteArray ());
       return result.toHexString ();
    }
    
@@ -806,7 +806,7 @@ public class TestCases
    
    public static Buf toBuf (String hex)
    {
-      Buf b = new Buf ();
+      Buf b = new ByteBuf ();
       b.write (hexToBytes (hex));
       b.flip ();
       return b;
@@ -832,7 +832,7 @@ public class TestCases
 
    private static void roundtrip (byte in) throws BlinkException
    {
-      Buf b = new Buf ();
+      Buf b = new ByteBuf ();
       Vlc.writeI32 (in, b);
       b.flip ();
       byte out = Vlc.readI8 (b);
@@ -842,7 +842,7 @@ public class TestCases
 
    private static void roundtrip (short in) throws BlinkException
    {
-      Buf b = new Buf ();
+      Buf b = new ByteBuf ();
       Vlc.writeI32 (in, b);
       b.flip ();
       short out = Vlc.readI16 (b);
@@ -852,7 +852,7 @@ public class TestCases
 
    private static void roundtrip (int in) throws BlinkException
    {
-      Buf b = new Buf ();
+      Buf b = new ByteBuf ();
       Vlc.writeI32 (in, b);
       b.flip ();
       int out = Vlc.readI32 (b);
@@ -862,7 +862,7 @@ public class TestCases
 
    private static void roundtrip (long in) throws BlinkException
    {
-      Buf b = new Buf ();
+      Buf b = new ByteBuf ();
       Vlc.writeI64 (in, b);
       b.flip ();
       long out = Vlc.readI64 (b);

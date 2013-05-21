@@ -245,8 +245,8 @@ public final class CompactWriter
       try
       {
 	 byte [] utf8 = val.getBytes ("UTF-8");
+	 buf.reserve (utf8.length + Vlc.Int32MaxSize);
 	 Vlc.writeU32 (utf8.length, buf);
-	 buf.reserve (utf8.length);
 	 buf.write (utf8);
       }
       catch (UnsupportedEncodingException e)
@@ -395,7 +395,6 @@ public final class CompactWriter
       throws BlinkException.Encode
    {
       Vlc.writeU32 (val.length, buf);
-      buf.reserve (val.length * Vlc.Int32MaxSize);
       for (int i = 0; i < val.length; ++ i)
 	 writeString (val [i], buf);
    }
@@ -403,7 +402,6 @@ public final class CompactWriter
    public void writeObjectArray (Object [] val) throws BlinkException
    {
       Vlc.writeU32 (val.length, buf);
-      buf.reserve (val.length * Vlc.Int32MaxSize);
       for (int i = 0; i < val.length; ++ i)
 	 writeObject (val [i]);
    }
@@ -488,7 +486,7 @@ public final class CompactWriter
       private final Schema.Group grp;
    }
 
-   private Buf buf = new Buf ();
+   private final Buf buf = DirectBuf.newInstance ();
    private final CompactWriterCompiler compiler;
    private final OutputStream os;
 }

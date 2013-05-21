@@ -35,79 +35,26 @@
 
 package com.pantor.blink;
 
-import java.util.Arrays;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 
 /**
-   The {@code Buf} class is used by encoders and decoders as an interface
-   to a sequence of bytes to be read or written. When reading the buffer
-   can represent a slice of an already existing byte array.
+   The {@code Buf} interface is used by encoders and decoders for
+   managing a sequence of bytes to be read or written.
  */
 
-public final class Buf
+public interface Buf
 {
    /**
-      The default buffer size
-    */
-   
-   public static int DEFAULT_SIZE = 4096;
-
-   /**
-      Creates a buffer with the {@code DEFAULT_SIZE}
-    */
-   
-   public Buf () { this (DEFAULT_SIZE); }
-
-   /**
-      Creates a buffer with the specified capacity
-
-      @param size the capacity
-    */
-   
-   public Buf (int size) { data_ = new byte [size]; clear (); }
-
-   /**
-      Creates a buffer for reading bytes from a specified slice of a
-      byte array.
-
-      @param underlying the byte array to read from
-      @param takeFrom the index of the first byte of the slice
-      @param len the size of the slice
-    */
-
-   public Buf (byte [] underlying, int takeFrom, int len)
-   {
-      data_ = underlying;
-      pos = takeFrom;
-      end = pos + len;
-   }
-
-   /**
-      Creates a buffer for reading bytes from a specified byte array.
-
-      @param underlying the byte array to read
-    */
-   
-   public Buf (byte [] underlying)
-   {
-      this (underlying, 0, underlying.length);
-   }
-
-   /**
       Writes a byte array to the buffer and advances the position
-      with the lenght of the array. The buffer must have room for
+      with the length of the array. The buffer must have room for
       at least {@code a.length} bytes.
 
       @param a the array to write
     */
    
-   public void write (byte [] a)
-   {
-      write (a, 0, a.length);
-   }
+   void write (byte [] a);
 
    /**
       Writes a slice of a byte array to the buffer and advances the
@@ -119,11 +66,7 @@ public final class Buf
       @param len the size of the slice
     */
    
-   public void write (byte [] a, int from, int len)
-   {
-      System.arraycopy (a, from, data_, pos, len);
-      step (len);
-   }
+   void write (byte [] a, int from, int len);
    
    /**
       Writes a single byte to the buffer and advances the position one step.
@@ -133,7 +76,7 @@ public final class Buf
              bits will be used
     */
    
-   public void write (int b) { data_ [pos ++] = (byte)b; }
+   void write (int b);
 
    /**
       Writes two bytes to the buffer and advances the position by two.
@@ -144,12 +87,7 @@ public final class Buf
       @param b1 a byte to write
     */
    
-   public void write (int b0, int b1)
-   {
-      data_ [pos    ] = (byte)b0;
-      data_ [pos + 1] = (byte)b1;
-      pos += 2;
-   }
+   void write (int b0, int b1);
 
    /**
       Writes three bytes to the buffer and advances the position by three.
@@ -161,13 +99,7 @@ public final class Buf
       @param b2 a byte to write
     */
    
-   public void write (int b0, int b1, int b2)
-   {
-      data_ [pos    ] = (byte)b0;
-      data_ [pos + 1] = (byte)b1;
-      data_ [pos + 2] = (byte)b2;
-      pos += 3;
-   }
+   void write (int b0, int b1, int b2);
 
    /**
       Writes four bytes to the buffer and advances the position by four.
@@ -180,14 +112,7 @@ public final class Buf
       @param b3 a byte to write
     */
    
-   public void write (int b0, int b1, int b2, int b3)
-   {
-      data_ [pos    ] = (byte)b0;
-      data_ [pos + 1] = (byte)b1;
-      data_ [pos + 2] = (byte)b2;
-      data_ [pos + 3] = (byte)b3;
-      pos += 4;
-   }
+   void write (int b0, int b1, int b2, int b3);
 
    /**
       Writes five bytes to the buffer and advances the position by five.
@@ -201,15 +126,7 @@ public final class Buf
       @param b4 a byte to write
     */
    
-   public void write (int b0, int b1, int b2, int b3, int b4)
-   {
-      data_ [pos    ] = (byte)b0;
-      data_ [pos + 1] = (byte)b1;
-      data_ [pos + 2] = (byte)b2;
-      data_ [pos + 3] = (byte)b3;
-      data_ [pos + 4] = (byte)b4;
-      pos += 5;
-   }
+   void write (int b0, int b1, int b2, int b3, int b4);
 
    /**
       Writes six bytes to the buffer and advances the position by six.
@@ -224,16 +141,7 @@ public final class Buf
       @param b5 a byte to write
     */
    
-   public void write (int b0, int b1, int b2, int b3, int b4, int b5)
-   {
-      data_ [pos    ] = (byte)b0;
-      data_ [pos + 1] = (byte)b1;
-      data_ [pos + 2] = (byte)b2;
-      data_ [pos + 3] = (byte)b3;
-      data_ [pos + 4] = (byte)b4;
-      data_ [pos + 5] = (byte)b5;
-      pos += 6;
-   }
+   void write (int b0, int b1, int b2, int b3, int b4, int b5);
 
    /**
       Writes seven bytes to the buffer and advances the position by seven.
@@ -249,18 +157,7 @@ public final class Buf
       @param b6 a byte to write
     */
    
-   public void write (int b0, int b1, int b2, int b3, int b4, int b5,
-		      int b6)
-   {
-      data_ [pos    ] = (byte)b0;
-      data_ [pos + 1] = (byte)b1;
-      data_ [pos + 2] = (byte)b2;
-      data_ [pos + 3] = (byte)b3;
-      data_ [pos + 4] = (byte)b4;
-      data_ [pos + 5] = (byte)b5;
-      data_ [pos + 6] = (byte)b6;
-      pos += 7;
-   }
+   void write (int b0, int b1, int b2, int b3, int b4, int b5, int b6);
 
    /**
       Writes eight bytes to the buffer and advances the position by eight.
@@ -277,19 +174,7 @@ public final class Buf
       @param b7 a byte to write
     */
    
-   public void write (int b0, int b1, int b2, int b3, int b4, int b5,
-		      int b6, int b7)
-   {
-      data_ [pos    ] = (byte)b0;
-      data_ [pos + 1] = (byte)b1;
-      data_ [pos + 2] = (byte)b2;
-      data_ [pos + 3] = (byte)b3;
-      data_ [pos + 4] = (byte)b4;
-      data_ [pos + 5] = (byte)b5;
-      data_ [pos + 6] = (byte)b6;
-      data_ [pos + 7] = (byte)b7;
-      pos += 8;
-   }
+   void write (int b0, int b1, int b2, int b3, int b4, int b5, int b6, int b7);
 
    /**
       Writes nine bytes to the buffer and advances the position by nine.
@@ -307,20 +192,8 @@ public final class Buf
       @param b8 a byte to write
     */
    
-   public void write (int b0, int b1, int b2, int b3, int b4, int b5,
-		      int b6, int b7, int b8)
-   {
-      data_ [pos    ] = (byte)b0;
-      data_ [pos + 1] = (byte)b1;
-      data_ [pos + 2] = (byte)b2;
-      data_ [pos + 3] = (byte)b3;
-      data_ [pos + 4] = (byte)b4;
-      data_ [pos + 5] = (byte)b5;
-      data_ [pos + 6] = (byte)b6;
-      data_ [pos + 7] = (byte)b7;
-      data_ [pos + 8] = (byte)b8;
-      pos += 9;
-   }
+   void write (int b0, int b1, int b2, int b3, int b4, int b5, int b6, int b7,
+	       int b8);
 
    /**
       Reads a byte and advances the position by once. The buffer
@@ -329,7 +202,7 @@ public final class Buf
       @return the byte at the position
     */
    
-   public int read () { return (int)data_ [pos ++] & 0xff; }
+   int read ();
 
    /**
       Reads into a slice of an byte array. The buffer must contain
@@ -340,11 +213,7 @@ public final class Buf
       @param len the size of the slice to fill
     */
    
-   public void read (byte [] dst, int from, int len)
-   {
-      System.arraycopy (data_, pos, dst, from, len);
-      pos += len;
-   }
+   void read (byte [] dst, int from, int len);
 
    /**
       Reads into a byte array. The buffer must contain at least {@code
@@ -353,10 +222,7 @@ public final class Buf
       @param dst the byte array to fill
    */
    
-   public void read (byte [] dst)
-   {
-      read (dst, 0, dst.length);
-   }
+   void read (byte [] dst);
 
    /**
       Puts a byte at the position
@@ -364,7 +230,7 @@ public final class Buf
       @param b the byte to put
     */
    
-   public void put (byte b) { data_ [pos] = b; }
+   void put (byte b);
 
    /**
       Puts a byte at the position offsetted by {@code off}
@@ -373,7 +239,7 @@ public final class Buf
       @param b the byte to put at the specified offset
     */
    
-   public void put (int off, byte b) { data_ [pos + off] = b; }
+   void put (int off, byte b);
 
    /**
       Returns the byte at the position
@@ -381,20 +247,20 @@ public final class Buf
       @return the byte at the position
    */
    
-   public int get () { return (int)data_ [pos] & 0xff; }
+   int get ();
 
    /**
       Returns the byte at the position offsetted by {@code off}
       @return the byte at the specified offset
    */
    
-   public int get (int off) { return (int)data_ [pos + off] & 0xff; }
+   int get (int off);
 
    /**
       Advances the position by one
    */
    
-   public void step () { ++ pos; }
+   void step ();
 
    /**
       Moves the position relative to the current position
@@ -403,15 +269,7 @@ public final class Buf
       its current location
    */
    
-   public void step (int delta) { pos += delta; }
-
-   /**
-      Returns the underlying byte array
-
-      @return the underlying byte array
-    */
-   
-   public byte [] data () { return data_; }
+   void step (int delta);
 
    /**
       Returns {@code true} if the buffer contains no bytes
@@ -419,7 +277,7 @@ public final class Buf
       @return {@code true} if the buffer is empty
    */
    
-   public boolean empty () { return pos >= end; }
+   boolean empty ();
 
    /**
       Returns the distance in bytes between the start of the buffer
@@ -428,7 +286,7 @@ public final class Buf
       @return the size of the buffer
    */
 
-   public int size () { return end; }
+   int size ();
 
    /**
       Sets the endpoint
@@ -436,7 +294,7 @@ public final class Buf
       @param end the endpoint
    */
    
-   public void setSize (int end) { this.end = end; }
+   void setSize (int end);
 
    /**
       Returns the position for reading or writing
@@ -444,7 +302,7 @@ public final class Buf
       @return the position
    */
    
-   public int getPos () { return pos; }
+   int getPos ();
 
    /**
       Sets the current position
@@ -452,7 +310,7 @@ public final class Buf
       @param pos the position
    */
    
-   public void setPos (int pos) { this.pos = pos; }
+   void setPos (int pos);
 
    /**
       Returns the distance in bytes between the position and the endpoint.
@@ -460,27 +318,14 @@ public final class Buf
       @return the number of bytes available for reading or writing
     */
    
-   public int available () { return end - pos; }
+   int available ();
 
    /**
       Reads {@code size} UTF-8 bytes from the current position to
       create a {@code String} object.
     */
    
-   public String readUtf8String (int size)
-   {
-      try
-      {
-	 String s = new String (data_, pos, size, "UTF-8");
-	 pos += size;
-	 return s;
-      }
-      catch (UnsupportedEncodingException e)
-      {
-	 // FIXME: Should we raise BlinkException.Decode instead?
-	 throw new RuntimeException (e);
-      }
-   }
+   String readUtf8String (int size);
 
    /**
       Writes any data from the start of the buffer upto the current
@@ -491,29 +336,17 @@ public final class Buf
       @throws IOException if an output exception occured
     */
    
-   public void flushTo (OutputStream os) throws IOException
-   {
-      if (pos > 0)
-      {
-	 os.write (data_, 0, pos);
-	 clear ();
-      }
-   }
+   void flushTo (OutputStream os) throws IOException;
 
    /**
-      Reades {@code len} bytes from the specified buffer and writes
-      them to this buffer.
+      Reads {@code len} bytes from this buffer and writes them to
+      the other buffer.
 
-      @param other the buffer to move from
+      @param other the buffer to move to
       @param len the number of bytes to move
     */
    
-   public void moveFrom (Buf other, int len)
-   {
-      System.arraycopy (other.data_, other.pos, data_, pos, len);
-      step (len);
-      other.step (len);
-   }
+   void moveTo (Buf other, int len);
 
    /**
       Sets the endpoint to the value of the position and then sets the
@@ -521,25 +354,20 @@ public final class Buf
       through writes and then want to read those bytes.
     */
    
-   public void flip ()
-   {
-      end = pos;
-      pos = 0;
-   }
+   void flip ();
 
    /**
       Clears the buffer by setting the position to zero and the endpoint
       to the capacity of the underlying byte array
     */
    
-   public void clear () { pos = 0; end = data_.length; }
-
+   void clear ();
 
    /**
       Clears the buffer and fills the underlying byte array with zeros.
     */
    
-   public void clearAndFillZero () { clear (); Arrays.fill (data_, (byte)0); }
+   void clearAndFillZero ();
 
    /**
       Makes sure there are at least room for writing {@code
@@ -547,16 +375,7 @@ public final class Buf
       capacity is too small, it will grow accordingly.
     */
    
-   public void reserve (int additionalCapacity)
-   {
-      int capacity = pos + additionalCapacity;
-      if (capacity > data_.length)
-      {
-	 byte [] newData = new byte [(int)(capacity * 1.5)];
-	 System.arraycopy (data_, 0, newData, 0, pos);
-	 data_ = newData;
-      }
-   }
+   void reserve (int additionalCapacity);
 
    /**
       Releases the underlying byte array if it is larger than {@code
@@ -568,27 +387,14 @@ public final class Buf
       @param limit the maximum number of bytes to retain after this call
     */
    
-   public void release (int limit)
-   {
-      if (data_.length > limit)
-      {
-	 data_ = emptyData;
-	 pos = 0;
-	 end = 0;
-      }
-      else
-	 clear ();
-   }
+   void release (int limit);
 
    /**
       Unconditionally releases the underlying byte array. It has the
       same effect as calling {@code release (0)}.
     */
    
-   public void release ()
-   {
-      release (0);
-   }
+   void release ();
 
    /**
       Reads a chunk of bytes from the specified input stream and writes
@@ -601,24 +407,7 @@ public final class Buf
       end of file was reached
     */
    
-   public boolean fillFrom (InputStream is) throws IOException
-   {
-      pos = is.read (data_);
-      end = 0;
-      if (pos != -1)
-	 return true;
-      else
-      {
-	 pos = 0;
-	 return false;
-      }
-   }
-
-   @Override
-   public String toString ()
-   {
-      return "[" + toHexString ().replace (" ", ", ") + "]";
-   }
+   boolean fillFrom (InputStream is) throws IOException;
 
    /**
       Returns a string representaion of this buffer where each byte is
@@ -629,20 +418,5 @@ public final class Buf
       @return a string with hex numbers
     */
    
-   public String toHexString ()
-   {
-      StringBuilder s = new StringBuilder ();
-      for (int i = 0; i < size (); ++ i)
-      {
-	 if (i > 0)
-	    s.append (' ');
-	 s.append (String.format ("%02x", data_ [i]));
-      }
-      return s.toString ();
-   }
-   
-   private int pos;
-   private int end;
-   private byte [] data_;
-   private final static byte [] emptyData = new byte [0];
+   String toHexString ();
 }

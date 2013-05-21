@@ -101,7 +101,7 @@ public final class CompactReader
    
    public void read (byte [] data) throws BlinkException
    {
-      read (new Buf (data));
+      read (new ByteBuf (data));
    }
 
    /**
@@ -117,7 +117,7 @@ public final class CompactReader
    
    public void read (byte [] data, int from, int len) throws BlinkException
    {
-      read (new Buf (data, from, len));
+      read (new ByteBuf (data, from, len));
    }
 
    /**
@@ -135,7 +135,7 @@ public final class CompactReader
    
    public void read (byte [] data, Block block) throws BlinkException
    {
-      read (new Buf (data), block);
+      read (new ByteBuf (data), block);
    }
    
    /**
@@ -157,7 +157,7 @@ public final class CompactReader
    public void read (byte [] data, int from, int len, Block block)
       throws BlinkException
    {
-      read (new Buf (data, from, len), block);
+      read (new ByteBuf (data, from, len), block);
    }
 
    /**
@@ -174,7 +174,7 @@ public final class CompactReader
    
    public void read (InputStream is) throws IOException, BlinkException
    {
-      Buf b = new Buf ();
+      Buf b = DirectBuf.newInstance ();
       for (;;)
 	 if (b.fillFrom (is))
 	 {
@@ -196,11 +196,7 @@ public final class CompactReader
    
    public void read (Buf buf) throws BlinkException
    {
-      if (localBlock == null)
-	 localBlock = new DefaultBlock ();
-      else
-	 localBlock.clear ();
-      read (buf, localBlock);
+      read (buf, blankBlock);
    }
 
    /**
@@ -732,7 +728,7 @@ public final class CompactReader
    private long fillPendMsgSize (Buf buf) throws BlinkException.Decode
    {
       int toMove = Math.min (missingMsgSizeBytes, buf.available ());
-      pendMsgSizePreamble.moveFrom (buf, toMove);
+      buf.moveTo (pendMsgSizePreamble, toMove);
       missingMsgSizeBytes -= toMove;
       if (missingMsgSizeBytes == 0)
       {
@@ -761,7 +757,7 @@ public final class CompactReader
    {
       int toMove = Math.min (missingData, buf.available ());
       pendData.reserve (toMove);
-      pendData.moveFrom (buf, toMove);
+      buf.moveTo (pendData, toMove);
       missingData -= toMove;
       return missingData == 0;
    }
@@ -808,7 +804,7 @@ public final class CompactReader
 	 
 	 if (available < w + 1)
 	 {
-	    pendMsgSizePreamble.moveFrom (buf, available);
+	    buf.moveTo (pendMsgSizePreamble, available);
 	    missingMsgSizeBytes = w + 1 - available;
 	    return Long.MAX_VALUE;
 	 }
@@ -836,10 +832,10 @@ public final class CompactReader
    }
 
    private final CompactReaderCompiler compiler;
-   private final Buf pendData = new Buf ();
-   private final Buf pendMsgSizePreamble = new Buf (5);
+   private final Buf pendData = DirectBuf.newInstance ();
+   private final Buf pendMsgSizePreamble = DirectBuf.newInstance (5);
    private long maxMsgSize;
-   private DefaultBlock localBlock;
+   private final BlankBlock blankBlock = new BlankBlock ();
    private Block curBlock;
    private int missingData;
    private int missingMsgSizeBytes;

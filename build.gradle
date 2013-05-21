@@ -28,3 +28,19 @@ sourceSets {
       compileClasspath += main.output
     }
 }
+
+// This will prevent the compiler from complaining about the use of
+// sun.misc.Unsafe
+
+compileJava {
+    options.compilerArgs << '-XDignore.symbol.file'
+    options.fork = true
+    options.forkOptions.executable = 'javac'
+
+}
+
+// Log to console too when debugging test cases
+
+test {
+  testLogging.showStandardStreams = true
+}

@@ -164,7 +164,7 @@ public final class CompactWriterCompiler
 	 .aload2 () // buf
 	 .aload0 () // this
 	 .getField ("com.pantor.blink.CompactWriter$Encoder", "tid", "[B")
-	 .invokeVirtual ("com.pantor.blink.Buf", "write", "([B)V")
+	 .invokeInterface ("com.pantor.blink.Buf", "write", "([B)V")
 	 .aload1 ().checkCast (srcName).aload2 ().aload3 ()
 	 .invokeStatic (encoderName, "innerEncode", innerSig)
 	 .return_ ().setMaxStack (3).endMethod ();
@@ -231,7 +231,7 @@ public final class CompactWriterCompiler
       byte [] tid = null;
       if (g.hasId ())
       {
-	 Buf tidBuf = new Buf (Vlc.Int64MaxSize);
+	 Buf tidBuf = new ByteBuf (Vlc.Int64MaxSize);
 	 Vlc.writeU64 (g.getId (), tidBuf);
 	 tidBuf.flip ();
 	 tid = new byte [tidBuf.size ()];

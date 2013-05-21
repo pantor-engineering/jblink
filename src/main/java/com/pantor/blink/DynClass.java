@@ -2461,7 +2461,7 @@ public final class DynClass
 	    break;
 	    
 	  case ')':
-	    return count;
+	    return count + 1 /* this */;
 
 	  default:
 	    break Loop;
@@ -2477,7 +2477,7 @@ public final class DynClass
       {
        case 'B': case 'C': case 'D': case 'F': case 'I': case 'J': case 'S':
        case 'Z':
-	 return i + i;
+	 return i + 1;
 
        case 'L':
 	 i = type.indexOf (';', i);
