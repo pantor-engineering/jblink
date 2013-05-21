@@ -227,7 +227,7 @@ public final class CompactWriter
       Vlc.writeI64 (val, buf);
    }
 
-   public static void writeMillittime (long val, Buf buf)
+   public static void writeMillitime (long val, Buf buf)
       throws BlinkException.Encode
    {
       Vlc.writeI64 (val, buf);
