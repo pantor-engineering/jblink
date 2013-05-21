@@ -39,4 +39,7 @@ public interface ObserverRegistry
 {
    Observer findObserver (Schema.Group g) throws BlinkException;
    Observer findObserver (Class<?> type) throws BlinkException;
+   Observer findDirectObserver (Schema.Group g) throws BlinkException;
+   Observer findDirectObserver (Class<?> type) throws BlinkException;
+   Observer getFallbackObserver () throws BlinkException;
 }

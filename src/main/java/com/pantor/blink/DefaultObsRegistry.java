@@ -82,6 +82,32 @@ public final class DefaultObsRegistry implements ObserverRegistry
 	 return findInAncestry (g.getSuperGroup ());
    }
 
+   @Override
+   public Observer findDirectObserver (Class<?> type) throws BlinkException
+   {
+      if (om != null)
+      {
+	 ObjectModel.GroupBinding bnd = om.getGroupBinding (type);
+	 if (bnd != null)
+	    return findDirectObserver (bnd.getGroup ());
+      }
+
+      return null;
+   }
+
+   @Override
+   public Observer findDirectObserver (Schema.Group g) throws BlinkException
+
+   {
+      return obsByName.get (g.getName ());
+   }
+
+   @Override
+   public Observer getFallbackObserver ()
+   {
+      return fallback;
+   }
+   
    public void addObserver (NsName name, Observer obs)
    {
       obsByName.put (name, obs);

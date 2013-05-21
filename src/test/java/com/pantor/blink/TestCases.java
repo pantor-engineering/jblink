@@ -736,6 +736,72 @@ public class TestCases
       assertEquals ("MY_ID", Util.splitCamelback ("MyID", "_").toUpperCase ());
    } 
 
+   public static class MyObsA
+   {
+      public void onA (A a, Schema.Group g)
+      {
+	 result = "onA: " + a.getValue () + " (" + g.getName () + ")";
+      }
+
+      String result = "";
+   }
+
+   public static class MyObsB
+   {
+      public void onB (B a)
+      {
+	 result = "onB: " + a.getNum ();
+      }
+
+      String result = "";
+   }
+   
+   @Test public void combinedOregAnddispatcher ()
+      throws BlinkException, IOException
+   {
+      Schema s = toSchema (TreeSchema);
+      ObjectModel om = new DefaultObjectModel (s, TestCases.class);
+      DefaultObsRegistry oregA = new DefaultObsRegistry (om);
+      DefaultObsRegistry oregB = new DefaultObsRegistry (om);
+
+      MyObsA obsA = new MyObsA ();
+      oregA.addObserver (obsA);
+
+      MyObsB obsB = new MyObsB ();
+      oregB.addObserver (obsB);
+
+      A a = new A ();
+      a.setValue ("Foo");
+
+      B b = new B ();
+      b.setValue ("Bar");
+      b.setNum (17);
+
+      C c = new C ();
+      c.setValue ("Baz");
+      c.setExtra ("Hello");
+
+      Dispatcher disp = new Dispatcher (om, oregA, oregB);
+      
+      obsA.result = "";
+      obsB.result = "";
+      disp.dispatch (a);
+      assertEquals ("onA: Foo (A)", obsA.result);
+      assertEquals ("", obsB.result);
+
+      obsA.result = "";
+      obsB.result = "";
+      disp.dispatch (b);
+      assertEquals ("", obsA.result);
+      assertEquals ("onB: 17", obsB.result);
+
+      obsA.result = "";
+      obsB.result = "";
+      disp.dispatch (c);
+      assertEquals ("onA: Baz (C)", obsA.result);
+      assertEquals ("", obsB.result);
+   }
+
    //////////////////////////////////////////////////////////////////////
    
    private static void decodeCompact (String schema, String data, Block result)
