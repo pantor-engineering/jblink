@@ -306,8 +306,11 @@ public final class DefaultObjectModel implements ObjectModel
    @Override
    public Schema getSchema () throws BlinkException
    {
-      init ();
-      return schema;
+      synchronized (monitor)
+      {
+	 init ();
+	 return schema;
+      }
    }
 
    /**
@@ -321,8 +324,11 @@ public final class DefaultObjectModel implements ObjectModel
    public void loadSchema (String... schemas)
       throws IOException, BlinkException
    {
-      for (String f : schemas)
-	 SchemaReader.read (f, schema);
+      synchronized (monitor)
+      {
+	 for (String f : schemas)
+	    SchemaReader.read (f, schema);
+      }
    }
 
    /**
@@ -336,8 +342,11 @@ public final class DefaultObjectModel implements ObjectModel
    public void loadSchema (Reader... schemas)
       throws IOException, BlinkException
    {
-      for (Reader rd : schemas)
-	 SchemaReader.read (rd, "-", schema);
+      synchronized (monitor)
+      {
+	 for (Reader rd : schemas)
+	    SchemaReader.read (rd, "-", schema);
+      }
    }
 
    /**
@@ -353,8 +362,11 @@ public final class DefaultObjectModel implements ObjectModel
    public void loadSchemaFromString (String... literals)
       throws IOException, BlinkException
    {
-      for (String lit : literals)
-	 SchemaReader.readFromString (lit, schema);
+      synchronized (monitor)
+      {
+	 for (String lit : literals)
+	    SchemaReader.readFromString (lit, schema);
+      }
    }
 
    /**
@@ -366,7 +378,10 @@ public final class DefaultObjectModel implements ObjectModel
    
    public void setWrapper (Class<?> wrapper)
    {
-      this.wrapper = wrapper;
+      synchronized (monitor)
+      {
+	 this.wrapper = wrapper;
+      }
    }
 
    /**
@@ -379,7 +394,10 @@ public final class DefaultObjectModel implements ObjectModel
    
    public void setPackage (String pkg)
    {
-      this.pkg = pkg;
+      synchronized (monitor)
+      {
+	 this.pkg = pkg;
+      }
    }
 
    /**
@@ -393,7 +411,10 @@ public final class DefaultObjectModel implements ObjectModel
    
    public void setUseOnlyAnnotatedClasses (boolean state)
    {
-      setInclusiveClassAnnot (state ? Blink.class : null);
+      synchronized (monitor)
+      {
+	 setInclusiveClassAnnot (state ? Blink.class : null);
+      }
    }
 
    /**
@@ -405,7 +426,10 @@ public final class DefaultObjectModel implements ObjectModel
    public void setInclusiveClassAnnot (
       Class<? extends java.lang.annotation.Annotation> inclusiveClassAnnot)
    {
-      this.inclusiveClassAnnot = inclusiveClassAnnot;
+      synchronized (monitor)
+      {
+	 this.inclusiveClassAnnot = inclusiveClassAnnot;
+      }
    }
 
    /**
@@ -417,7 +441,10 @@ public final class DefaultObjectModel implements ObjectModel
    public void setExclusiveClassAnnot (
       Class<? extends java.lang.annotation.Annotation> exclusiveClassAnnot)
    {
-      this.exclusiveClassAnnot = exclusiveClassAnnot;
+      synchronized (monitor)
+      {
+	 this.exclusiveClassAnnot = exclusiveClassAnnot;
+      }
    }
 
    /**
@@ -431,7 +458,10 @@ public final class DefaultObjectModel implements ObjectModel
    
    public void setUseOnlyAnnotatedMethods (boolean state)
    {
-      setInclusiveMethodAnnot (state ? Blink.class : null);
+      synchronized (monitor)
+      {
+	 setInclusiveMethodAnnot (state ? Blink.class : null);
+      }
    }
 
    /**
@@ -443,7 +473,10 @@ public final class DefaultObjectModel implements ObjectModel
    public void setInclusiveMethodAnnot (
       Class<? extends java.lang.annotation.Annotation> inclusiveMethodAnnot)
    {
-      this.inclusiveMethodAnnot = inclusiveMethodAnnot;
+      synchronized (monitor)
+      {
+	 this.inclusiveMethodAnnot = inclusiveMethodAnnot;
+      }
    }
 
    /**
@@ -455,59 +488,74 @@ public final class DefaultObjectModel implements ObjectModel
    public void setExclusiveMethodAnnot (
       Class<? extends java.lang.annotation.Annotation> exclusiveMethodAnnot)
    {
-      this.exclusiveMethodAnnot = exclusiveMethodAnnot;
+      synchronized (monitor)
+      {
+	 this.exclusiveMethodAnnot = exclusiveMethodAnnot;
+      }
    }
 
-   // FIXME: use TLS
    @Override
-   public synchronized GroupBinding getGroupBinding (long tid)
+   public GroupBinding getGroupBinding (long tid)
       throws BlinkException
    {
-      init ();
-      GroupBinding b = grpBndById.get (tid);
-      if (b != null)
-	 return b;
-      else
-	 throw noBindingError (tid);
+      // FIXME: use TLS
+      synchronized (monitor)
+      {
+	 init ();
+	 GroupBinding b = grpBndById.get (tid);
+	 if (b != null)
+	    return b;
+	 else
+	    throw noBindingError (tid);
+      }
    }
    
    @Override
-   public synchronized GroupBinding getGroupBinding (NsName name)
+   public GroupBinding getGroupBinding (NsName name)
       throws BlinkException
    {
-      // FIXME: use TLS
-      init ();
-      GroupBinding b = grpBndByName.get (name);
-      if (b != null)
-	 return b;
-      else
-	 throw noBindingError (name);
+      synchronized (monitor)
+      {
+	 // FIXME: use TLS
+	 init ();
+	 GroupBinding b = grpBndByName.get (name);
+	 if (b != null)
+	    return b;
+	 else
+	    throw noBindingError (name);
+      }
    }
 
    @Override
-   public synchronized GroupBinding getGroupBinding (Class<?> name)
+   public GroupBinding getGroupBinding (Class<?> name)
       throws BlinkException
    {
-      // FIXME: use TLS
-      init ();
-      GroupBinding b = grpBndByClass.get (name);
-      if (b != null)
-	 return b;
-      else
-	 throw noBindingError (name);
+      synchronized (monitor)
+      {
+	 // FIXME: use TLS
+	 init ();
+	 GroupBinding b = grpBndByClass.get (name);
+	 if (b != null)
+	    return b;
+	 else
+	    throw noBindingError (name);
+      }
    }
 
    @Override
-   public synchronized EnumBinding getEnumBinding (NsName name)
+   public EnumBinding getEnumBinding (NsName name)
       throws BlinkException
    {
-      // FIXME: use TLS
-      init ();
-      EnumBinding b = enumBndByName.get (name);
-      if (b != null)
-	 return b;
-      else
-	 throw noBindingError (name);
+      synchronized (monitor)
+      {
+	 // FIXME: use TLS
+	 init ();
+	 EnumBinding b = enumBndByName.get (name);
+	 if (b != null)
+	    return b;
+	 else
+	    throw noBindingError (name);
+      }
    }
 
    private boolean isIncludedClass (Class<?> c)
@@ -1024,6 +1072,7 @@ public final class DefaultObjectModel implements ObjectModel
 			" of Java class %s", cl.getName ()));
    }
 
+   private final Object monitor = new Object ();
    private final HashMap<Long, GroupBinding> grpBndById =
       new HashMap<Long, GroupBinding> ();
    private final HashMap<NsName, GroupBinding> grpBndByName =
