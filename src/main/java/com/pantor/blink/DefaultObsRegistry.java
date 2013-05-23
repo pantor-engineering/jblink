@@ -63,7 +63,7 @@ public final class DefaultObsRegistry implements ObserverRegistry
    {
       if (om != null)
       {
-	 ObjectModel.GroupBinding bnd = om.getGroupBinding (type);
+	 ObjectModel.GroupBinding bnd = findGroupBinding (type);
 	 if (bnd != null)
 	    return findObserver (bnd.getGroup ());
       }
@@ -87,7 +87,7 @@ public final class DefaultObsRegistry implements ObserverRegistry
    {
       if (om != null)
       {
-	 ObjectModel.GroupBinding bnd = om.getGroupBinding (type);
+	 ObjectModel.GroupBinding bnd = findGroupBinding (type);
 	 if (bnd != null)
 	    return findDirectObserver (bnd.getGroup ());
       }
@@ -161,7 +161,7 @@ public final class DefaultObsRegistry implements ObserverRegistry
 
 	 if (prms.length == 1)
 	 {
-	    ObjectModel.GroupBinding bnd = om.getGroupBinding (prms [0]);
+	    ObjectModel.GroupBinding bnd = findGroupBinding (prms [0]);
 	    if (bnd != null)
 	    {
 	       obsByName.put (bnd.getGroup ().getName (),
@@ -173,7 +173,7 @@ public final class DefaultObsRegistry implements ObserverRegistry
 	 {
 	    if (prms.length == 2 && prms [1] == Schema.Group.class)
 	    {
-	       ObjectModel.GroupBinding bnd = om.getGroupBinding (prms [0]);
+	       ObjectModel.GroupBinding bnd = findGroupBinding (prms [0]);
 	       if (bnd != null)
 	       {
 		  obsByName.put (bnd.getGroup ().getName (),

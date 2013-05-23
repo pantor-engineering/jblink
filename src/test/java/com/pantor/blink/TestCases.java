@@ -517,6 +517,10 @@ public class TestCases
       private String extra;
    }
 
+   public static class D
+   {
+   }
+
    public static class MyObs
    {
       public void onA (A a, Schema.Group g)
@@ -529,13 +533,19 @@ public class TestCases
 	 result = "onB: " + a.getNum ();
       }
 
+      public void onAny (Object o, Schema.Group g)
+      {
+	 result = "onAny: (" + g.getName () + ")";
+      }
+
       String result = "";
    }
    
    private final static String TreeSchema =
       "A/1     -> string Value " +
       "B/2 : A -> i32 Num " +
-      "C/3 : A -> string Extra";
+      "C/3 : A -> string Extra " +
+      "D/4";
    
    @Test public void dynamicObserver ()
       throws BlinkException, IOException
@@ -568,6 +578,10 @@ public class TestCases
       obs.result = "";
       compactRoundtrip (om, c, oreg);
       assertEquals ("onA: Baz (C)", obs.result);
+
+      obs.result = "";
+      compactRoundtrip (om, new D (), oreg);
+      assertEquals ("onAny: (D)", obs.result);
    }
 
    @Test public void anonDynObs ()
