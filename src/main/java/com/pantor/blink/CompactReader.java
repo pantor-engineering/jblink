@@ -328,6 +328,11 @@ public final class CompactReader
       return Vlc.readI64 (buf);
    }
 
+   public static double readF64 (Buf buf) throws BlinkException.Decode
+   {
+      return Double.longBitsToDouble (Vlc.readU64 (buf));
+   }
+
    public static Decimal readDecimal (Buf buf)
       throws BlinkException.Decode
    {
@@ -455,6 +460,16 @@ public final class CompactReader
       long [] v = new long [size];
       for (int i = 0; i < size; ++ i)
 	 v [i] = Vlc.readI64 (buf);
+      return v;
+   }
+   
+   public static double [] readF64Array (Buf buf)
+      throws BlinkException.Decode
+   {
+      int size = Vlc.readU32 (buf);
+      double [] v = new double [size];
+      for (int i = 0; i < size; ++ i)
+	 v [i] = Double.longBitsToDouble (Vlc.readU64 (buf));
       return v;
    }
    

@@ -540,8 +540,7 @@ public class TestCases
    @Test public void dynamicObserver ()
       throws BlinkException, IOException
    {
-      Schema s = toSchema (TreeSchema);
-      ObjectModel om = new DefaultObjectModel (s, TestCases.class);
+      ObjectModel om = toModel (TreeSchema);
       DefaultObsRegistry oreg = new DefaultObsRegistry (om);
 
       MyObs obs = new MyObs ();
@@ -574,10 +573,7 @@ public class TestCases
    @Test public void anonDynObs ()
       throws BlinkException, IOException
    {
-      DefaultObjectModel om = new DefaultObjectModel();
-      om.loadSchemaFromString ("Foo/1 -> u32 Bar");
-      om.setWrapper (TestCases.class);
-
+      ObjectModel om = toModel ("Foo/1 -> u32 Bar");
       DefaultObsRegistry oreg = new DefaultObsRegistry (om);
       final Foo [] sink = new Foo [1];
       oreg.addObserver (
@@ -585,6 +581,24 @@ public class TestCases
 
       compactRoundtrip (om, new Foo (), oreg);
       assertTrue (sink [0] instanceof Foo);
+   }
+
+   public static class Price
+   {
+      public Price () { }
+      public Price (double val) { this.val = val; }
+      public double getValue () { return val; }
+      public void setValue (double val) { this.val = val; }
+      private double val;
+   }
+   
+   @Test public void f64field ()
+      throws BlinkException, IOException
+   {
+      double in = 123.456789;
+      Price out = (Price)compactRoundtrip ("Price/1 -> f64 Value",
+					   new Price (in));
+      assertEquals (in, out.getValue (), 0 /* Exact match */);
    }
 
    @Test public void schemaConstraints ()
@@ -710,22 +724,6 @@ public class TestCases
       private String val;
    }
    
-   @Test public void sampleForJavadoc ()
-      throws BlinkException, IOException
-   {
-      DefaultObjectModel om = new DefaultObjectModel ();
-      om.setWrapper (TestCases.class);
-      om.loadSchemaFromString ("Foz/1 -> string Value");
-      DefaultBlock block = new DefaultBlock ();
-      CompactReader rd = new CompactReader (om);
-      byte [] data = { 0x07, 0x01, 0x05, 0x48, 0x65, 0x6c, 0x6c, 0x6f };
-      rd.read (data, block);
-      assertEquals (1, block.size ());
-      assertTrue (block.getObjects ().get (0) instanceof Foz);
-      Foz foz = (Foz)block.getObjects ().get (0);
-      assertEquals ("Hello", foz.getValue ());
-   }
-
    @Test public void camelback ()
    {
       assertEquals ("FOO_BAR",
@@ -759,8 +757,7 @@ public class TestCases
    @Test public void combinedOregAnddispatcher ()
       throws BlinkException, IOException
    {
-      Schema s = toSchema (TreeSchema);
-      ObjectModel om = new DefaultObjectModel (s, TestCases.class);
+      ObjectModel om = toModel (TreeSchema);
       DefaultObsRegistry oregA = new DefaultObsRegistry (om);
       DefaultObsRegistry oregB = new DefaultObsRegistry (om);
 
@@ -807,18 +804,14 @@ public class TestCases
    private static void decodeCompact (String schema, String data, Block result)
       throws BlinkException, IOException
    {
-      Schema s = toSchema (schema);
-      ObjectModel om = new DefaultObjectModel (s, TestCases.class);
-      CompactReader rd = new CompactReader (om);
+      CompactReader rd = new CompactReader (toModel (schema));
       rd.read (toBuf (data), result);
    }   
 
    private static Object compactRoundtrip (String schema, Object in)
       throws BlinkException, IOException
    {
-      Schema s = toSchema (schema);
-      return compactRoundtrip (new DefaultObjectModel (s, TestCases.class),
-			       in, null);
+      return compactRoundtrip (toModel (schema), in, null);
    }
 
    private static Object compactRoundtrip (ObjectModel om, Object in,
@@ -843,10 +836,8 @@ public class TestCases
    private static String encodeCompact (String schema, Object in)
       throws BlinkException, IOException
    {
-      Schema s = toSchema (schema);
-      ObjectModel om = new DefaultObjectModel (s, TestCases.class);
       ByteArrayOutputStream os = new ByteArrayOutputStream ();
-      CompactWriter wr = new CompactWriter (om, os);
+      CompactWriter wr = new CompactWriter (toModel (schema), os);
       wr.write (in);
       wr.close ();
       ByteBuf result = new ByteBuf (os.toByteArray ());
@@ -861,6 +852,12 @@ public class TestCases
 		    Util.normalizeSpace (s.toString ()).replace ("\"", "'"));
    }
 
+   private static ObjectModel toModel (String lit)
+      throws BlinkException, IOException
+   {
+      return new DefaultObjectModel (toSchema (lit), TestCases.class);
+   }
+   
    private static Schema toSchema (String lit)
       throws BlinkException, IOException
    {

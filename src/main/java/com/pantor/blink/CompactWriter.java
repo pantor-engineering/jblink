@@ -190,6 +190,12 @@ public final class CompactWriter
       Vlc.writeI64 (val, buf);
    }
 
+   public static void writeF64 (double val, Buf buf)
+      throws BlinkException.Encode
+   {
+      Vlc.writeU64 (Double.doubleToLongBits (val), buf);
+   }
+
    public static void writeEnumVal (Integer val, Buf buf)
       throws BlinkException.Encode
    {
@@ -326,6 +332,15 @@ public final class CompactWriter
       buf.reserve (val.length * Vlc.Int64MaxSize);
       for (int i = 0; i < val.length; ++ i)
 	 Vlc.writeI64 (val [i], buf);
+   }
+
+   public static void writeF64Array (double [] val, Buf buf)
+      throws BlinkException.Encode
+   {
+      Vlc.writeU32 (val.length, buf);
+      buf.reserve (val.length * Vlc.Int64MaxSize);
+      for (int i = 0; i < val.length; ++ i)
+	 Vlc.writeI64 (Double.doubleToLongBits (val [i]), buf);
    }
 
    public static void writeDecimalArray (Decimal [] val, Buf buf)
