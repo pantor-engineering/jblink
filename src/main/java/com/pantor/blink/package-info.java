@@ -148,8 +148,6 @@ CompactReader rd = new CompactReader (om, oreg);</pre></blockquote>
    <li>Support binding for decimal fields to methods that take the
    mantissa and exponent as separate components</li>
    <li>Allow optional POD typed fields to be represented using boxed types</li>
-   <li>Turn Buf into an interface to allow for other, possibly native,
-   implementations</li>
    </ul>
 */
 
