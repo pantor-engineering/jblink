@@ -248,20 +248,58 @@ public final class CompactWriter
    public static void writeString (String val, Buf buf)
       throws BlinkException.Encode
    {
-      try
-      {
-	 byte [] utf8 = val.getBytes ("UTF-8");
-	 buf.reserve (utf8.length + Vlc.Int32MaxSize);
-	 Vlc.writeU32 (utf8.length, buf);
-	 buf.write (utf8);
-      }
-      catch (UnsupportedEncodingException e)
-      {
-	 // FIXME: Should we raise BlinkException.Encode instead?
-	 throw new RuntimeException (e);
-      }
-   }
+      // Optimize for ASCII strings shorter than 128 UTF-8 encoded bytes
+      
+      int start = buf.getPos ();
+      int len = val.length ();
+      int allocatedPreamble = 0;
+      int i = 0;
+      int size = 0;
 
+     LONG:
+      if (len < 128)
+      {
+	 allocatedPreamble = 1;
+	 buf.reserve (allocatedPreamble + len);
+	 buf.step ();
+	 for (; i < len; ++ i)
+	 {
+	    char c = val.charAt (i);
+	    if (c < 0x0080)
+	       buf.write (c);
+	    else
+	    {
+	       size = i;
+	       buf.reserve (Utf8Util.getConservativeSize (len - i));
+	       break LONG;
+	    }
+	 }
+
+	 int save = buf.getPos ();
+	 buf.setPos (start);
+	 Vlc.write7 (len, buf);
+	 buf.setPos (save);
+	 
+	 return;
+      }
+      else
+      {
+	 allocatedPreamble = 2;
+	 buf.reserve (allocatedPreamble + Utf8Util.getConservativeSize (len));
+	 buf.step (allocatedPreamble);
+      }
+
+      size += Utf8Util.write (val, i, buf);
+
+      int toShift = Vlc.getUintSize (size) - allocatedPreamble;
+      if (toShift > 0)
+	 buf.shift (start + allocatedPreamble, toShift);
+      int save = buf.getPos ();
+      buf.setPos (start);
+      Vlc.writeU32 (size, buf);
+      buf.setPos (save);
+   }
+   
    public static void writeU8Array (byte [] val, Buf buf)
       throws BlinkException.Encode
    {
@@ -441,8 +479,6 @@ public final class CompactWriter
       buf.write (0);
    }
 
-   private static final int TwoBytePreambleMax = (1 << 14) - 1;
-
    public void writeObject (Object o) throws BlinkException
    {
       Encoder enc = null;
@@ -456,7 +492,7 @@ public final class CompactWriter
 	 enc.encode (o, buf, this);
 	 int end = buf.getPos ();
 	 int size = end - start;
-	 if (size <= TwoBytePreambleMax)
+	 if (size <= Vlc.TwoByteUintMax)
 	 {
 	    buf.setPos (start - 2);
 	    Vlc.write14 (size, buf);

@@ -257,6 +257,15 @@ public final class DirectBuf implements Buf
    public void step (int delta) { pos += delta; }
 
    @Override
+   public void shift (int from, int delta)
+   {
+      // FIXME: Verify that copyMemory handles overlapping src and dst
+      unsafe.copyMemory (null, start + from, null, start + from + delta,
+			 pos - from - start);
+      pos += delta;
+   }
+
+   @Override
    public boolean empty () { return pos >= end; }
 
    @Override

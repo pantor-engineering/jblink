@@ -190,6 +190,28 @@ public class TestCases
       assertEquals ("Hello", result.getBaz ());
    }
 
+   @Test public void stringCompactRoundtrip ()
+      throws BlinkException, IOException
+   {
+      ObjectModel om = toModel ("Foo/1 -> string Baz");
+      Foo foo = new Foo ();
+
+      foo.setBaz ("räksmörgås");
+      assertEquals (((Foo)compactRoundtrip (om, foo)).getBaz (), foo.getBaz ());
+
+      foo.setBaz ("ööööööööööööööööööööööööööööööööööööööööööööööö" +
+		  "ööööööööööööööööööööööööööööööööööööööööööööööö" +
+		  "ööööööööööööööööööööööööööööööööö");
+      assertEquals (((Foo)compactRoundtrip (om, foo)).getBaz (), foo.getBaz ());
+
+      foo.setBaz ("ööööööööööööööööööööööööööööööööööööööööööööööö" +
+		  "ööööööööööööööööööööööööööööööööööööööööööööööö" +
+		  "ööööööööööööööööööööööööööööööööööööööööööööööö" +
+		  "ööööööööööööööööööööööööööööööööööööööööööööööö" +
+		  "ööööööööööööööööööööööööööööööööööööööööööööööö");
+      assertEquals (((Foo)compactRoundtrip (om, foo)).getBaz (), foo.getBaz ());
+   }
+
    @Test public void compactDecode1 ()
       throws BlinkException, IOException
    {
@@ -825,7 +847,13 @@ public class TestCases
    private static Object compactRoundtrip (String schema, Object in)
       throws BlinkException, IOException
    {
-      return compactRoundtrip (toModel (schema), in, null);
+      return compactRoundtrip (toModel (schema), in);
+   }
+
+   private static Object compactRoundtrip (ObjectModel om, Object in)
+      throws BlinkException, IOException
+   {
+      return compactRoundtrip (om, in, null);
    }
 
    private static Object compactRoundtrip (ObjectModel om, Object in,

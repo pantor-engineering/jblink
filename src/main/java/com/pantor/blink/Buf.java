@@ -272,6 +272,19 @@ public interface Buf
    void step (int delta);
 
    /**
+      Shifts a part of the buffer a specified number of positions.
+      The part to shift starts at from and ends with the byte just
+      before the current position. The current position is adjusted by
+      adding the delta to it.
+      
+      @param from the index of the first byte to shift
+      @param delta a numer of positions to shift. A positive value results
+      in a shift to the right and a negative value shifts to the left.
+   */
+
+   void shift (int from, int delta);
+   
+   /**
       Returns {@code true} if the buffer contains no bytes
 
       @return {@code true} if the buffer is empty

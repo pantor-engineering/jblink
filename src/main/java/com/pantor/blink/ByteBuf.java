@@ -241,6 +241,13 @@ public final class ByteBuf implements Buf
    public void step (int delta) { pos += delta; }
 
    @Override
+   public void shift (int from, int delta)
+   {
+      System.arraycopy (data_, from, data_, from + delta, pos - from);
+      pos += delta;
+   }
+   
+   @Override
    public boolean empty () { return pos >= end; }
 
    @Override

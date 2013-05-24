@@ -42,6 +42,25 @@ public final class Vlc
    public final static int Int16MaxSize = 3;
    public final static int Int32MaxSize = 5;
    public final static int Int64MaxSize = 9;
+
+   public final static int OneByteUintMax = (1 << 7) - 1;
+   public final static int TwoByteUintMax = (1 << 14) - 1;
+   public final static int ThreeByteUintMax = (1 << 16) - 1;
+   public final static int FourByteUintMax = (1 << 24) - 1;
+
+   public static int getUintSize (int x)
+   {
+      if (x <= OneByteUintMax)
+	 return 1;
+      else if (x <= TwoByteUintMax)
+	 return 2;
+      else if (x <= ThreeByteUintMax)
+	 return 3;
+      else if (x <= FourByteUintMax)
+	 return 4;
+      else
+	 return 5;
+   }
    
    public static void write7 (int val, Buf buf)
    {
