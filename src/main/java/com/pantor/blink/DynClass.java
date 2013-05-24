@@ -1390,7 +1390,7 @@ public final class DynClass
       curMtod.addIns (0x0a);
       return this;
    }
-
+   
    public DynClass ldc (int val)
    {
       curMtod.addIns (new LdcIntIns (val));
@@ -1433,6 +1433,55 @@ public final class DynClass
       return this;
    }
 
+   public DynClass ldc (int pos, int val)
+   {
+      curMtod.setIns (pos, new LdcIntIns (val));
+      return this;
+   }
+
+   public DynClass ldc (int pos, float val)
+   {
+      curMtod.setIns (pos, new LdcFloatIns (val));
+      return this;
+   }
+
+   public DynClass ldc (int pos, long val)
+   {
+      curMtod.setIns (pos, new LdcLongIns (val));
+      return this;
+   }
+
+   public DynClass ldc (int pos, double val)
+   {
+      curMtod.setIns (pos, new LdcDoubleIns (val));
+      return this;
+   }
+
+   public DynClass ldc (int pos, String name)
+   {
+      curMtod.setIns (pos, new LdcStrIns (name));
+      return this;
+   }
+
+   public DynClass ldcClass (int pos, String name)
+   {
+      curMtod.setIns (pos, new LdcClassIns (name));
+      return this;
+   }
+
+   public DynClass ldcClass (int pos, Class<?> c)
+   {
+      curMtod.setIns (pos, new LdcClassIns (c.getName ()));
+      return this;
+   }
+
+   public int reserveIns ()
+   {
+      int pos = curMtod.instructions.size ();
+      curMtod.addIns (null);
+      return pos;
+   }
+   
    public DynClass ldiv ()
    {
       curMtod.addIns (0x6d);
@@ -2579,6 +2628,11 @@ public final class DynClass
       void setMaxStack (int depth)
       {
 	 maxStack = Math.max (maxStack, depth);
+      }
+
+      void setIns (int pos, Ins ins)
+      {
+	 instructions.set (pos, ins);
       }
 
       final String name;

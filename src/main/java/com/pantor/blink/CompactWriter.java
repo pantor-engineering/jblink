@@ -486,7 +486,7 @@ public final class CompactWriter
       try
       {
 	 enc = compiler.getEncoder (o.getClass ());
-	 buf.reserve (enc.getMinSize () + 2 /* Size preamble */);
+	 buf.reserve (enc.getTidSize () + 2 /* Size preamble */);
 	 buf.step (2); // Reserve space for a two byte length preamble
 	 int start = buf.getPos ();
 	 enc.encode (o, buf, this);
@@ -511,28 +511,25 @@ public final class CompactWriter
       }
    }
 
-   private static final int AutoFlushThreshold = 4096;
+   private static final int AutoFlushThreshold = 4096 - 256;
 
    //////////////////////////////////////////////////////////////////////
 
    public abstract static class Encoder
    {
-      protected Encoder (byte [] tid, int minSize, Class<?> type,
-			 Schema.Group grp)
+      protected Encoder (byte [] tid, Class<?> type, Schema.Group grp)
       {
 	 this.tid = tid;
-	 this.minSize = minSize + (tid != null ? tid.length : 0);
 	 this.type = type;
 	 this.grp = grp;
       }
 
-      public int getMinSize () { return minSize; }
-
       protected abstract void encode (Object o, Buf buf, CompactWriter wr)
 	 throws BlinkException.Encode, BlinkException.Binding;
+
+      public int getTidSize () { return tid.length; }
       
       protected final byte [] tid;
-      private final int minSize;
       private final Class<?> type;
       private final Schema.Group grp;
    }
