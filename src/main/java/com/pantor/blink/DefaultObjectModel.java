@@ -52,11 +52,13 @@ import java.io.Reader;
    convenience.
 
    <p>The mapping between Java classes and groups specified in the
-   Blink schema can be parameterized in two ways: you can set a
-   wrapper class using the {@code setWrapper} method and you can set a
-   package name using the {@code setPackage} method. These two
-   parameters are referred to as {@code <wrapper>} and {@code
-   <package>} in the patterns below.</p>
+   Blink schema can be parameterized in three ways: you can set a
+   wrapper class using the {@code setWrapper} method, you can set a
+   default package name using the {@code setPackage} method and you
+   can set a package name per Blink namespace using the {@code
+   setNamespacePackage} method. These three parameters are referred to
+   as {@code <wrapper>}, {@code <package>} and {@code <package[ns]>} in
+   the patterns below.</p>
    
    <p>The mapping process tires to form a fully qualified class name
    based on a list of patterns. Each pattern is tested in the order
@@ -91,6 +93,10 @@ import java.io.Reader;
    <ol>
    <li>{@code <wrapper>$<name>}</li>
    <li>{@code <wrapper>$<alias>}</li>
+   <li>{@code <package[ns]>.<ns>$<name>}</li>
+   <li>{@code <package[ns]>.<ns>$<alias>}</li>
+   <li>{@code <package[ns]>.<name>}</li>
+   <li>{@code <package[ns]>.<alias>}</li>
    <li>{@code <package>.<camelbackToUnderscoreLower(ns)>.<name>}</li>
    <li>{@code <package>.<camelbackToUnderscoreLower(ns)>.<alias>}</li>
    <li>{@code <package>.<ns>$<name>}</li>
@@ -385,7 +391,7 @@ public final class DefaultObjectModel implements ObjectModel
    }
 
    /**
-      Sets the package property of this object model. See the general
+      Sets the default package property of this object model. See the general
       description of the {@link DefaultObjectModel} for its usage.
 
       @param pkg a package name used to constructs candidate class names in
@@ -397,6 +403,23 @@ public final class DefaultObjectModel implements ObjectModel
       synchronized (monitor)
       {
 	 this.pkg = pkg;
+      }
+   }
+
+   /**
+      Sets a namespace specific package property. See the general
+      description of the {@link DefaultObjectModel} for its usage.
+
+      @param ns a Blink namespace name
+      @param pkg a package name used to constructs candidate class names in
+      the mapping process for groups in the specified namespace
+   */
+   
+   public void setNamespacePackage (String ns, String pkg)
+   {
+      synchronized (monitor)
+      {
+	 pkgByNs.put (ns, pkg);
       }
    }
 
@@ -741,28 +764,41 @@ public final class DefaultObjectModel implements ObjectModel
       {
 	 if (name.isQualified ())
 	 {
-	    String nsPkg = Util.escName (splitCamelbackLower (name.getNs ()));
-	    if (Util.isSet (pkg))
+	    String ns = name.getNs ();
+	    String nsPkg = pkgByNs.get (ns);
+	    if (nsPkg != null)
 	    {
-	       // <package>.<ns>.<name|alias>
-	       c = getIncludedClass (pkg + "." + nsPkg + ".",  name, comp);
-
+	       // <package[ns]>.<ns>$<name|alias>
+	       c = getIncludedClass (nsPkg + "." + Util.escName (ns) + "$",
+				     name, comp);
 	       if (c == null)
-		  // <package>.<ns>$<name|alias>
-		  c = getIncludedClass (pkg + "." +
-					Util.escName (name.getNs ()) + "$",
-					name, comp);
-	       
+		  // <package[ns]>.<name|alias>
+		  c = getIncludedClass (nsPkg + ".", name, comp);
 	    }
-	    else
-	    {
-	       // <ns>.<name|alias>
-	       c = getIncludedClass (nsPkg + ".", name, comp);
 
-	       if (c == null)
-		  // <ns>$<name|alias>
-		  c = getIncludedClass (Util.escName (name.getNs ()) + "$",
-					name, comp);
+	    if (c == null)
+	    {
+	       nsPkg = Util.escName (splitCamelbackLower (ns));
+	       if (Util.isSet (pkg))
+	       {
+		  // <package>.<ns>.<name|alias>
+		  c = getIncludedClass (pkg + "." + nsPkg + ".",  name, comp);
+
+		  if (c == null)
+		     // <package>.<ns>$<name|alias>
+		     c = getIncludedClass (pkg + "." + Util.escName (ns) + "$",
+					   name, comp);
+	       
+	       }
+	       else
+	       {
+		  // <ns>.<name|alias>
+		  c = getIncludedClass (nsPkg + ".", name, comp);
+
+		  if (c == null)
+		     // <ns>$<name|alias>
+		     c = getIncludedClass (Util.escName (ns) + "$", name, comp);
+	       }
 	    }
 	 }
 	 else
@@ -1085,6 +1121,8 @@ public final class DefaultObjectModel implements ObjectModel
       new HashMap<Long, Schema.Group> ();
    private final HashMap<NsName, Schema.Group> unboundByName =
       new HashMap<NsName, Schema.Group> ();
+   private final HashMap<String, String> pkgByNs =
+      new HashMap<String, String> ();
    private final Schema schema;
    private String pkg;
    private Class<?> wrapper;
