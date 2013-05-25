@@ -4,8 +4,8 @@ jblink
 Java implementation of the Blink protocol (http://blinkprotocol.org)
 by Pantor Engineering AB (http://www.pantor.com).
 
-Documentation including an introduction to jblink can be found at
-build/docs/javadoc/index.html.
+Until we have made the jblink JavaDoc documentation available online, it can be browsed at 
+build/docs/javadoc/index.html after you have built jblink.
 
 BUILD
 =====
