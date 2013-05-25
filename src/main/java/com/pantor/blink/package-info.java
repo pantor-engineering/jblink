@@ -77,7 +77,7 @@ byte [] data = { 0x07, 0x01, 0x05, 0x48, 0x65, 0x6c, 0x6c, 0x6f {@literal }};
 rd.read (data, block);</pre></blockquote>
 
    <p>The decoder appends decoded messages to a {@code Block} where we can
-   later retrieve them throught the {@code getObjects} method:</p>
+   later retrieve them using the {@code getObjects} method:</p>
    
    <blockquote><pre>Foo foo = (Foo)block.getObjects ().get (0);
 System.out.println (foo.getValue ()); // prints Hello
@@ -89,7 +89,7 @@ System.out.println (foo.getValue ()); // prints Hello
    ObserverRegistry}. In its most basic form an observer is an
    implementation of the {@link com.pantor.blink.Observer}
    interface. However, a more flexible and powerful model is provided
-   through the {@link com.pantor.blink.DefaultObsRegistry} class.
+   by the {@link com.pantor.blink.DefaultObsRegistry} class.
    This class allows us to register POJOs with mathing observer
    methods.</p>
 
