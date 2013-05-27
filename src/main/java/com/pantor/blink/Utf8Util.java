@@ -43,12 +43,12 @@ public final class Utf8Util
       return write (val, 0, buf);
    }
 
-   public static int write (String val, int i, Buf buf)
+   public static int write (String val, int from, Buf buf)
       throws BlinkException.Encode
    {
       int len = val.length ();
       int start = buf.getPos ();
-      for (; i < len; ++ i)
+      for (int i = from; i < len; ++ i)
       {
 	 char c = val.charAt (i);
 	 if (c < 0x0080)
