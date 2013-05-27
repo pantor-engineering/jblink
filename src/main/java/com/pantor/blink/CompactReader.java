@@ -53,7 +53,7 @@ import java.io.InputStream;
    supply the rest of the bytes in subsequent calls.</p>
  */
 
-public final class CompactReader
+public final class CompactReader implements Reader
 {
    /**
       The default maximum message size is 500M
@@ -96,9 +96,10 @@ public final class CompactReader
       been specified.
 
       @param data the bytes to decode
-      @throws BlinkException if a schema or binding problem occurs
+      @throws BlinkException if a decoding, schema or binding problem occurs
    */
-   
+
+   @Override
    public void read (byte [] data) throws BlinkException
    {
       read (new ByteBuf (data));
@@ -112,9 +113,10 @@ public final class CompactReader
       @param data the bytes to decode
       @param from the index of the first byte to decode
       @param len the number of bytes to decode
-      @throws BlinkException if a schema or binding problem occurs
+      @throws BlinkException if a decoding, schema or binding problem occurs
    */
    
+   @Override
    public void read (byte [] data, int from, int len) throws BlinkException
    {
       read (new ByteBuf (data, from, len));
@@ -130,9 +132,10 @@ public final class CompactReader
       @param data the bytes to decode
       @param block the block that collects the decoded messages and is
       responsible for allocating new objects
-      @throws BlinkException if a schema or binding problem occurs
+      @throws BlinkException if a decoding, schema or binding problem occurs
    */
    
+   @Override
    public void read (byte [] data, Block block) throws BlinkException
    {
       read (new ByteBuf (data), block);
@@ -151,9 +154,10 @@ public final class CompactReader
       @param len the number of bytes to decode
       @param block the block that collects the decoded messages and is
       responsible for allocating new objects
-      @throws BlinkException if a schema or binding problem occurs
+      @throws BlinkException if a decoding, schema or binding problem occurs
    */
    
+   @Override
    public void read (byte [] data, int from, int len, Block block)
       throws BlinkException
    {
@@ -168,10 +172,11 @@ public final class CompactReader
       <p>It also allocates objects as needed from the specified block.</p>
 
       @param is an input stream
-      @throws BlinkException if a schema or binding problem occurs
+      @throws BlinkException if a decoding, schema or binding problem occurs
       @throws IOException if an input error occurs
    */
    
+   @Override
    public void read (InputStream is) throws IOException, BlinkException
    {
       Buf b = DirectBuf.newInstance ();
@@ -191,9 +196,10 @@ public final class CompactReader
       been specified.
 
       @param buf the bytes to decode
-      @throws BlinkException if a schema or binding problem occurs
+      @throws BlinkException if a decoding, schema or binding problem occurs
    */
    
+   @Override
    public void read (Buf buf) throws BlinkException
    {
       read (buf, blankBlock);
@@ -213,9 +219,10 @@ public final class CompactReader
       @param buf the bytes to decode
       @param block the block that collects the decoded messages and is
       responsible for allocating new objects
-      @throws BlinkException if a schema or binding problem occurs
+      @throws BlinkException if a decoding, schema or binding problem occurs
    */
    
+   @Override
    public void read (Buf buf, Block block) throws BlinkException
    {
       curBlock = block;
@@ -264,6 +271,7 @@ public final class CompactReader
       @return {@code true} if there is no partial message pending
    */
 
+   @Override
    public boolean isComplete ()
    {
       return missingData == 0 && missingMsgSizeBytes == 0;
@@ -276,6 +284,7 @@ public final class CompactReader
       indicated by {@code isComplete}
    */
 
+   @Override
    public void close () throws BlinkException.Decode
    {
       if (! isComplete ())

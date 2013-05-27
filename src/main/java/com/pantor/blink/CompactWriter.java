@@ -37,7 +37,6 @@ package com.pantor.blink;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.UnsupportedEncodingException;
 
 /**
    The {@code CompactWriter} implements an encoder for the Blink
@@ -47,7 +46,7 @@ import java.io.UnsupportedEncodingException;
    {@code ObjectModel}.
 */
 
-public final class CompactWriter
+public final class CompactWriter implements Writer
 {
    /**
       Creates a writer for the compact binary format. It writes
@@ -75,7 +74,8 @@ public final class CompactWriter
       @throws BlinkException if there is a schema or binding problem
       @throws IOException if there is an output error
    */
-   
+
+   @Override
    public void write (Object o) throws BlinkException, IOException
    {
       if (buf.getPos () >= AutoFlushThreshold)
@@ -94,8 +94,8 @@ public final class CompactWriter
       @throws IOException if there is an output error
    */
    
-   public void write (Object [] objs)
-      throws BlinkException, IOException
+   @Override
+   public void write (Object [] objs) throws BlinkException, IOException
    {
       for (Object o : objs)
 	 write (o);
@@ -114,11 +114,30 @@ public final class CompactWriter
       @throws IOException if there is an output error
    */
    
+   @Override
    public void write (Object [] objs, int from, int len)
       throws BlinkException, IOException
    {
       for (int i = from; i < from + len; ++ i)
 	 write (objs [i]);
+   }
+
+   /**
+      Encodes an iterable collection of objects. It flushes the
+      underlying buffer if necessary but you should call the {@code
+      flush} method explicitly if you require a flush to the output
+      stream after this write call.
+
+      @param objs the objects to write
+      @throws BlinkException if there is a schema or binding problem
+      @throws IOException if there is an output error
+   */
+   
+   @Override
+   public void write (Iterable<?> objs) throws BlinkException, IOException
+   {
+      for (Object o : objs)
+	 write (o);
    }
 
    /**
@@ -128,6 +147,7 @@ public final class CompactWriter
       @throws IOException if there is an output error
    */
    
+   @Override
    public void flush () throws IOException
    {
       buf.flushTo (os);
@@ -141,6 +161,7 @@ public final class CompactWriter
       @throws IOException if there is an output error
    */
    
+   @Override
    public void close () throws IOException
    {
       buf.flushTo (os);

@@ -36,8 +36,8 @@
 package com.pantor.blink;
 
 /**
-   The {@code Block} class is the interface a decoder uses for
-   collecting decoded objects. It is also used for allocating new
+   The {@code Block} interface provides methods to be used by decoders
+   for collecting decoded objects. It is also used for allocating new
    objects before populating them. This enables object pooling
    strategies.
 */
