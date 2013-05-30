@@ -35,9 +35,6 @@
 
 package com.pantor.blink;
 
-import java.io.IOException;
-import java.io.InputStream;
-
 /**
    The {@code Reader} interface is implemented by format specific
    decoders. The basic operation of a decoder is to decode sequences
@@ -104,43 +101,31 @@ public interface Reader
       throws BlinkException;
 
    /**
-      Decodes bytes from the specified input stream.
+      Decodes bytes read from the specified byte source
 
-      <p>It also allocates objects as needed from the specified block.</p>
-
-      @param is an input stream
-      @throws BlinkException if a decoding, schema or binding problem occurs
-      @throws IOException if an input error occurs
-   */
-   
-   void read (InputStream is) throws IOException, BlinkException;
-
-   /**
-      Decodes bytes specified in a buffer.
-
-      @param buf the bytes to decode
+      @param src the bytes to decode
       @throws BlinkException if a decoding, schema or binding problem occurs
    */
    
-   void read (Buf buf) throws BlinkException;
+   void read (ByteSource src) throws BlinkException;
 
    /**
-      Decodes bytes specified in a buffer. It appends decoded
+      Decodes bytes read from the specified byte source. It appends decoded
       messages to the specified block.
 
       <p>It also allocates objects as needed from the specified block.</p>
 
       <p>This is the most native form of the {@code read} methods. All other
-      read methods will create temporary {@code Buf} objects and/or use
+      read methods will create temporary {@code ByteSource} objects and/or use
       a private {@link DefaultBlock} instance managed by this reader.</p>
       
-      @param buf the bytes to decode
+      @param src the bytes to decode
       @param block the block that collects the decoded messages and is
       responsible for allocating new objects
       @throws BlinkException if a decoding, schema or binding problem occurs
    */
 
-   void read (Buf buf, Block block) throws BlinkException;
+   void read (ByteSource src, Block block) throws BlinkException;
 
    /**
       Returns {@code true} if there is no partial message pending

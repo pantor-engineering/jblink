@@ -35,57 +35,30 @@
 
 package com.pantor.blink;
 
-public final class Utf8Util
+import java.io.IOException;
+import java.io.InputStream;
+
+public final class Readers
 {
-   public static int write (String val, ByteSink sink)
-      throws BlinkException.Encode
-   {
-      return write (val, 0, sink);
-   }
+   /**
+      Decodes bytes from the specified input stream using the specified reader
 
-   public static int write (String val, int from, ByteSink sink)
-      throws BlinkException.Encode
+      @param is an input stream
+      @throws BlinkException if a decoding, schema or binding problem occurs
+      @throws IOException if an input error occurs
+   */
+   
+   static <T> void read (T src, Reader rd)
+      throws BlinkException, IOException
    {
-      int len = val.length ();
-      int start = sink.getPos ();
-      for (int i = from; i < len; ++ i)
-      {
-	 char c = val.charAt (i);
-	 if (c < 0x0080)
-	    sink.write (c);
-	 else if (c < 0x0800)
-	    sink.write (0xc0 | ((c >> 6) & 0x1f),
-			0x80 |   c       & 0x3f);
-	 else if (c < 0xd800 || c > 0xdfff)
-	    sink.write (0xe0 | ((c >> 12) & 0x0f),
-			0x80 | ((c >> 6)  & 0x3f),
-			0x80 |   c        & 0x3f);
-	 else
+      Buf b = DirectBuf.newInstance ();
+      for (;;)
+	 if (b.fillFrom (src))
 	 {
-	    ++ i;
-	    if (i < len)
-	    {
-	       char c2 = val.charAt (i);
-	       int u = (int)c << 10 + (int)c2 + SurrogateOffset;
-
-	       sink.write (0xf0 | ((u >> 18) & 0x07),
-			   0x80 | ((u >> 12) & 0x3f),
-			   0x80 | ((u >> 6)  & 0x3f),
-			   0x80 |   u        & 0x3f);
-	    }
-	    else
-	       throw new BlinkException.Encode (
-		  "Incomplete UTF-16 surrogate pair");
+	    b.flip ();
+	    rd.read (b);
 	 }
-      }
-
-      return sink.getPos () - start;
+	 else
+	    break;
    }
-
-   public static int getConservativeSize (int size)
-   {
-      return size * 4;
-   }
-
-   private final static int SurrogateOffset = 0x10000 - (0xD800 << 10) - 0xDC00;
 }

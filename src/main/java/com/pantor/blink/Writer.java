@@ -51,7 +51,7 @@ public interface Writer
 
       @param o the object to write
       @throws BlinkException if there is a schema or binding problem
-      @throws IOException if there is an output error
+      @throws IOException if there was an output error
    */
    
    void write (Object o) throws BlinkException, IOException;
@@ -61,7 +61,7 @@ public interface Writer
 
       @param objs the objects to write
       @throws BlinkException if there is a schema or binding problem
-      @throws IOException if there is an output error
+      @throws IOException if there was an output error
    */
    
    void write (Object [] objs) throws BlinkException, IOException;
@@ -73,7 +73,7 @@ public interface Writer
       @param from the index of the first object to encode
       @param len the number of objects to encode
       @throws BlinkException if there is a schema or binding problem
-      @throws IOException if there is an output error
+      @throws IOException if there was an output error
    */
    
    void write (Object [] objs, int from, int len)
@@ -84,14 +84,14 @@ public interface Writer
 
       @param objs the objects to write
       @throws BlinkException if there is a schema or binding problem
-      @throws IOException if there is an output error
+      @throws IOException if there was an output error
    */
    
    void write (Iterable<?> objs) throws BlinkException, IOException;
 
    /**
       Flushes any pending encoded messages and any underlying output stream
-      @throws IOException if there is an output error
+      @throws IOException if there was an output error
    */
    
    void flush () throws IOException;
@@ -100,7 +100,7 @@ public interface Writer
       Flushes any pending encoded messages and closes any underlying
       output stream.
 
-      @throws IOException if there is an output error
+      @throws IOException if there was an output error
    */
    
    void close () throws IOException;

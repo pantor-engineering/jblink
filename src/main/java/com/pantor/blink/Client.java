@@ -243,13 +243,12 @@ public final class Client implements Runnable
       {
 	 is = sock.getInputStream ();
 	 CompactReader rd = new CompactReader (om, oreg);
-	 byte [] buf = new byte [4096];
+	 Buf buf = DirectBuf.newInstance (4096);
 	 for (;;)
 	 {
-	    int n = is.read (buf);
-	    if (n == -1)
+	    if (! buf.fillFrom (is))
 	       break;
-	    rd.read (buf, 0, n);
+	    rd.read (buf);
 	 }
 
 	 log.info (sock + ": closed");

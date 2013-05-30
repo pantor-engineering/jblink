@@ -50,9 +50,23 @@ public final class CompactWriter implements Writer
 {
    /**
       Creates a writer for the compact binary format. It writes
+      encoded messages to the specified {@code ByteSink}.
+
+      @param om an object model
+      @param sink a sink that will receive the encoded bytes
+   */
+   
+   public CompactWriter (ObjectModel om, ByteSink sink)
+   {
+      compiler = new CompactWriterCompiler (om);
+      this.sink = sink;
+   }
+
+   /**
+      Creates a writer for the compact binary format. It writes
       encoded messages to the specified {@code OutputStream}. This
       writer handles its own buffering so the specified {@code
-      OutputStream} should not be buffered in itself.
+      OutputStream} need not be buffered in itself.
 
       @param om an object model
       @param os an output stream that will receive the encoded bytes
@@ -60,38 +74,37 @@ public final class CompactWriter implements Writer
    
    public CompactWriter (ObjectModel om, OutputStream os)
    {
-      compiler = new CompactWriterCompiler (om);
-      this.os = os;
+      this (om, new OutputStreamSink (os));
    }
 
    /**
-      Encodes an object. It flushes the underlying buffer if
+      Encodes an object. It flushes the underlying sink if
       necessary but you should call the {@code flush} method
       explicitly if you require a flush to the output stream after
       this write call.
 
       @param o the object to write
       @throws BlinkException if there is a schema or binding problem
-      @throws IOException if there is an output error
+      @throws IOException if there was an output error
    */
 
    @Override
    public void write (Object o) throws BlinkException, IOException
    {
-      if (buf.getPos () >= AutoFlushThreshold)
+      if (sink.getPos () >= AutoFlushThreshold)
 	 flush ();
       writeObject (o);
    }
 
    /**
-      Encodes an array of objects. It flushes the underlying buffer if
+      Encodes an array of objects. It flushes the underlying sink if
       necessary but you should call the {@code flush} method
       explicitly if you require a flush to the output stream after
       this write call.
 
       @param objs the objects to write
       @throws BlinkException if there is a schema or binding problem
-      @throws IOException if there is an output error
+      @throws IOException if there was an output error
    */
    
    @Override
@@ -103,7 +116,7 @@ public final class CompactWriter implements Writer
 
    /**
       Encodes a slice of an array of objects. It flushes the
-      underlying buffer if necessary but you should call the {@code
+      underlying sink if necessary but you should call the {@code
       flush} method explicitly if you require a flush to the output
       stream after this write call.
 
@@ -111,7 +124,7 @@ public final class CompactWriter implements Writer
       @param from the index of the first object to encode
       @param len the number of objects to encode
       @throws BlinkException if there is a schema or binding problem
-      @throws IOException if there is an output error
+      @throws IOException if there was an output error
    */
    
    @Override
@@ -124,13 +137,13 @@ public final class CompactWriter implements Writer
 
    /**
       Encodes an iterable collection of objects. It flushes the
-      underlying buffer if necessary but you should call the {@code
+      underlying sink if necessary but you should call the {@code
       flush} method explicitly if you require a flush to the output
       stream after this write call.
 
       @param objs the objects to write
       @throws BlinkException if there is a schema or binding problem
-      @throws IOException if there is an output error
+      @throws IOException if there was an output error
    */
    
    @Override
@@ -141,137 +154,141 @@ public final class CompactWriter implements Writer
    }
 
    /**
-      Flushes any pending encoded messages in the interal buffer to
-      the output stream. It also flushes the underlying output stream.
+      Flushes any pending encoded messages in the underlying sink
 
-      @throws IOException if there is an output error
+      @throws IOException if there was an output error
    */
    
    @Override
    public void flush () throws IOException
    {
-      buf.flushTo (os);
-      os.flush ();
+      sink.flush ();
    }
 
    /**
-      Flushes any pending encoded messages in the interal buffer to
-      the output stream and then closes the underlying output stream.
+      Flushes any pending encoded messages and closes the underlying sink
 
-      @throws IOException if there is an output error
+      @throws IOException if there was an output error
    */
    
    @Override
    public void close () throws IOException
    {
-      buf.flushTo (os);
-      os.close ();
+      sink.close ();
    }
 
    // Primitive values
    //////////////////////////////////////////////////////////////////////
    
-   public static void writeU8 (byte val, Buf buf) throws BlinkException.Encode
-   {
-      Vlc.writeU32 ((int)val, buf);
-   }
-
-   public static void writeI8 (byte val, Buf buf) throws BlinkException.Encode
-   {
-      Vlc.writeI32 ((int)val, buf);
-   }
-
-   public static void writeU16 (short val, Buf buf) throws BlinkException.Encode
-   {
-      Vlc.writeU32 ((int)val, buf);
-   }
-
-   public static void writeI16 (short val, Buf buf) throws BlinkException.Encode
-   {
-      Vlc.writeI32 ((int)val, buf);
-   }
-
-   public static void writeU32 (int val, Buf buf) throws BlinkException.Encode
-   {
-      Vlc.writeU32 (val, buf);
-   }
-
-   public static void writeI32 (int val, Buf buf) throws BlinkException.Encode
-   {
-      Vlc.writeI32 (val, buf);
-   }
-
-   public static void writeU64 (long val, Buf buf) throws BlinkException.Encode
-   {
-      Vlc.writeU64 (val, buf);
-   }
-
-   public static void writeI64 (long val, Buf buf) throws BlinkException.Encode
-   {
-      Vlc.writeI64 (val, buf);
-   }
-
-   public static void writeF64 (double val, Buf buf)
+   public static void writeU8 (byte val, ByteSink sink)
       throws BlinkException.Encode
    {
-      Vlc.writeU64 (Double.doubleToLongBits (val), buf);
+      Vlc.writeU32 ((int)val, sink);
    }
 
-   public static void writeEnumVal (Integer val, Buf buf)
+   public static void writeI8 (byte val, ByteSink sink)
       throws BlinkException.Encode
    {
-      Vlc.writeI32 (val != null ? val.intValue () : 0, buf);
+      Vlc.writeI32 ((int)val, sink);
+   }
+
+   public static void writeU16 (short val, ByteSink sink)
+      throws BlinkException.Encode
+   {
+      Vlc.writeU32 ((int)val, sink);
+   }
+
+   public static void writeI16 (short val, ByteSink sink)
+      throws BlinkException.Encode
+   {
+      Vlc.writeI32 ((int)val, sink);
+   }
+
+   public static void writeU32 (int val, ByteSink sink)
+      throws BlinkException.Encode
+   {
+      Vlc.writeU32 (val, sink);
+   }
+
+   public static void writeI32 (int val, ByteSink sink)
+      throws BlinkException.Encode
+   {
+      Vlc.writeI32 (val, sink);
+   }
+
+   public static void writeU64 (long val, ByteSink sink)
+      throws BlinkException.Encode
+   {
+      Vlc.writeU64 (val, sink);
+   }
+
+   public static void writeI64 (long val, ByteSink sink)
+      throws BlinkException.Encode
+   {
+      Vlc.writeI64 (val, sink);
+   }
+
+   public static void writeF64 (double val, ByteSink sink)
+      throws BlinkException.Encode
+   {
+      Vlc.writeU64 (Double.doubleToLongBits (val), sink);
+   }
+
+   public static void writeEnumVal (Integer val, ByteSink sink)
+      throws BlinkException.Encode
+   {
+      Vlc.writeI32 (val != null ? val.intValue () : 0, sink);
    }
    
-   public static void writeDecimal (Decimal val, Buf buf)
+   public static void writeDecimal (Decimal val, ByteSink sink)
       throws BlinkException.Encode
    {
-      Vlc.writeI32 ((int)val.getExponent (), buf);
-      Vlc.writeI64 (val.getMantissa (), buf);
+      Vlc.writeI32 ((int)val.getExponent (), sink);
+      Vlc.writeI64 (val.getMantissa (), sink);
    }
 
-   public static void writeDate (int val, Buf buf)
+   public static void writeDate (int val, ByteSink sink)
       throws BlinkException.Encode
    {
-      Vlc.writeU32 (val, buf);
+      Vlc.writeU32 (val, sink);
    }
 
-   public static void writeTimeOfDayMilli (int val, Buf buf)
+   public static void writeTimeOfDayMilli (int val, ByteSink sink)
       throws BlinkException.Encode
    {
-      Vlc.writeU32 (val, buf);
+      Vlc.writeU32 (val, sink);
    }
 
-   public static void writeTimeOfDayNano (long val, Buf buf)
+   public static void writeTimeOfDayNano (long val, ByteSink sink)
       throws BlinkException.Encode
    {
-      Vlc.writeU64 (val, buf);
+      Vlc.writeU64 (val, sink);
    }
 
-   public static void writeNanotime (long val, Buf buf)
+   public static void writeNanotime (long val, ByteSink sink)
       throws BlinkException.Encode
    {
-      Vlc.writeI64 (val, buf);
+      Vlc.writeI64 (val, sink);
    }
 
-   public static void writeMillitime (long val, Buf buf)
+   public static void writeMillitime (long val, ByteSink sink)
       throws BlinkException.Encode
    {
-      Vlc.writeI64 (val, buf);
+      Vlc.writeI64 (val, sink);
    }
 
-   public static void writeBool (boolean val, Buf buf)
+   public static void writeBool (boolean val, ByteSink sink)
       throws BlinkException.Encode
    {
-      Vlc.writeU32 (val ? 1 : 0, buf);
+      Vlc.writeU32 (val ? 1 : 0, sink);
    }
 
-   public static void writeString (String val, Buf buf)
+   public static void writeString (String val, ByteSink sink)
       throws BlinkException.Encode
    {
       // Optimize for ASCII strings shorter than 128 UTF-8 encoded bytes
       
-      int start = buf.getPos ();
+      int start = sink.getPos ();
       int len = val.length ();
       int allocatedPreamble = 0;
       int i = 0;
@@ -281,223 +298,223 @@ public final class CompactWriter implements Writer
       if (len < 128)
       {
 	 allocatedPreamble = 1;
-	 buf.reserve (allocatedPreamble + len);
-	 buf.step ();
+	 sink.reserve (allocatedPreamble + len);
+	 sink.step ();
 	 for (; i < len; ++ i)
 	 {
 	    char c = val.charAt (i);
 	    if (c < 0x0080)
-	       buf.write (c);
+	       sink.write (c);
 	    else
 	    {
 	       size = i;
-	       buf.reserve (Utf8Util.getConservativeSize (len - i));
+	       sink.reserve (Utf8Util.getConservativeSize (len - i));
 	       break LONG;
 	    }
 	 }
 
-	 int save = buf.getPos ();
-	 buf.setPos (start);
-	 Vlc.write7 (len, buf);
-	 buf.setPos (save);
+	 int save = sink.getPos ();
+	 sink.setPos (start);
+	 Vlc.write7 (len, sink);
+	 sink.setPos (save);
 	 
 	 return;
       }
       else
       {
 	 allocatedPreamble = 2;
-	 buf.reserve (allocatedPreamble + Utf8Util.getConservativeSize (len));
-	 buf.step (allocatedPreamble);
+	 sink.reserve (allocatedPreamble + Utf8Util.getConservativeSize (len));
+	 sink.step (allocatedPreamble);
       }
 
-      size += Utf8Util.write (val, i, buf);
+      size += Utf8Util.write (val, i, sink);
 
       int toShift = Vlc.getUintSize (size) - allocatedPreamble;
       if (toShift > 0)
-	 buf.shift (start + allocatedPreamble, toShift);
-      int save = buf.getPos ();
-      buf.setPos (start);
-      Vlc.writeU32 (size, buf);
-      buf.setPos (save);
+	 sink.shift (start + allocatedPreamble, toShift);
+      int save = sink.getPos ();
+      sink.setPos (start);
+      Vlc.writeU32 (size, sink);
+      sink.setPos (save);
    }
    
-   public static void writeU8Array (byte [] val, Buf buf)
+   public static void writeU8Array (byte [] val, ByteSink sink)
       throws BlinkException.Encode
    {
-      Vlc.writeU32 (val.length, buf);
-      buf.reserve (val.length * Vlc.Int8MaxSize);
+      Vlc.writeU32 (val.length, sink);
+      sink.reserve (val.length * Vlc.Int8MaxSize);
       for (int i = 0; i < val.length; ++ i)
-	 Vlc.writeU32 ((int)val [i], buf);
+	 Vlc.writeU32 ((int)val [i], sink);
    }
 
-   public static void writeI8Array (byte [] val, Buf buf)
+   public static void writeI8Array (byte [] val, ByteSink sink)
       throws BlinkException.Encode
    {
-      Vlc.writeU32 (val.length, buf);
-      buf.reserve (val.length * Vlc.Int8MaxSize);
+      Vlc.writeU32 (val.length, sink);
+      sink.reserve (val.length * Vlc.Int8MaxSize);
       for (int i = 0; i < val.length; ++ i)
-	 Vlc.writeI32 ((int)val [i], buf);
+	 Vlc.writeI32 ((int)val [i], sink);
    }
 
-   public static void writeU16Array (short [] val, Buf buf)
+   public static void writeU16Array (short [] val, ByteSink sink)
       throws BlinkException.Encode
    {
-      Vlc.writeU32 (val.length, buf);
-      buf.reserve (val.length * Vlc.Int16MaxSize);
+      Vlc.writeU32 (val.length, sink);
+      sink.reserve (val.length * Vlc.Int16MaxSize);
       for (int i = 0; i < val.length; ++ i)
-	 Vlc.writeU32 ((int)val [i], buf);
+	 Vlc.writeU32 ((int)val [i], sink);
    }
 
-   public static void writeI16Array (short [] val, Buf buf)
+   public static void writeI16Array (short [] val, ByteSink sink)
       throws BlinkException.Encode
    {
-      Vlc.writeU32 (val.length, buf);
-      buf.reserve (val.length * Vlc.Int16MaxSize);
+      Vlc.writeU32 (val.length, sink);
+      sink.reserve (val.length * Vlc.Int16MaxSize);
       for (int i = 0; i < val.length; ++ i)
-	 Vlc.writeI32 ((int)val [i], buf);
+	 Vlc.writeI32 ((int)val [i], sink);
    }
 
-   public static void writeU32Array (int [] val, Buf buf)
+   public static void writeU32Array (int [] val, ByteSink sink)
       throws BlinkException.Encode
    {
-      Vlc.writeU32 (val.length, buf);
-      buf.reserve (val.length * Vlc.Int32MaxSize);
+      Vlc.writeU32 (val.length, sink);
+      sink.reserve (val.length * Vlc.Int32MaxSize);
       for (int i = 0; i < val.length; ++ i)
-	 Vlc.writeU32 (val [i], buf);
+	 Vlc.writeU32 (val [i], sink);
    }
 
-   public static void writeI32Array (int [] val, Buf buf)
+   public static void writeI32Array (int [] val, ByteSink sink)
       throws BlinkException.Encode
    {
-      Vlc.writeU32 (val.length, buf);
-      buf.reserve (val.length * Vlc.Int32MaxSize);
+      Vlc.writeU32 (val.length, sink);
+      sink.reserve (val.length * Vlc.Int32MaxSize);
       for (int i = 0; i < val.length; ++ i)
-	 Vlc.writeI32 (val [i], buf);
+	 Vlc.writeI32 (val [i], sink);
    }
 
-   public static void writeU64Array (long [] val, Buf buf)
+   public static void writeU64Array (long [] val, ByteSink sink)
       throws BlinkException.Encode
    {
-      Vlc.writeU32 (val.length, buf);
-      buf.reserve (val.length * Vlc.Int64MaxSize);
+      Vlc.writeU32 (val.length, sink);
+      sink.reserve (val.length * Vlc.Int64MaxSize);
       for (int i = 0; i < val.length; ++ i)
-	 Vlc.writeU64 (val [i], buf);
+	 Vlc.writeU64 (val [i], sink);
    }
 
-   public static void writeI64Array (long [] val, Buf buf)
+   public static void writeI64Array (long [] val, ByteSink sink)
       throws BlinkException.Encode
    {
-      Vlc.writeU32 (val.length, buf);
-      buf.reserve (val.length * Vlc.Int64MaxSize);
+      Vlc.writeU32 (val.length, sink);
+      sink.reserve (val.length * Vlc.Int64MaxSize);
       for (int i = 0; i < val.length; ++ i)
-	 Vlc.writeI64 (val [i], buf);
+	 Vlc.writeI64 (val [i], sink);
    }
 
-   public static void writeF64Array (double [] val, Buf buf)
+   public static void writeF64Array (double [] val, ByteSink sink)
       throws BlinkException.Encode
    {
-      Vlc.writeU32 (val.length, buf);
-      buf.reserve (val.length * Vlc.Int64MaxSize);
+      Vlc.writeU32 (val.length, sink);
+      sink.reserve (val.length * Vlc.Int64MaxSize);
       for (int i = 0; i < val.length; ++ i)
-	 Vlc.writeI64 (Double.doubleToLongBits (val [i]), buf);
+	 Vlc.writeI64 (Double.doubleToLongBits (val [i]), sink);
    }
 
-   public static void writeDecimalArray (Decimal [] val, Buf buf)
+   public static void writeDecimalArray (Decimal [] val, ByteSink sink)
       throws BlinkException.Encode
    {
-      Vlc.writeU32 (val.length, buf);
-      buf.reserve (val.length * (Vlc.Int8MaxSize + Vlc.Int64MaxSize));
+      Vlc.writeU32 (val.length, sink);
+      sink.reserve (val.length * (Vlc.Int8MaxSize + Vlc.Int64MaxSize));
       for (int i = 0; i < val.length; ++ i)
-	 writeDecimal (val [i], buf);
+	 writeDecimal (val [i], sink);
    }
 
-   public static void writeDateArray (int [] val, Buf buf)
+   public static void writeDateArray (int [] val, ByteSink sink)
       throws BlinkException.Encode
    {
-      Vlc.writeU32 (val.length, buf);
-      buf.reserve (val.length * Vlc.Int32MaxSize);
+      Vlc.writeU32 (val.length, sink);
+      sink.reserve (val.length * Vlc.Int32MaxSize);
       for (int i = 0; i < val.length; ++ i)
-	 Vlc.writeU32 (val [i], buf);
+	 Vlc.writeU32 (val [i], sink);
    }
 
-   public static void writeTimeOfDayMilliArray (int [] val, Buf buf)
+   public static void writeTimeOfDayMilliArray (int [] val, ByteSink sink)
       throws BlinkException.Encode
    {
-      Vlc.writeU32 (val.length, buf);
-      buf.reserve (val.length * Vlc.Int32MaxSize);
+      Vlc.writeU32 (val.length, sink);
+      sink.reserve (val.length * Vlc.Int32MaxSize);
       for (int i = 0; i < val.length; ++ i)
-	 Vlc.writeU32 (val [i], buf);
+	 Vlc.writeU32 (val [i], sink);
    }
 
-   public static void writeTimeOfDayNanoArray (long [] val, Buf buf)
+   public static void writeTimeOfDayNanoArray (long [] val, ByteSink sink)
       throws BlinkException.Encode
    {
-      Vlc.writeU32 (val.length, buf);
-      buf.reserve (val.length * Vlc.Int64MaxSize);
+      Vlc.writeU32 (val.length, sink);
+      sink.reserve (val.length * Vlc.Int64MaxSize);
       for (int i = 0; i < val.length; ++ i)
-	 Vlc.writeU64 (val [i], buf);
+	 Vlc.writeU64 (val [i], sink);
    }
 
-   public static void writeNanotimeArray (long [] val, Buf buf)
+   public static void writeNanotimeArray (long [] val, ByteSink sink)
       throws BlinkException.Encode
    {
-      Vlc.writeU32 (val.length, buf);
-      buf.reserve (val.length * Vlc.Int64MaxSize);
+      Vlc.writeU32 (val.length, sink);
+      sink.reserve (val.length * Vlc.Int64MaxSize);
       for (int i = 0; i < val.length; ++ i)
-	 Vlc.writeI64 (val [i], buf);
+	 Vlc.writeI64 (val [i], sink);
    }
 
-   public static void writeMillitimeArray (long [] val, Buf buf)
+   public static void writeMillitimeArray (long [] val, ByteSink sink)
       throws BlinkException.Encode
    {
-      Vlc.writeU32 (val.length, buf);
-      buf.reserve (val.length * Vlc.Int64MaxSize);
+      Vlc.writeU32 (val.length, sink);
+      sink.reserve (val.length * Vlc.Int64MaxSize);
       for (int i = 0; i < val.length; ++ i)
-	 Vlc.writeI64 (val [i], buf);
+	 Vlc.writeI64 (val [i], sink);
    }
 
-   public static void writeBoolArray (boolean [] val, Buf buf)
+   public static void writeBoolArray (boolean [] val, ByteSink sink)
       throws BlinkException.Encode
    {
-      Vlc.writeU32 (val.length, buf);
-      buf.reserve (val.length);
+      Vlc.writeU32 (val.length, sink);
+      sink.reserve (val.length);
       for (int i = 0; i < val.length; ++ i)
-	 writeBool (val [i], buf);
+	 writeBool (val [i], sink);
    }
 
-   public static void writeStringArray (String [] val, Buf buf)
+   public static void writeStringArray (String [] val, ByteSink sink)
       throws BlinkException.Encode
    {
-      Vlc.writeU32 (val.length, buf);
+      Vlc.writeU32 (val.length, sink);
       for (int i = 0; i < val.length; ++ i)
-	 writeString (val [i], buf);
+	 writeString (val [i], sink);
    }
 
    public void writeObjectArray (Object [] val) throws BlinkException
    {
-      Vlc.writeU32 (val.length, buf);
+      Vlc.writeU32 (val.length, sink);
       for (int i = 0; i < val.length; ++ i)
 	 writeObject (val [i]);
    }
    
-   public static void writeSeqSize (Object [] val, Buf buf)
+   public static void writeSeqSize (Object [] val, ByteSink sink)
    {
-      Vlc.writeU32 (val.length, buf);
+      Vlc.writeU32 (val.length, sink);
    }
    
-   public static void writeNull (Buf buf) throws BlinkException.Encode
+   public static void writeNull (ByteSink sink) throws BlinkException.Encode
    {
-      buf.write (Vlc.Null);
+      sink.write (Vlc.Null);
    }
 
-   public static void writeOne (Buf buf) throws BlinkException.Encode
+   public static void writeOne (ByteSink sink) throws BlinkException.Encode
    {
-      buf.write (1);
+      sink.write (1);
    }
 
-   public static void writeZero (Buf buf) throws BlinkException.Encode
+   public static void writeZero (ByteSink sink) throws BlinkException.Encode
    {
-      buf.write (0);
+      sink.write (0);
    }
 
    public void writeObject (Object o) throws BlinkException
@@ -507,17 +524,17 @@ public final class CompactWriter implements Writer
       try
       {
 	 enc = compiler.getEncoder (o.getClass ());
-	 buf.reserve (enc.getTidSize () + 2 /* Size preamble */);
-	 buf.step (2); // Reserve space for a two byte length preamble
-	 int start = buf.getPos ();
-	 enc.encode (o, buf, this);
-	 int end = buf.getPos ();
+	 sink.reserve (enc.getTidSize () + 2 /* Size preamble */);
+	 sink.step (2); // Reserve space for a two byte length preamble
+	 int start = sink.getPos ();
+	 enc.encode (o, sink, this);
+	 int end = sink.getPos ();
 	 int size = end - start;
 	 if (size <= Vlc.TwoByteUintMax)
 	 {
-	    buf.setPos (start - 2);
-	    Vlc.write14 (size, buf);
-	    buf.setPos (end);
+	    sink.setPos (start - 2);
+	    Vlc.write14 (size, sink);
+	    sink.setPos (end);
 	 }
 	 else
 	 {
@@ -545,7 +562,7 @@ public final class CompactWriter implements Writer
 	 this.grp = grp;
       }
 
-      protected abstract void encode (Object o, Buf buf, CompactWriter wr)
+      protected abstract void encode (Object o, ByteSink sink, CompactWriter wr)
 	 throws BlinkException.Encode, BlinkException.Binding;
 
       public int getTidSize () { return tid.length; }
@@ -555,7 +572,6 @@ public final class CompactWriter implements Writer
       private final Schema.Group grp;
    }
 
-   private final Buf buf = DirectBuf.newInstance ();
+   private final ByteSink sink;
    private final CompactWriterCompiler compiler;
-   private final OutputStream os;
 }

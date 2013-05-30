@@ -35,20 +35,17 @@
 
 package com.pantor.blink;
 
-import java.io.IOException;
-import java.io.InputStream;
-
 /**
    The {@code CompactReader} implements a decoder for the Blink
    compact binary format. In its most basic form it reads bytes from
-   an instance of {@link Buf} and turns them into POJOs as defined by
-   an {@code ObjectModel}. The result can either be appended to a
-   {@link Block} or dispatched to an observer as specified by an
-   {@link ObserverRegistry}, or both.
+   an instance of {@link ByteSource} and turns them into POJOs as
+   defined by an {@code ObjectModel}. The result can either be
+   appended to a {@link Block} or dispatched to an observer as
+   specified by an {@link ObserverRegistry}, or both.
 
    <p>The reader supports incremental decoding in the sense that you do
    not have to worry about messages boundaries when you pass bytes to
-   any of the {@code read} methods. If a buffer ends in a partial
+   any of the {@code read} methods. If a byte source ends in a partial
    message, the reader will continue decoding that message when you
    supply the rest of the bytes in subsequent calls.</p>
  */
@@ -165,65 +162,40 @@ public final class CompactReader implements Reader
    }
 
    /**
-      Decodes bytes from the specified input stream. It dispatches
+      Decodes bytes read from the specified byte source. It dispatches
       decoded messages to any matching observers if an observer
       registry has been specified.
 
-      <p>It also allocates objects as needed from the specified block.</p>
-
-      @param is an input stream
-      @throws BlinkException if a decoding, schema or binding problem occurs
-      @throws IOException if an input error occurs
-   */
-   
-   @Override
-   public void read (InputStream is) throws IOException, BlinkException
-   {
-      Buf b = DirectBuf.newInstance ();
-      for (;;)
-	 if (b.fillFrom (is))
-	 {
-	    b.flip ();
-	    read (b);
-	 }
-	 else
-	    break;
-   }
-
-   /**
-      Decodes bytes specified in a buffer. It dispatches decoded
-      messages to any matching observers if an observer registry has
-      been specified.
-
-      @param buf the bytes to decode
+      @param src the bytes to decode
       @throws BlinkException if a decoding, schema or binding problem occurs
    */
    
    @Override
-   public void read (Buf buf) throws BlinkException
+   public void read (ByteSource src) throws BlinkException
    {
-      read (buf, blankBlock);
+      read (src, blankBlock);
    }
 
    /**
-      Decodes bytes specified in a buffer. It appends decoded
+      Decodes bytes read from the specified byte source. It appends decoded
       messages to the specified block and also dispatches them to any
       matching observers if an observer registry has been specified.
 
       <p>It also allocates objects as needed from the specified block.</p>
 
-      <p>This is the most native form of the {@code read} methods. All other
-      read methods will create temporary {@code Buf} objects and/or use
-      a private {@link DefaultBlock} instance managed by this reader.</p>
+      <p>This is the most native form of the {@code read} methods. All
+      other read methods will create temporary {@code ByteSource}
+      objects and/or use a private {@link DefaultBlock} instance
+      managed by this reader.</p>
       
-      @param buf the bytes to decode
+      @param src the bytes to decode
       @param block the block that collects the decoded messages and is
       responsible for allocating new objects
       @throws BlinkException if a decoding, schema or binding problem occurs
    */
    
    @Override
-   public void read (Buf buf, Block block) throws BlinkException
+   public void read (ByteSource src, Block block) throws BlinkException
    {
       curBlock = block;
       
@@ -231,7 +203,7 @@ public final class CompactReader implements Reader
       {
 	 if (missingData > 0)
 	 {
-	    if (fillPendData (buf))
+	    if (fillPendData (src))
 	    {
 	       pendData.flip ();
 	       readMsg (pendData, pendData.size ());
@@ -242,11 +214,11 @@ public final class CompactReader implements Reader
 	 }
 
 	 if (missingMsgSizeBytes > 0)
-	    if (! readOrSuspendMsg (buf, fillPendMsgSize (buf)))
+	    if (! readOrSuspendMsg (src, fillPendMsgSize (src)))
 	       return;
    
 	 for (;;)
-	    if (! readOrSuspendMsg (buf, readMsgSize (buf)))
+	    if (! readOrSuspendMsg (src, readMsgSize (src)))
 	       return;
       }
       catch (BlinkException.Decode e)
@@ -297,299 +269,300 @@ public final class CompactReader implements Reader
    // Primitive values
    //////////////////////////////////////////////////////////////////////
    
-   public static byte readU8 (Buf buf) throws BlinkException.Decode
+   public static byte readU8 (ByteSource src) throws BlinkException.Decode
    {
-      return Vlc.readU8 (buf);
+      return Vlc.readU8 (src);
    }
 
-   public static byte readI8 (Buf buf) throws BlinkException.Decode
+   public static byte readI8 (ByteSource src) throws BlinkException.Decode
    {
-      return Vlc.readI8 (buf);
+      return Vlc.readI8 (src);
    }
 
-   public static short readU16 (Buf buf) throws BlinkException.Decode
+   public static short readU16 (ByteSource src) throws BlinkException.Decode
    {
-      return Vlc.readU16 (buf);
+      return Vlc.readU16 (src);
    }
 
-   public static short readI16 (Buf buf) throws BlinkException.Decode
+   public static short readI16 (ByteSource src) throws BlinkException.Decode
    {
-      return Vlc.readI16 (buf);
+      return Vlc.readI16 (src);
    }
 
-   public static int readU32 (Buf buf) throws BlinkException.Decode
+   public static int readU32 (ByteSource src) throws BlinkException.Decode
    {
-      return Vlc.readU32 (buf);
+      return Vlc.readU32 (src);
    }
 
-   public static int readI32 (Buf buf) throws BlinkException.Decode
+   public static int readI32 (ByteSource src) throws BlinkException.Decode
    {
-      return Vlc.readI32 (buf);
+      return Vlc.readI32 (src);
    }
    
-   public static long readU64 (Buf buf) throws BlinkException.Decode
+   public static long readU64 (ByteSource src) throws BlinkException.Decode
    {
-      return Vlc.readU64 (buf);
+      return Vlc.readU64 (src);
    }
 
-   public static long readI64 (Buf buf) throws BlinkException.Decode
+   public static long readI64 (ByteSource src) throws BlinkException.Decode
    {
-      return Vlc.readI64 (buf);
+      return Vlc.readI64 (src);
    }
 
-   public static double readF64 (Buf buf) throws BlinkException.Decode
+   public static double readF64 (ByteSource src) throws BlinkException.Decode
    {
-      return Double.longBitsToDouble (Vlc.readU64 (buf));
+      return Double.longBitsToDouble (Vlc.readU64 (src));
    }
 
-   public static Decimal readDecimal (Buf buf)
+   public static Decimal readDecimal (ByteSource src)
       throws BlinkException.Decode
    {
-      byte exp = Vlc.readI8 (buf);
-      long mant = Vlc.readI64 (buf);
+      byte exp = Vlc.readI8 (src);
+      long mant = Vlc.readI64 (src);
       return Decimal.valueOf (mant, exp);
    }
 
-   public static int readDate (Buf buf)
+   public static int readDate (ByteSource src)
       throws BlinkException.Decode
    {
-      return Vlc.readU32 (buf);
+      return Vlc.readU32 (src);
    }
 
-   public static int readTimeOfDayMilli (Buf buf)
+   public static int readTimeOfDayMilli (ByteSource src)
       throws BlinkException.Decode
    {
-      return Vlc.readU32 (buf);
+      return Vlc.readU32 (src);
    }
 
-   public static long readTimeOfDayNano (Buf buf)
+   public static long readTimeOfDayNano (ByteSource src)
       throws BlinkException.Decode
    {
-      return Vlc.readU64 (buf);
+      return Vlc.readU64 (src);
    }
 
-   public static long readNanotime (Buf buf)
+   public static long readNanotime (ByteSource src)
       throws BlinkException.Decode
    {
-      return Vlc.readI64 (buf);
+      return Vlc.readI64 (src);
    }
 
-   public static long readMillitime (Buf buf)
+   public static long readMillitime (ByteSource src)
       throws BlinkException.Decode
    {
-      return Vlc.readI64 (buf);
+      return Vlc.readI64 (src);
    }
 
-   public static boolean readBool (Buf buf)
+   public static boolean readBool (ByteSource src)
       throws BlinkException.Decode
    {
-      return Vlc.readU8 (buf) != 0;
+      return Vlc.readU8 (src) != 0;
    }
 
-   public static String readString (Buf buf)
+   public static String readString (ByteSource src)
       throws BlinkException.Decode
    {
-      return buf.readUtf8String (Vlc.readU32 (buf));
+      return src.readUtf8String (Vlc.readU32 (src));
    }
 
-   public static byte [] readU8Array (Buf buf)
+   public static byte [] readU8Array (ByteSource src)
       throws BlinkException.Decode
    {
-      int size = Vlc.readU32 (buf);
+      int size = Vlc.readU32 (src);
       byte [] v = new byte [size];
       for (int i = 0; i < size; ++ i)
-	 v [i] = Vlc.readU8 (buf);
+	 v [i] = Vlc.readU8 (src);
       return v;
    }
 
-   public static byte [] readI8Array (Buf buf)
+   public static byte [] readI8Array (ByteSource src)
       throws BlinkException.Decode
    {
-      int size = Vlc.readU32 (buf);
+      int size = Vlc.readU32 (src);
       byte [] v = new byte [size];
       for (int i = 0; i < size; ++ i)
-	 v [i] = Vlc.readI8 (buf);
+	 v [i] = Vlc.readI8 (src);
       return v;
    }
 
-   public static short [] readU16Array (Buf buf)
+   public static short [] readU16Array (ByteSource src)
       throws BlinkException.Decode
    {
-      int size = Vlc.readU32 (buf);
+      int size = Vlc.readU32 (src);
       short [] v = new short [size];
       for (int i = 0; i < size; ++ i)
-	 v [i] = Vlc.readU16 (buf);
+	 v [i] = Vlc.readU16 (src);
       return v;
    }
 
-   public static short [] readI16Array (Buf buf)
+   public static short [] readI16Array (ByteSource src)
       throws BlinkException.Decode
    {
-      int size = Vlc.readU32 (buf);
+      int size = Vlc.readU32 (src);
       short [] v = new short [size];
       for (int i = 0; i < size; ++ i)
-	 v [i] = Vlc.readI16 (buf);
+	 v [i] = Vlc.readI16 (src);
       return v;
    }
 
-   public static int [] readU32Array (Buf buf)
+   public static int [] readU32Array (ByteSource src)
       throws BlinkException.Decode
    {
-      int size = Vlc.readU32 (buf);
+      int size = Vlc.readU32 (src);
       int [] v = new int [size];
       for (int i = 0; i < size; ++ i)
-	 v [i] = Vlc.readU32 (buf);
+	 v [i] = Vlc.readU32 (src);
       return v;
    }
 
-   public static int [] readI32Array (Buf buf)
+   public static int [] readI32Array (ByteSource src)
       throws BlinkException.Decode
    {
-      int size = Vlc.readU32 (buf);
+      int size = Vlc.readU32 (src);
       int [] v = new int [size];
       for (int i = 0; i < size; ++ i)
-	 v [i] = Vlc.readI32 (buf);
+	 v [i] = Vlc.readI32 (src);
       return v;
    }
    
-   public static long [] readU64Array (Buf buf)
+   public static long [] readU64Array (ByteSource src)
       throws BlinkException.Decode
    {
-      int size = Vlc.readU32 (buf);
+      int size = Vlc.readU32 (src);
       long [] v = new long [size];
       for (int i = 0; i < size; ++ i)
-	 v [i] = Vlc.readU64 (buf);
+	 v [i] = Vlc.readU64 (src);
       return v;
    }
 
-   public static long [] readI64Array (Buf buf)
+   public static long [] readI64Array (ByteSource src)
       throws BlinkException.Decode
    {
-      int size = Vlc.readU32 (buf);
+      int size = Vlc.readU32 (src);
       long [] v = new long [size];
       for (int i = 0; i < size; ++ i)
-	 v [i] = Vlc.readI64 (buf);
+	 v [i] = Vlc.readI64 (src);
       return v;
    }
    
-   public static double [] readF64Array (Buf buf)
+   public static double [] readF64Array (ByteSource src)
       throws BlinkException.Decode
    {
-      int size = Vlc.readU32 (buf);
+      int size = Vlc.readU32 (src);
       double [] v = new double [size];
       for (int i = 0; i < size; ++ i)
-	 v [i] = Double.longBitsToDouble (Vlc.readU64 (buf));
+	 v [i] = Double.longBitsToDouble (Vlc.readU64 (src));
       return v;
    }
    
-   public static Decimal [] readDecimalArray (Buf buf)
+   public static Decimal [] readDecimalArray (ByteSource src)
       throws BlinkException.Decode
    {
-      int size = Vlc.readU32 (buf);
+      int size = Vlc.readU32 (src);
       Decimal [] v = new Decimal [size];
       for (int i = 0; i < size; ++ i)
-	 v [i] = readDecimal (buf);
+	 v [i] = readDecimal (src);
       return v;
    }
 
-   public static int [] readDateArray (Buf buf)
+   public static int [] readDateArray (ByteSource src)
       throws BlinkException.Decode
    {
-      int size = Vlc.readU32 (buf);
+      int size = Vlc.readU32 (src);
       int [] v = new int [size];
       for (int i = 0; i < size; ++ i)
-	 v [i] = Vlc.readU32 (buf);
+	 v [i] = Vlc.readU32 (src);
       return v;
    }
 
-   public static int [] readTimeOfDayMilliArray (Buf buf)
+   public static int [] readTimeOfDayMilliArray (ByteSource src)
       throws BlinkException.Decode
    {
-      int size = Vlc.readU32 (buf);
+      int size = Vlc.readU32 (src);
       int [] v = new int [size];
       for (int i = 0; i < size; ++ i)
-	 v [i] = Vlc.readU32 (buf);
+	 v [i] = Vlc.readU32 (src);
       return v;
    }
 
-   public static long [] readTimeOfDayNanoArray (Buf buf)
+   public static long [] readTimeOfDayNanoArray (ByteSource src)
       throws BlinkException.Decode
    {
-      int size = Vlc.readU32 (buf);
+      int size = Vlc.readU32 (src);
       long [] v = new long [size];
       for (int i = 0; i < size; ++ i)
-	 v [i] = Vlc.readU64 (buf);
+	 v [i] = Vlc.readU64 (src);
       return v;
    }
 
-   public static long [] readNanotimeArray (Buf buf)
+   public static long [] readNanotimeArray (ByteSource src)
       throws BlinkException.Decode
    {
-      int size = Vlc.readU32 (buf);
+      int size = Vlc.readU32 (src);
       long [] v = new long [size];
       for (int i = 0; i < size; ++ i)
-	 v [i] = Vlc.readI64 (buf);
+	 v [i] = Vlc.readI64 (src);
       return v;
    }
 
-   public static long [] readMillitimeArray (Buf buf)
+   public static long [] readMillitimeArray (ByteSource src)
       throws BlinkException.Decode
    {
-      int size = Vlc.readU32 (buf);
+      int size = Vlc.readU32 (src);
       long [] v = new long [size];
       for (int i = 0; i < size; ++ i)
-	 v [i] = Vlc.readI64 (buf);
+	 v [i] = Vlc.readI64 (src);
       return v;
    }
 
-   public static boolean [] readBoolArray (Buf buf)
+   public static boolean [] readBoolArray (ByteSource src)
       throws BlinkException.Decode
    {
-      int size = Vlc.readU32 (buf);
+      int size = Vlc.readU32 (src);
       boolean [] v = new boolean [size];
       for (int i = 0; i < size; ++ i)
-	 v [i] = readBool (buf);
+	 v [i] = readBool (src);
       return v;
    }
 
-   public static String [] readStringArray (Buf buf)
+   public static String [] readStringArray (ByteSource src)
       throws BlinkException.Decode
    {
-      int size = Vlc.readU32 (buf);
+      int size = Vlc.readU32 (src);
       String [] v = new String [size];
       for (int i = 0; i < size; ++ i)
-	 v [i] = readString (buf);
+	 v [i] = readString (src);
       return v;
    }
    
-   public Object [] readObjectArray (Object [] v, Buf buf) throws BlinkException
+   public Object [] readObjectArray (Object [] v, ByteSource src)
+      throws BlinkException
    {
       for (int i = 0; i < v.length; ++ i)
-	 v [i] = readObject (buf);
+	 v [i] = readObject (src);
       return v;
    }
 
-   public Object [] readObjectArray (Buf buf) throws BlinkException
+   public Object [] readObjectArray (ByteSource src) throws BlinkException
    {
-      return readObjectArray (new Object [Vlc.readU32 (buf)], buf);
+      return readObjectArray (new Object [Vlc.readU32 (src)], src);
    }
    
-   public static boolean readNull (Buf buf) throws BlinkException.Decode
+   public static boolean readNull (ByteSource src) throws BlinkException.Decode
    {
-      if (buf.empty ())
+      if (src.empty ())
 	 return true;
-      else if (buf.get () == Vlc.Null)
+      else if (src.get () == Vlc.Null)
       {
-	 buf.step ();
+	 src.step ();
 	 return true;
       }
       else
 	 return false;
    }
 
-   public static void skipByte (Buf buf)
+   public static void skipByte (ByteSource src)
    {
-      buf.step ();
+      src.step ();
    }
 
    //////////////////////////////////////////////////////////////////////
@@ -603,13 +576,13 @@ public final class CompactReader implements Reader
 	 this.obs = obs;
       }
       
-      public void decodeMsg (Buf buf, CompactReader rd, Block block)
+      public void decodeMsg (ByteSource src, CompactReader rd, Block block)
 	 throws BlinkException.Decode, BlinkException.Binding
       {
 	 Object o = allocate (block);
 	 try
 	 {
-	    decode (buf, o, rd);
+	    decode (src, o, rd);
 	    block.append (o);
 	    if (obs != null)
 	       obs.onObj (o, grp);
@@ -626,13 +599,13 @@ public final class CompactReader implements Reader
 	 }
       }
 
-      public Object decodeGrp (Buf buf, CompactReader rd, Block block)
+      public Object decodeGrp (ByteSource src, CompactReader rd, Block block)
 	 throws BlinkException.Decode, BlinkException.Binding
       {
 	 Object o = allocate (block);
 	 try
 	 {
-	    decode (buf, o, rd);
+	    decode (src, o, rd);
 	    return o;
 	 }
 	 catch (BlinkException.Decode e)
@@ -649,7 +622,8 @@ public final class CompactReader implements Reader
 
       @Override public Class<?> getType () { return type; }
 
-      protected abstract void decode (Buf buf, Object o, CompactReader rd)
+      protected abstract void decode (ByteSource src, Object o,
+				      CompactReader rd)
 	 throws BlinkException.Decode, BlinkException.Binding;
 
       private Object allocate (Block block)
@@ -680,79 +654,79 @@ public final class CompactReader implements Reader
 
    private static final int MaxLingeringScratchArea = 1000000;
    
-   private boolean readOrSuspendMsg (Buf buf, long msgSize)
+   private boolean readOrSuspendMsg (ByteSource src, long msgSize)
       throws BlinkException
    {
-      if (msgSize <= buf.available ())
+      if (msgSize <= src.available ())
       {
-	 readMsg (buf, (int)msgSize);
+	 readMsg (src, (int)msgSize);
 	 return true;
       }
       else
       {
 	 if (msgSize < Long.MAX_VALUE)
-	    initPendData (buf, msgSize);
+	    initPendData (src, msgSize);
       }
 
       return false;
    }
 
-   private void readMsg (Buf buf, int msgSize) throws BlinkException
+   private void readMsg (ByteSource src, int msgSize) throws BlinkException
    {
-      int limit = buf.getPos () + msgSize;
+      int limit = src.getPos () + msgSize;
       Decoder dec = null;
 
-      int saveSize = buf.size ();
-      buf.setSize (limit);
+      int saveSize = src.size ();
+      src.setSize (limit);
       
       try
       {
-	 long tid = Vlc.readU64 (buf);
+	 long tid = Vlc.readU64 (src);
 	 dec = compiler.getDecoder (tid);
-	 dec.decodeMsg (buf, this, curBlock);
-	 if (buf.getPos () > limit)
-	    throw msgOverflowError (buf);
-	 buf.setSize (saveSize);
+	 dec.decodeMsg (src, this, curBlock);
+	 if (src.getPos () > limit)
+	    throw msgOverflowError (src);
+	 src.setSize (saveSize);
       }
       catch (ArrayIndexOutOfBoundsException e)
       {
 	 // FIXME: Localize any exception to the current decoder
-	 throw prematureEndOfMsg (buf);
+	 throw prematureEndOfMsg (src);
       }
       // FIXME, more catches
    }
 
-   public Object readObject (Buf buf) throws BlinkException
+   public Object readObject (ByteSource src) throws BlinkException
    {
-      int size = (int)Util.u32ToLong (Vlc.readU32 (buf));
-      int limit = buf.getPos () + size;
+      int size = (int)Util.u32ToLong (Vlc.readU32 (src));
+      int limit = src.getPos () + size;
 
-      int saveSize = buf.size ();
-      buf.setSize (limit);
+      int saveSize = src.size ();
+      src.setSize (limit);
 
-      long tid = Vlc.readU64 (buf);
+      long tid = Vlc.readU64 (src);
       Decoder dec = null;
       
       try
       {
 	 dec = compiler.getDecoder (tid);
-	 Object o = dec.decodeGrp (buf, this, curBlock);
-	 if (buf.getPos () > limit)
-	    throw msgOverflowError (buf);
-	 buf.setSize (saveSize);
+	 Object o = dec.decodeGrp (src, this, curBlock);
+	 if (src.getPos () > limit)
+	    throw msgOverflowError (src);
+	 src.setSize (saveSize);
 	 return o;
       }
       catch (ArrayIndexOutOfBoundsException e)
       {
 	 // FIXME: Localize any exception to the current decoder
-	 throw prematureEndOfMsg (buf);
+	 throw prematureEndOfMsg (src);
       }
    }
 
-   private long fillPendMsgSize (Buf buf) throws BlinkException.Decode
+   private long fillPendMsgSize (ByteSource src) throws BlinkException.Decode
    {
-      int toMove = Math.min (missingMsgSizeBytes, buf.available ());
-      buf.moveTo (pendMsgSizePreamble, toMove);
+      int toMove = Math.min (missingMsgSizeBytes, src.available ());
+      src.moveTo (pendMsgSizePreamble, toMove);
       missingMsgSizeBytes -= toMove;
       if (missingMsgSizeBytes == 0)
       {
@@ -765,48 +739,49 @@ public final class CompactReader implements Reader
 	 return Long.MAX_VALUE;
    }
 
-   void initPendData (Buf buf, long msgSize) throws BlinkException.Decode
+   void initPendData (ByteSource src, long msgSize) throws BlinkException.Decode
    {
       if (msgSize <= maxMsgSize)
       {
 	 missingData = (int)msgSize;
-	 fillPendData (buf);
+	 fillPendData (src);
       }
       else
 	 throw error (String.format ("Max blink message size exceeded: %d > %d",
-				     msgSize, maxMsgSize), buf);
+				     msgSize, maxMsgSize), src);
    }
 
-   private boolean fillPendData (Buf buf)
+   private boolean fillPendData (ByteSource src)
    {
-      int toMove = Math.min (missingData, buf.available ());
+      int toMove = Math.min (missingData, src.available ());
       pendData.reserve (toMove);
-      buf.moveTo (pendData, toMove);
+      src.moveTo (pendData, toMove);
       missingData -= toMove;
       return missingData == 0;
    }
 
-   private long readMsgSize (Buf buf) throws BlinkException.Decode
+   private long readMsgSize (ByteSource src) throws BlinkException.Decode
    {
-      if (buf.available () >= Vlc.Int32MaxSize)
-	 return Util.u32ToLong (Vlc.readU32 (buf));
+      if (src.available () >= Vlc.Int32MaxSize)
+	 return Util.u32ToLong (Vlc.readU32 (src));
       else
-	 return readMsgSizeIncremental (buf);
+	 return readMsgSizeIncremental (src);
    }
    
-   private long readMsgSizeIncremental (Buf buf) throws BlinkException.Decode
+   private long readMsgSizeIncremental (ByteSource src)
+      throws BlinkException.Decode
    {
-      int available = buf.available ();
+      int available = src.available ();
       if (available == 0)
       {
 	 missingMsgSizeBytes = 0;
 	 return Long.MAX_VALUE;
       }
    
-      int b = buf.get ();
+      int b = src.get ();
       if ((b & 0x80) == 0)
       {
-	 buf.step ();
+	 src.step ();
 	 return b;
       }
       else if ((b & 0x40) == 0)
@@ -818,38 +793,38 @@ public final class CompactReader implements Reader
 	    return Long.MAX_VALUE;
 	 }
 	 else
-	    return Util.u32ToLong (Vlc.readU32 (buf));
+	    return Util.u32ToLong (Vlc.readU32 (src));
       }
       else
       {
 	 int w = b & 0x3f;
 	 if (w > 4)
-	    throw Vlc.overflowError ("u32", buf);
+	    throw Vlc.overflowError ("u32", src);
 	 
 	 if (available < w + 1)
 	 {
-	    buf.moveTo (pendMsgSizePreamble, available);
+	    src.moveTo (pendMsgSizePreamble, available);
 	    missingMsgSizeBytes = w + 1 - available;
 	    return Long.MAX_VALUE;
 	 }
 	 else
-	    return Util.u32ToLong (Vlc.readU32 (buf));
+	    return Util.u32ToLong (Vlc.readU32 (src));
       }
    }
 
-   private BlinkException.Decode error (String msg, Buf context)
+   private BlinkException.Decode error (String msg, ByteSource context)
    {
       // FIXME
       return new BlinkException.Decode (msg, context);
    }
 
-   private BlinkException.Decode msgOverflowError (Buf context)
+   private BlinkException.Decode msgOverflowError (ByteSource context)
    {
       // FIXME
       return new BlinkException.Decode ("Message length exceeded", context);
    }
 
-   private BlinkException.Decode prematureEndOfMsg (Buf context)
+   private BlinkException.Decode prematureEndOfMsg (ByteSource context)
    {
       // FIXME
       return new BlinkException.Decode ("Premature end of message", context);

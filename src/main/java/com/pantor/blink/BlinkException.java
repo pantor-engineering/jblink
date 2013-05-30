@@ -165,10 +165,14 @@ public class BlinkException extends Exception
 	 Creates a decoding exception
 
 	 @param msg a descriptive message
-	 @param buf the buffer in use when the error appeared
+	 @param src the buffer in use when the error appeared
       */
       
-      public Decode (String msg, Buf buf) { super (msg); this.buf = buf; }
+      public Decode (String msg, ByteSource src)
+      {
+	 super (msg);
+	 this.src = src;
+      }
 
       /**
 	 Creates a decoding exception
@@ -184,8 +188,8 @@ public class BlinkException extends Exception
 	 @return the buffer in use or {@code null} if not available
       */
       
-      public Buf getContext () { return buf; }
-      private final Buf buf;
+      public ByteSource getContext () { return src; }
+      private final ByteSource src;
    }
 
    /**

@@ -282,19 +282,23 @@ public final class ByteBuf implements Buf
    }
 
    @Override
-   public void flushTo (OutputStream os) throws IOException
+   public void flushTo (Object dst) throws IOException
    {
       if (pos > 0)
       {
-	 os.write (data_, 0, pos);
+	 if (dst instanceof OutputStream)
+	    ((OutputStream)dst).write (data_, 0, pos);
+	 else
+	    throw new IOException ("Unsupported output destination: " + dst);
+	 
 	 clear ();
       }
    }
 
    @Override
-   public void moveTo (Buf other, int len)
+   public void moveTo (ByteSink sink, int len)
    {
-      other.write (data_, pos, len);
+      sink.write (data_, pos, len);
       step (len);
    }
 
@@ -343,7 +347,27 @@ public final class ByteBuf implements Buf
    }
 
    @Override
-   public boolean fillFrom (InputStream is) throws IOException
+   public boolean fillFrom (Object src) throws IOException
+   {
+      if (src instanceof InputStream)
+	 return fillFromStream ((InputStream)src);
+      else
+	 throw new IOException ("Unsupported input src: " + src);
+   }
+
+   /**
+      Clears the buffer and fills it with bytes from the specified
+      stream. It will at most read as many bytes from the stream as
+      there is capacity in this buffer. If end of file is reached,
+      no bytes are read.
+
+
+      @return {@code true} if there possible are more bytes to read
+      from the stream, and {@code false} if end of file is reached.
+      @throws IOException if there was an input error
+   */
+
+   public boolean fillFromStream (InputStream is) throws IOException
    {
       pos = is.read (data_);
       end = data_.length;
@@ -354,6 +378,18 @@ public final class ByteBuf implements Buf
 	 pos = 0;
 	 return false;
       }
+   }
+
+   @Override
+   public void close ()
+   {
+      clear ();
+   }
+
+   @Override
+   public void flush ()
+   {
+      clear ();
    }
 
    @Override

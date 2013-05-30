@@ -301,28 +301,35 @@ public final class DirectBuf implements Buf
    }
 
    @Override
-   public void flushTo (OutputStream os) throws IOException
+   public void flushTo (Object dst) throws IOException
    {
-      // FIXME: Refactor output stream interface
-
       if (pos > start)
       {
-	 WritableByteChannel ch = Channels.newChannel (os);
-	 buf.clear ();
-	 buf.position ((int)(pos - start));
-	 buf.flip ();
-	 ch.write (buf);
-	 clear ();
+	 if (dst instanceof WritableByteChannel)
+	    flushToChannel ((WritableByteChannel)dst);
+	 else if (dst instanceof OutputStream)
+	    flushToChannel (Channels.newChannel ((OutputStream)dst));
+	 else
+	    throw new IOException ("Unsupported output destination: " + dst);
       }
    }
 
+   public void flushToChannel (WritableByteChannel ch) throws IOException
+   {
+      buf.clear ();
+      buf.position ((int)(pos - start));
+      buf.flip ();
+      ch.write (buf);
+      clear ();
+   }
+      
    @Override
-   public void moveTo (Buf other, int len)
+   public void moveTo (ByteSink sink, int len)
    {
       // FIXME: Check if other is DirectBuf too and do away with tmp
       byte [] tmp = new byte [len];
       unsafe.copyMemory (null, pos, tmp, ByteArrayOff, len);
-      other.write (tmp);
+      sink.write (tmp);
       step (len);
    }
 
@@ -382,11 +389,29 @@ public final class DirectBuf implements Buf
    }
 
    @Override
-   public boolean fillFrom (InputStream is) throws IOException
+   public boolean fillFrom (Object src) throws IOException
    {
-      // FIXME: Refactor input stream interface
+      if (src instanceof ReadableByteChannel)
+	 return fillFromChannel ((ReadableByteChannel)src);
+      else if (src instanceof InputStream)
+	 return fillFromChannel (Channels.newChannel ((InputStream)src));
+      else
+	 throw new IOException ("Unsupported input src: " + src);
+   }
 
-      ReadableByteChannel ch = Channels.newChannel (is);
+   /**
+      Clears the buffer and fills it with bytes from the specified
+      channel. It will at most read as many bytes from the channel as
+      there is capacity in this buffer. If the source is exhausted, no
+      bytes are read.
+
+      @return {@code true} if there possible are more bytes to read
+      from the channel, and {@code false} if the channel is exhausted.
+      @throws IOException if there was an input error
+   */
+
+   public boolean fillFromChannel (ReadableByteChannel ch) throws IOException
+   {
       buf.clear ();
       end = start + capacity;
       int n = ch.read (buf);
@@ -400,6 +425,18 @@ public final class DirectBuf implements Buf
 	 pos = start;
 	 return false;
       }
+   }
+
+   @Override
+   public void close ()
+   {
+      clear ();
+   }
+
+   @Override
+   public void flush ()
+   {
+      clear ();
    }
 
    @Override
@@ -420,7 +457,7 @@ public final class DirectBuf implements Buf
       }
       return s.toString ();
    }
-
+   
    private final static sun.misc.Unsafe unsafe = getUnsafe ();
    private final static long ByteArrayOff =
       unsafe != null ? unsafe.arrayBaseOffset (byte [].class) : 0;

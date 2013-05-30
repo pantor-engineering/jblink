@@ -111,9 +111,9 @@ public final class CompactReaderCompiler
    //      }
    //
    //      @Override
-   //      public void decode (Buf buf, Object tgt, CompactReader rd)
+   //      public void decode (ByteSource src, Object tgt, CompactReader rd)
    //      {
-   //         innerDecode (buf, (T)tgt, rd);
+   //         innerDecode (src, (T)tgt, rd);
    //      }
    //  
    //      @Override
@@ -122,25 +122,26 @@ public final class CompactReaderCompiler
    //         return new T ();
    //      }
    //  
-   //      public static T read (Buf buf, CompactReader rd)
+   //      public static T read (ByteSource src, CompactReader rd)
    //      {
    //         T tgt = new T ();
-   //         innerDecode (buf, tgt, rd);
+   //         innerDecode (src, tgt, rd);
    //         return tgt;
    //      }
    //  
-   //      public static T [] readArray (Buf buf, CompactReader rd)
+   //      public static T [] readArray (ByteSource src, CompactReader rd)
    //      {
-   //         int size = CompactReader.readU32 (buf);
+   //         int size = CompactReader.readU32 (src);
    //         T [] tgt = new T [size];
    //         for (int i = 0; i < size; ++ i)
-   //           tgt [i] = read (buf, rd);
+   //           tgt [i] = read (src, rd);
    //         return tgt;
    //      }
    //  
-   //      public static void innerDecode (Buf buf, T tgt, CompactReader rd)
+   //      public static void innerDecode (ByteSource src, T tgt,
+   //                                      CompactReader rd)
    //      {
-   //         ... decode buf and populate tgt ...
+   //         ... decode src and populate tgt ...
    //      }
    //   }
    
@@ -170,14 +171,14 @@ public final class CompactReaderCompiler
 			 "<init>", ctorSig)
 	 .return_ ().setMaxStack (4).endMethod ();
 
-      // void decode (buf, tgt, rd)
+      // void decode (src, tgt, rd)
 
-      String decSig = "(Lcom/pantor/blink/Buf;Ljava/lang/Object;" +
+      String decSig = "(Lcom/pantor/blink/ByteSource;Ljava/lang/Object;" +
 	 "Lcom/pantor/blink/CompactReader;)V";
 
       String tgtName = bnd.getTargetType ().getName ();
 
-      String innerSig = "(Lcom/pantor/blink/Buf;L" +
+      String innerSig = "(Lcom/pantor/blink/ByteSource;L" +
 	 DynClass.toInternal (tgtName) + ";Lcom/pantor/blink/CompactReader;)V";
       
       dc.startPublicMethod ("decode", decSig)
@@ -193,28 +194,28 @@ public final class CompactReaderCompiler
 	 .invokeSpecial (tgtName, "<init>", "()V")
 	 .areturn ().setMaxStack (2).endMethod ();
       
-      // static T read (buf, rd)
+      // static T read (src, rd)
 
       dc.startPublicStaticMethod ("read", getReadSignature (tgtName))
 	 .new_ (tgtName)
 	 .dup ()
 	 .invokeSpecial (tgtName, "<init>", "()V")
 	 .astore2 ()
-	 .aload0 () // Buf
+	 .aload0 () // src
 	 .aload2 () // Target
 	 .aload1 () // Reader
 	 .invokeStatic (decoderName, "innerDecode", innerSig)
 	 .aload2 () // Target
 	 .areturn ().setMaxStack (3).endMethod ();
 
-      // public static T [] readArray (buf, rd)
+      // public static T [] readArray (src, rd)
 
       int loop = dc.declareLabel ();
       int loopEnd = dc.declareLabel ();
 
       dc.startPublicStaticMethod ("readArray", getReadArraySignature (tgtName));
 
-      dc.aload0 (); // buf
+      dc.aload0 (); // src
       invokeReader (dc, "readU32", "I"); // size
       dc.dup ()
 	 .istore2 ()
@@ -228,7 +229,7 @@ public final class CompactReaderCompiler
 	 .ifIcmpGe (loopEnd) // jump if i >= size
 	 .aload3 () // tgt
 	 .iload (4) // i
-	 .aload0 () // buf
+	 .aload0 () // src
 	 .aload1 () // rd
 	 .invokeStatic (decoderName, "read", getReadSignature (tgtName))
 	 .aastore () // tgt [i] = <returned value>
@@ -240,7 +241,7 @@ public final class CompactReaderCompiler
 	 .setMaxStack (4)
 	 .endMethod ();
       
-      // static void innerDecode (buf, tgt, rd)
+      // static void innerDecode (src, tgt, rd)
       
       dc.startPublicStaticMethod ("innerDecode", innerSig);
 
@@ -279,32 +280,34 @@ public final class CompactReaderCompiler
 
    private static String getReadSignature (String tgt)
    {
-      return "(Lcom/pantor/blink/Buf;Lcom/pantor/blink/CompactReader;)L" +
+      return
+	 "(Lcom/pantor/blink/ByteSource;Lcom/pantor/blink/CompactReader;)L" +
 	 DynClass.toInternal (tgt) + ";";
    }
 
    private static String getReadArraySignature (String tgt)
    {
-      return "(Lcom/pantor/blink/Buf;Lcom/pantor/blink/CompactReader;)[L" +
+      return
+	 "(Lcom/pantor/blink/ByteSource;Lcom/pantor/blink/CompactReader;)[L" +
 	 DynClass.toInternal (tgt) + ";";
    }
 
    private static String getReadEnumSignature (ObjectModel.Binding bnd)
    {
-      return "(Lcom/pantor/blink/Buf;)L" +
+      return "(Lcom/pantor/blink/ByteSource;)L" +
 	 DynClass.toInternal (bnd.getTargetType ().getName ()) + ";";
    }
 
    private static String getReadEnumArraySignature (ObjectModel.Binding bnd)
    {
-      return "(Lcom/pantor/blink/Buf;)[L" +
+      return "(Lcom/pantor/blink/ByteSource;)[L" +
 	 DynClass.toInternal (bnd.getTargetType ().getName ()) + ";";
    }
 
    private void invokeReader (DynClass dc, String m, String t)
    {
       dc.invokeStatic ("com/pantor/blink/CompactReader", m,
-		       "(Lcom/pantor/blink/Buf;)" + t);
+		       "(Lcom/pantor/blink/ByteSource;)" + t);
    }
 
    private void compile (ObjectModel.Binding bnd, ObjectModel.Field f,
@@ -320,7 +323,7 @@ public final class CompactReaderCompiler
       int end = dc.declareLabel ();
       if (sf.isOptional ())
       {
-	 dc.aload0 (); // Buf, #depth: 1
+	 dc.aload0 (); // src, #depth: 1
 	 invokeReader (dc, "readNull", "Z");
 	 dc.ifNe (end); // Jump if null
       }
@@ -331,16 +334,16 @@ public final class CompactReaderCompiler
       {
 	 if (t.isPrimitive ())
 	 {
-	    dc.aload0 (); // Buf, #depth: 2
+	    dc.aload0 (); // src, #depth: 2
 	    String decMtod = "read" + t.getType ().getCode ().toString ();
-	    String retType = CodecUtil.mapTypeDescr (t.getType ().getCode ());
+	    String retType = CodegenUtil.mapTypeDescr (t.getType ().getCode ());
 	    invokeReader (dc, decMtod, retType);
 	 }
 	 else if (t.isEnum ())
 	 {
 	    ObjectModel.EnumBinding comp = f.getComponent ().toEnum ();
 	    primeEnum (comp);
-	    dc.aload0 (); // Buf, #depth: 2
+	    dc.aload0 (); // src, #depth: 2
 	    dc.invokeStatic (getDecoderClassName (t.getEnum ().getName ()),
 			     "read",
 			     getReadEnumSignature (comp));
@@ -354,16 +357,16 @@ public final class CompactReaderCompiler
 	 {
 	    Schema.TypeCode c = t.getType ().getCode ();
 	    String decMtod = "read" + c.toString () + "Array";
-	    String retType = "[" + CodecUtil.mapTypeDescr (c);
-	    dc.aload0 (); // Buf, #depth: 2
+	    String retType = "[" + CodegenUtil.mapTypeDescr (c);
+	    dc.aload0 (); // src, #depth: 2
 	    dc.invokeStatic ("com/pantor/blink/CompactReader", decMtod,
-			     "(Lcom/pantor/blink/Buf;)" + retType);
+			     "(Lcom/pantor/blink/ByteSource;)" + retType);
 	 }
 	 else if (t.isEnum ())
 	 {
 	    ObjectModel.EnumBinding comp = f.getComponent ().toEnum ();
 	    primeEnum (comp);
-	    dc.aload0 (); // Buf, #depth: 2
+	    dc.aload0 (); // src, #depth: 2
 	    dc.invokeStatic (getDecoderClassName (t.getEnum ().getName ()),
 			     "readArray",
 			     getReadEnumArraySignature (comp));
@@ -394,9 +397,9 @@ public final class CompactReaderCompiler
       if (t.isDynamic () || t.isObject ())
       {
 	 dc.aload2 (); // Reader, #depth: 2
-	 dc.aload0 (); // Buf, #depth: 3
+	 dc.aload0 (); // src, #depth: 3
 	 dc.invokeVirtual ("com.pantor.blink.CompactReader", "readObject",
-			   "(Lcom/pantor/blink/Buf;)Ljava/lang/Object;");
+			   "(Lcom/pantor/blink/ByteSource;)Ljava/lang/Object;");
 	 if (argType != null && argType != Object.class)
 	    dc.checkCast (argType);
       }
@@ -408,7 +411,7 @@ public final class CompactReaderCompiler
 	 if (sf.isOptional ())
 	    invokeReader (dc, "skipByte", "V"); // Skip presence byte
 	 String sig = getReadSignature (comp.getTargetType ().getName ());
-	 dc.aload0 (); // Buf, #depth: 2
+	 dc.aload0 (); // src, #depth: 2
 	 dc.aload2 (); // Reader, #depth: 3
 	 dc.invokeStatic (getDecoderClassName (compName), "read", sig);
       }
@@ -427,9 +430,10 @@ public final class CompactReaderCompiler
       if (t.isObject ())
       {
 	 dc.aload2 (); // Reader, #depth: 2
-	 dc.aload0 (); // Buf, #depth: 3
-	 dc.invokeVirtual ("com.pantor.blink.CompactReader", "readObjectArray",
-			   "(Lcom/pantor/blink/Buf;)[Ljava/lang/Object;");
+	 dc.aload0 (); // src, #depth: 3
+	 dc.invokeVirtual (
+	    "com.pantor.blink.CompactReader", "readObjectArray",
+	    "(Lcom/pantor/blink/ByteSource;)[Ljava/lang/Object;");
 	 if (argType != null && argType != Object [].class)
 	    dc.checkCast (argType);
       }
@@ -437,13 +441,14 @@ public final class CompactReaderCompiler
       {
 	 ObjectModel.GroupBinding comp = f.getComponent ().toGroup ();
 	 dc.aload2 (); // Reader, #depth: 2
-	 dc.aload0 (); // Buf, #depth: 3
+	 dc.aload0 (); // src, #depth: 3
 	 invokeReader (dc, "readU32", "I"); // size
 	 dc.anewArray (comp.getTargetType ());
-	 dc.aload0 (); // Buf, #depth: 4
-	 dc.invokeVirtual ("com.pantor.blink.CompactReader", "readObjectArray",
-			   "([Ljava/lang/Object;Lcom/pantor/blink/Buf;)" +
-			   "[Ljava/lang/Object;");
+	 dc.aload0 (); // src, #depth: 4
+	 dc.invokeVirtual (
+	    "com.pantor.blink.CompactReader", "readObjectArray",
+	    "([Ljava/lang/Object;Lcom/pantor/blink/ByteSource;)" +
+	    "[Ljava/lang/Object;");
 	 if (argType != null && argType != Object [].class)
 	    dc.checkCast (argType);
       }
@@ -453,7 +458,7 @@ public final class CompactReaderCompiler
 	 NsName compName = comp.getGroup ().getName ();
 	 prime (compName);
 	 String sig = getReadArraySignature (comp.getTargetType ().getName ());
-	 dc.aload0 (); // Buf, #depth: 2
+	 dc.aload0 (); // src, #depth: 2
 	 dc.aload2 (); // Reader, #depth: 3
 	 dc.invokeStatic (getDecoderClassName (compName), "readArray", sig);
       }
@@ -466,17 +471,17 @@ public final class CompactReaderCompiler
    //
    //   public final class <Ns>+<Name>_dec
    //   {
-   //      public static T read (Buf buf)
+   //      public static T read (ByteSource src)
    //      {
-   //         return map.get (CompactReader.readI32 (buf));
+   //         return map.get (CompactReader.readI32 (src));
    //      }
    //  
-   //      public static T [] readArray (Buf buf)
+   //      public static T [] readArray (ByteSource src)
    //      {
-   //         int size = CompactReader.readU32 (buf);
+   //         int size = CompactReader.readU32 (src);
    //         T [] tgt = new T [size];
    //         for (int i = 0; i < size; ++ i)
-   //           tgt [i] = read (buf);
+   //           tgt [i] = read (src);
    //         return tgt;
    //      }
    //
@@ -508,11 +513,11 @@ public final class CompactReaderCompiler
       dc.addField ("map", "Ljava/util/HashMap;", DynClass.FieldFlag.Private,
 		   DynClass.FieldFlag.Final, DynClass.FieldFlag.Static);
       
-      // static T read (buf)
+      // static T read (src)
 
       dc.startPublicStaticMethod ("read", getReadEnumSignature (bnd));
       dc.getStatic (decoderName, "map", "Ljava/util/HashMap;");
-      dc.aload0 (); // Buf
+      dc.aload0 (); // src
       invokeReader (dc, "readI32", "I");
       dc.invokeStatic ("java.lang.Integer", "valueOf",
 		       "(I)Ljava/lang/Integer;");
@@ -520,13 +525,13 @@ public final class CompactReaderCompiler
 			"(Ljava/lang/Object;)Ljava/lang/Object;")
 	 .checkCast (enumType).areturn ().setMaxStack (2).endMethod ();
 
-      // public static T [] readArray (buf)
+      // public static T [] readArray (src)
 
       int loop = dc.declareLabel ();
       int loopEnd = dc.declareLabel ();
 
       dc.startPublicStaticMethod ("readArray", getReadEnumArraySignature (bnd));
-      dc.aload0 (); // buf
+      dc.aload0 (); // src
       invokeReader (dc, "readU32", "I"); // size
       dc.dup ()
 	 .istore1 ()
@@ -540,7 +545,7 @@ public final class CompactReaderCompiler
 	 .ifIcmpGe (loopEnd) // jump if i >= size
 	 .aload2 () // tgt
 	 .iload3 () // i
-	 .aload0 () // buf
+	 .aload0 () // src
 	 .invokeStatic (decoderName, "read", getReadEnumSignature (bnd))
 	 .aastore () // tgt [i] = <returned value>
 	 .iinc (3, 1) // ++ i

@@ -35,57 +35,35 @@
 
 package com.pantor.blink;
 
-public final class Utf8Util
+import java.io.OutputStream;
+import java.io.IOException;
+
+public final class OutputStreamSink extends ForwardingSink
 {
-   public static int write (String val, ByteSink sink)
-      throws BlinkException.Encode
+   public OutputStreamSink (ByteSink inner, OutputStream os)
    {
-      return write (val, 0, sink);
+      super (inner);
+      this.os = os;
    }
 
-   public static int write (String val, int from, ByteSink sink)
-      throws BlinkException.Encode
+   public OutputStreamSink (OutputStream os)
    {
-      int len = val.length ();
-      int start = sink.getPos ();
-      for (int i = from; i < len; ++ i)
-      {
-	 char c = val.charAt (i);
-	 if (c < 0x0080)
-	    sink.write (c);
-	 else if (c < 0x0800)
-	    sink.write (0xc0 | ((c >> 6) & 0x1f),
-			0x80 |   c       & 0x3f);
-	 else if (c < 0xd800 || c > 0xdfff)
-	    sink.write (0xe0 | ((c >> 12) & 0x0f),
-			0x80 | ((c >> 6)  & 0x3f),
-			0x80 |   c        & 0x3f);
-	 else
-	 {
-	    ++ i;
-	    if (i < len)
-	    {
-	       char c2 = val.charAt (i);
-	       int u = (int)c << 10 + (int)c2 + SurrogateOffset;
-
-	       sink.write (0xf0 | ((u >> 18) & 0x07),
-			   0x80 | ((u >> 12) & 0x3f),
-			   0x80 | ((u >> 6)  & 0x3f),
-			   0x80 |   u        & 0x3f);
-	    }
-	    else
-	       throw new BlinkException.Encode (
-		  "Incomplete UTF-16 surrogate pair");
-	 }
-      }
-
-      return sink.getPos () - start;
+      this (DirectBuf.newInstance (), os);
    }
 
-   public static int getConservativeSize (int size)
+   @Override
+   public void flush () throws IOException
    {
-      return size * 4;
+      inner.flushTo (os);
+      os.flush ();
    }
-
-   private final static int SurrogateOffset = 0x10000 - (0xD800 << 10) - 0xDC00;
+   
+   @Override
+   public void close () throws IOException
+   {
+      inner.flushTo (os);
+      os.close ();
+   }
+   
+   private final OutputStream os;
 }

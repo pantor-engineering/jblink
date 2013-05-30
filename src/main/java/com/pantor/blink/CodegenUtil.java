@@ -35,7 +35,7 @@
 
 package com.pantor.blink;
 
-public final class CodecUtil
+public final class CodegenUtil
 {
    public static String mapTypeDescr (Schema.TypeCode code)
    {
