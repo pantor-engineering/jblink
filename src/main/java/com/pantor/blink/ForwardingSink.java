@@ -100,14 +100,14 @@ public abstract class ForwardingSink implements ByteSink
 
    @Override
    public void write (int b0, int b1, int b2, int b3, int b4, int b5, int b6,
-		      int b7)
+                      int b7)
    {
       inner.write (b0, b1, b2, b3, b4, b5, b6, b7);
    }
 
    @Override
    public void write (int b0, int b1, int b2, int b3, int b4, int b5, int b6,
-		      int b7, int b8)
+                      int b7, int b8)
    {
       inner.write (b0, b1, b2, b3, b4, b5, b6, b7, b8);
    }

@@ -92,7 +92,7 @@ public final class CompactWriter implements Writer
    public void write (Object o) throws BlinkException, IOException
    {
       if (sink.getPos () >= AutoFlushThreshold)
-	 flush ();
+         flush ();
       writeObject (o);
    }
 
@@ -111,7 +111,7 @@ public final class CompactWriter implements Writer
    public void write (Object [] objs) throws BlinkException, IOException
    {
       for (Object o : objs)
-	 write (o);
+         write (o);
    }
 
    /**
@@ -132,7 +132,7 @@ public final class CompactWriter implements Writer
       throws BlinkException, IOException
    {
       for (int i = from; i < from + len; ++ i)
-	 write (objs [i]);
+         write (objs [i]);
    }
 
    /**
@@ -150,7 +150,7 @@ public final class CompactWriter implements Writer
    public void write (Iterable<?> objs) throws BlinkException, IOException
    {
       for (Object o : objs)
-	 write (o);
+         write (o);
    }
 
    /**
@@ -297,41 +297,41 @@ public final class CompactWriter implements Writer
      LONG:
       if (len < 128)
       {
-	 allocatedPreamble = 1;
-	 sink.reserve (allocatedPreamble + len);
-	 sink.step ();
-	 for (; i < len; ++ i)
-	 {
-	    char c = val.charAt (i);
-	    if (c < 0x0080)
-	       sink.write (c);
-	    else
-	    {
-	       size = i;
-	       sink.reserve (Utf8Util.getConservativeSize (len - i));
-	       break LONG;
-	    }
-	 }
+         allocatedPreamble = 1;
+         sink.reserve (allocatedPreamble + len);
+         sink.step ();
+         for (; i < len; ++ i)
+         {
+            char c = val.charAt (i);
+            if (c < 0x0080)
+               sink.write (c);
+            else
+            {
+               size = i;
+               sink.reserve (Utf8Util.getConservativeSize (len - i));
+               break LONG;
+            }
+         }
 
-	 int save = sink.getPos ();
-	 sink.setPos (start);
-	 Vlc.write7 (len, sink);
-	 sink.setPos (save);
-	 
-	 return;
+         int save = sink.getPos ();
+         sink.setPos (start);
+         Vlc.write7 (len, sink);
+         sink.setPos (save);
+         
+         return;
       }
       else
       {
-	 allocatedPreamble = 2;
-	 sink.reserve (allocatedPreamble + Utf8Util.getConservativeSize (len));
-	 sink.step (allocatedPreamble);
+         allocatedPreamble = 2;
+         sink.reserve (allocatedPreamble + Utf8Util.getConservativeSize (len));
+         sink.step (allocatedPreamble);
       }
 
       size += Utf8Util.write (val, i, sink);
 
       int toShift = Vlc.getUintSize (size) - allocatedPreamble;
       if (toShift > 0)
-	 sink.shift (start + allocatedPreamble, toShift);
+         sink.shift (start + allocatedPreamble, toShift);
       int save = sink.getPos ();
       sink.setPos (start);
       Vlc.writeU32 (size, sink);
@@ -344,7 +344,7 @@ public final class CompactWriter implements Writer
       Vlc.writeU32 (val.length, sink);
       sink.reserve (val.length * Vlc.Int8MaxSize);
       for (int i = 0; i < val.length; ++ i)
-	 Vlc.writeU32 ((int)val [i], sink);
+         Vlc.writeU32 ((int)val [i], sink);
    }
 
    public static void writeI8Array (byte [] val, ByteSink sink)
@@ -353,7 +353,7 @@ public final class CompactWriter implements Writer
       Vlc.writeU32 (val.length, sink);
       sink.reserve (val.length * Vlc.Int8MaxSize);
       for (int i = 0; i < val.length; ++ i)
-	 Vlc.writeI32 ((int)val [i], sink);
+         Vlc.writeI32 ((int)val [i], sink);
    }
 
    public static void writeU16Array (short [] val, ByteSink sink)
@@ -362,7 +362,7 @@ public final class CompactWriter implements Writer
       Vlc.writeU32 (val.length, sink);
       sink.reserve (val.length * Vlc.Int16MaxSize);
       for (int i = 0; i < val.length; ++ i)
-	 Vlc.writeU32 ((int)val [i], sink);
+         Vlc.writeU32 ((int)val [i], sink);
    }
 
    public static void writeI16Array (short [] val, ByteSink sink)
@@ -371,7 +371,7 @@ public final class CompactWriter implements Writer
       Vlc.writeU32 (val.length, sink);
       sink.reserve (val.length * Vlc.Int16MaxSize);
       for (int i = 0; i < val.length; ++ i)
-	 Vlc.writeI32 ((int)val [i], sink);
+         Vlc.writeI32 ((int)val [i], sink);
    }
 
    public static void writeU32Array (int [] val, ByteSink sink)
@@ -380,7 +380,7 @@ public final class CompactWriter implements Writer
       Vlc.writeU32 (val.length, sink);
       sink.reserve (val.length * Vlc.Int32MaxSize);
       for (int i = 0; i < val.length; ++ i)
-	 Vlc.writeU32 (val [i], sink);
+         Vlc.writeU32 (val [i], sink);
    }
 
    public static void writeI32Array (int [] val, ByteSink sink)
@@ -389,7 +389,7 @@ public final class CompactWriter implements Writer
       Vlc.writeU32 (val.length, sink);
       sink.reserve (val.length * Vlc.Int32MaxSize);
       for (int i = 0; i < val.length; ++ i)
-	 Vlc.writeI32 (val [i], sink);
+         Vlc.writeI32 (val [i], sink);
    }
 
    public static void writeU64Array (long [] val, ByteSink sink)
@@ -398,7 +398,7 @@ public final class CompactWriter implements Writer
       Vlc.writeU32 (val.length, sink);
       sink.reserve (val.length * Vlc.Int64MaxSize);
       for (int i = 0; i < val.length; ++ i)
-	 Vlc.writeU64 (val [i], sink);
+         Vlc.writeU64 (val [i], sink);
    }
 
    public static void writeI64Array (long [] val, ByteSink sink)
@@ -407,7 +407,7 @@ public final class CompactWriter implements Writer
       Vlc.writeU32 (val.length, sink);
       sink.reserve (val.length * Vlc.Int64MaxSize);
       for (int i = 0; i < val.length; ++ i)
-	 Vlc.writeI64 (val [i], sink);
+         Vlc.writeI64 (val [i], sink);
    }
 
    public static void writeF64Array (double [] val, ByteSink sink)
@@ -416,7 +416,7 @@ public final class CompactWriter implements Writer
       Vlc.writeU32 (val.length, sink);
       sink.reserve (val.length * Vlc.Int64MaxSize);
       for (int i = 0; i < val.length; ++ i)
-	 Vlc.writeI64 (Double.doubleToLongBits (val [i]), sink);
+         Vlc.writeI64 (Double.doubleToLongBits (val [i]), sink);
    }
 
    public static void writeDecimalArray (Decimal [] val, ByteSink sink)
@@ -425,7 +425,7 @@ public final class CompactWriter implements Writer
       Vlc.writeU32 (val.length, sink);
       sink.reserve (val.length * (Vlc.Int8MaxSize + Vlc.Int64MaxSize));
       for (int i = 0; i < val.length; ++ i)
-	 writeDecimal (val [i], sink);
+         writeDecimal (val [i], sink);
    }
 
    public static void writeDateArray (int [] val, ByteSink sink)
@@ -434,7 +434,7 @@ public final class CompactWriter implements Writer
       Vlc.writeU32 (val.length, sink);
       sink.reserve (val.length * Vlc.Int32MaxSize);
       for (int i = 0; i < val.length; ++ i)
-	 Vlc.writeU32 (val [i], sink);
+         Vlc.writeU32 (val [i], sink);
    }
 
    public static void writeTimeOfDayMilliArray (int [] val, ByteSink sink)
@@ -443,7 +443,7 @@ public final class CompactWriter implements Writer
       Vlc.writeU32 (val.length, sink);
       sink.reserve (val.length * Vlc.Int32MaxSize);
       for (int i = 0; i < val.length; ++ i)
-	 Vlc.writeU32 (val [i], sink);
+         Vlc.writeU32 (val [i], sink);
    }
 
    public static void writeTimeOfDayNanoArray (long [] val, ByteSink sink)
@@ -452,7 +452,7 @@ public final class CompactWriter implements Writer
       Vlc.writeU32 (val.length, sink);
       sink.reserve (val.length * Vlc.Int64MaxSize);
       for (int i = 0; i < val.length; ++ i)
-	 Vlc.writeU64 (val [i], sink);
+         Vlc.writeU64 (val [i], sink);
    }
 
    public static void writeNanotimeArray (long [] val, ByteSink sink)
@@ -461,7 +461,7 @@ public final class CompactWriter implements Writer
       Vlc.writeU32 (val.length, sink);
       sink.reserve (val.length * Vlc.Int64MaxSize);
       for (int i = 0; i < val.length; ++ i)
-	 Vlc.writeI64 (val [i], sink);
+         Vlc.writeI64 (val [i], sink);
    }
 
    public static void writeMillitimeArray (long [] val, ByteSink sink)
@@ -470,7 +470,7 @@ public final class CompactWriter implements Writer
       Vlc.writeU32 (val.length, sink);
       sink.reserve (val.length * Vlc.Int64MaxSize);
       for (int i = 0; i < val.length; ++ i)
-	 Vlc.writeI64 (val [i], sink);
+         Vlc.writeI64 (val [i], sink);
    }
 
    public static void writeBoolArray (boolean [] val, ByteSink sink)
@@ -479,7 +479,7 @@ public final class CompactWriter implements Writer
       Vlc.writeU32 (val.length, sink);
       sink.reserve (val.length);
       for (int i = 0; i < val.length; ++ i)
-	 writeBool (val [i], sink);
+         writeBool (val [i], sink);
    }
 
    public static void writeStringArray (String [] val, ByteSink sink)
@@ -487,14 +487,14 @@ public final class CompactWriter implements Writer
    {
       Vlc.writeU32 (val.length, sink);
       for (int i = 0; i < val.length; ++ i)
-	 writeString (val [i], sink);
+         writeString (val [i], sink);
    }
 
    public void writeObjectArray (Object [] val) throws BlinkException
    {
       Vlc.writeU32 (val.length, sink);
       for (int i = 0; i < val.length; ++ i)
-	 writeObject (val [i]);
+         writeObject (val [i]);
    }
    
    public static void writeSeqSize (Object [] val, ByteSink sink)
@@ -523,29 +523,29 @@ public final class CompactWriter implements Writer
       
       try
       {
-	 enc = compiler.getEncoder (o.getClass ());
-	 sink.reserve (enc.getTidSize () + 2 /* Size preamble */);
-	 sink.step (2); // Reserve space for a two byte length preamble
-	 int start = sink.getPos ();
-	 enc.encode (o, sink, this);
-	 int end = sink.getPos ();
-	 int size = end - start;
-	 if (size <= Vlc.TwoByteUintMax)
-	 {
-	    sink.setPos (start - 2);
-	    Vlc.write14 (size, sink);
-	    sink.setPos (end);
-	 }
-	 else
-	 {
-	    // FIXME
-	    throw new RuntimeException ("Not implemented yet: large messages");
-	 }
+         enc = compiler.getEncoder (o.getClass ());
+         sink.reserve (enc.getTidSize () + 2 /* Size preamble */);
+         sink.step (2); // Reserve space for a two byte length preamble
+         int start = sink.getPos ();
+         enc.encode (o, sink, this);
+         int end = sink.getPos ();
+         int size = end - start;
+         if (size <= Vlc.TwoByteUintMax)
+         {
+            sink.setPos (start - 2);
+            Vlc.write14 (size, sink);
+            sink.setPos (end);
+         }
+         else
+         {
+            // FIXME
+            throw new RuntimeException ("Not implemented yet: large messages");
+         }
       }
       catch (BlinkException.Encode e)
       {
-	 // FIXME: augment
-	 throw e;
+         // FIXME: augment
+         throw e;
       }
    }
 
@@ -557,14 +557,14 @@ public final class CompactWriter implements Writer
    {
       protected Encoder (byte [] tid, Class<?> type, Schema.Group grp)
       {
-	 this.tid = tid;
-	 this.type = type;
-	 this.grp = grp;
+         this.tid = tid;
+         this.type = type;
+         this.grp = grp;
       }
 
       protected abstract void encode (Object o, ByteSink sink, CompactWriter wr)
-	 throws BlinkException.Encode, BlinkException.Binding;
-
+         throws BlinkException.Encode, BlinkException.Binding;
+      
       public int getTidSize () { return tid.length; }
       
       protected final byte [] tid;

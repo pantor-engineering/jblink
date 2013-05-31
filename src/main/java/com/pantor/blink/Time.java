@@ -65,8 +65,8 @@ public final class Time
       Calendar cal = Calendar.getInstance ();
       cal.setTime (d);
       return toDaysSinceEpoch (cal.get (Calendar.YEAR),
-			       cal.get (Calendar.MONTH) - 1,
-			       cal.get (Calendar.DAY_OF_MONTH));
+                               cal.get (Calendar.MONTH) - 1,
+                               cal.get (Calendar.DAY_OF_MONTH));
    }
 
    // Converts a java date to a blink date
@@ -76,8 +76,8 @@ public final class Time
       Calendar cal = Calendar.getInstance (tz);
       cal.setTime (d);
       return toDaysSinceEpoch (cal.get (Calendar.YEAR),
-			       cal.get (Calendar.MONTH) - 1,
-			       cal.get (Calendar.DAY_OF_MONTH));
+                               cal.get (Calendar.MONTH) - 1,
+                               cal.get (Calendar.DAY_OF_MONTH));
    }
 
    public static Date toDate (int date, int timeOfDayMilli)
@@ -113,8 +113,8 @@ public final class Time
       long ddd = days - (365*y + y/4 - y/100 + y/400);
       if (ddd < 0)
       {
-	 -- y;
-	 ddd = days - (365*y + y/4 - y/100 + y/400);
+         -- y;
+         ddd = days - (365*y + y/4 - y/100 + y/400);
       }
       long mi = (100*ddd + 52) / 3060;
       long mm = (mi + 2) % 12 + 1;

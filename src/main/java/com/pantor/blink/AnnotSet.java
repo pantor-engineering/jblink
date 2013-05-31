@@ -131,9 +131,9 @@ public final class AnnotSet implements Iterable<Annotation>
    {
       Annotation a = map.get (n);
       if (a != null)
-	 return a.getValue ();
+         return a.getValue ();
       else
-	 return null;
+         return null;
    }
    
    /**

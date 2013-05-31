@@ -49,7 +49,7 @@ public final class Server
       void send (Object obj) throws BlinkException, IOException;
       void send (Object [] objs) throws BlinkException, IOException;
       void send (Object [] objs, int from, int len)
-	 throws BlinkException, IOException;
+         throws BlinkException, IOException;
       
       void addObserver (Object obj) throws BlinkException;
       void addObserver (Object obj, String prefix) throws BlinkException;
@@ -77,10 +77,10 @@ public final class Server
       ServerSocket ss = new ServerSocket (port);
       for (;;)
       {
-	 Socket sock = ss.accept ();
-	 log.info ("Accepted connection from " + sock);
-	 SessionImpl sn = new SessionImpl (sock, om);
-	 cobs.onConnect (sn);
+         Socket sock = ss.accept ();
+         log.info ("Accepted connection from " + sock);
+         SessionImpl sn = new SessionImpl (sock, om);
+         cobs.onConnect (sn);
       }
    }
 
@@ -88,107 +88,107 @@ public final class Server
    {
       SessionImpl (Socket sock, ObjectModel om) throws IOException
       {
-	 this.sock = sock;
-	 this.om = om;
-	 this.os = sock.getOutputStream ();
-	 this.wr = new CompactWriter (om, os);
-	 this.oreg = new DefaultObsRegistry (om);
+         this.sock = sock;
+         this.om = om;
+         this.os = sock.getOutputStream ();
+         this.wr = new CompactWriter (om, os);
+         this.oreg = new DefaultObsRegistry (om);
       }
 
       @Override
       public void send (Object obj) throws BlinkException, IOException
       {
-	 wr.write (obj);
-	 wr.flush ();
+         wr.write (obj);
+         wr.flush ();
       }
       
       @Override
       public void send (Object [] objs) throws BlinkException, IOException
       {
-	 wr.write (objs);
-	 wr.flush ();
+         wr.write (objs);
+         wr.flush ();
       }
       
       @Override
       public void send (Object [] objs, int from, int len)
-	 throws BlinkException, IOException
+         throws BlinkException, IOException
       {
-	 wr.write (objs, from, len);
-	 wr.flush ();
+         wr.write (objs, from, len);
+         wr.flush ();
       }
       
       @Override
       public void addObserver (Object obj) throws BlinkException
       {
-	 oreg.addObserver (obj);
+         oreg.addObserver (obj);
       }
 
       @Override
       public void addObserver (Object obs, String prefix) throws BlinkException
       {
-	 oreg.addObserver (obs, prefix);
+         oreg.addObserver (obs, prefix);
       }
 
       @Override
       public void addObserver (NsName name, Observer obs)
       {
-	 oreg.addObserver (name, obs);
+         oreg.addObserver (name, obs);
       }
 
 
       @Override
       public void close () throws IOException
       {
-	 os.close ();
+         os.close ();
       }
 
       @Override
       public void run ()
       {
-	 try
-	 {
-	    readLoop ();
-	 }
-	 catch (Throwable e)
-	 {
-	    while (e.getCause () != null)
-	       e = e.getCause ();
-	    log.severe (String.format ("%s: %s", sock, e));
-	 }
+         try
+         {
+            readLoop ();
+         }
+         catch (Throwable e)
+         {
+            while (e.getCause () != null)
+               e = e.getCause ();
+            log.severe (String.format ("%s: %s", sock, e));
+         }
       }
 
       @Override
       public void start ()
       {
-	 new Thread (this).start ();
+         new Thread (this).start ();
       }
 
       @Override
       public void readLoop () throws BlinkException, IOException
       {
-	 InputStream is = null;
-	 try
-	 {
-	    is = sock.getInputStream ();
-	    CompactReader rd = new CompactReader (om, oreg);
-	    byte [] buf = new byte [4096];
-	    for (;;)
-	    {
-	       int n = is.read (buf);
-	       if (n == -1)
-		  break;
-	       rd.read (buf, 0, n);
-	    }
+         InputStream is = null;
+         try
+         {
+            is = sock.getInputStream ();
+            CompactReader rd = new CompactReader (om, oreg);
+            byte [] buf = new byte [4096];
+            for (;;)
+            {
+               int n = is.read (buf);
+               if (n == -1)
+                  break;
+               rd.read (buf, 0, n);
+            }
 
-	    log.info (sock + ": closed");
-	 }
-	 finally
-	 {
-	    os.close ();
-	    if (is != null)
-	       is.close ();
-	    sock.close ();
-	 }
+            log.info (sock + ": closed");
+         }
+         finally
+         {
+            os.close ();
+            if (is != null)
+               is.close ();
+            sock.close ();
+         }
       }
 
       private final Socket sock;

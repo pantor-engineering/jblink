@@ -71,23 +71,23 @@ public class BlinkException extends Exception
    public static class Schema extends BlinkException
    {
       /**
-	 Creates a schema exception
+         Creates a schema exception
 
-	 @param msg a descriptive message
-	 @param loc the location in the schema file related to this exception
+         @param msg a descriptive message
+         @param loc the location in the schema file related to this exception
       */
    
       public Schema (String msg, Location loc)
       {
-	 super (msg);
-	 this.msg = msg;
-	 this.loc = loc;
+         super (msg);
+         this.msg = msg;
+         this.loc = loc;
       }
       
       @Override
       public String toString ()
       {
-	 return String.format ("%s: error: %s", loc, msg);
+         return String.format ("%s: error: %s", loc, msg);
       }
 
       private final String msg;
@@ -102,52 +102,52 @@ public class BlinkException extends Exception
    public static class Binding extends BlinkException
    {
       /**
-	 Creates a binding exception
+         Creates a binding exception
 
-	 @param msg a descriptive message
-	 @param loc a location in the schema file releated to this exception
+         @param msg a descriptive message
+         @param loc a location in the schema file releated to this exception
       */
       
       public Binding (String msg, Location loc)
       {
-	 super (msg);
-	 this.msg = msg;
-	 this.loc = loc;
+         super (msg);
+         this.msg = msg;
+         this.loc = loc;
       }
 
       /**
-	 Creates a chained exception
+         Creates a chained exception
 
-	 @param cause the next exception in the chain
+         @param cause the next exception in the chain
       */
    
       public Binding (Throwable cause)
       {
-	 super (cause);
-	 this.msg = null;
-	 this.loc = null;
+         super (cause);
+         this.msg = null;
+         this.loc = null;
       }
 
       /**
-	 Creates a binding exception
+         Creates a binding exception
 
-	 @param msg a descriptive message
+         @param msg a descriptive message
       */
       
       public Binding (String msg)
       {
-	 this (msg, null);
+         this (msg, null);
       }
       
       @Override
       public String toString ()
       {
-	 if (msg == null)
-	    return super.toString ();
-	 else if (loc != null)
-	    return String.format ("%s: error: %s", loc, msg);
-	 else
-	    return msg;
+         if (msg == null)
+            return super.toString ();
+         else if (loc != null)
+            return String.format ("%s: error: %s", loc, msg);
+         else
+            return msg;
       }
 
       private final String msg;
@@ -162,30 +162,30 @@ public class BlinkException extends Exception
    public static class Decode extends BlinkException
    {
       /**
-	 Creates a decoding exception
+         Creates a decoding exception
 
-	 @param msg a descriptive message
-	 @param src the buffer in use when the error appeared
+         @param msg a descriptive message
+         @param src the buffer in use when the error appeared
       */
       
       public Decode (String msg, ByteSource src)
       {
-	 super (msg);
-	 this.src = src;
+         super (msg);
+         this.src = src;
       }
 
       /**
-	 Creates a decoding exception
+         Creates a decoding exception
 
-	 @param msg a descriptive message
+         @param msg a descriptive message
       */
       
       public Decode (String msg) { this (msg, null); }
 
       /**
-	 Returns the buffer in use when the error appeared
+         Returns the buffer in use when the error appeared
 
-	 @return the buffer in use or {@code null} if not available
+         @return the buffer in use or {@code null} if not available
       */
       
       public ByteSource getContext () { return src; }
@@ -200,9 +200,9 @@ public class BlinkException extends Exception
    public static class Encode extends BlinkException
    {
       /**
-	 Creates an encoding exception
+         Creates an encoding exception
 
-	 @param msg a descriptive message
+         @param msg a descriptive message
       */
       
       public Encode (String msg) { super (msg); }
