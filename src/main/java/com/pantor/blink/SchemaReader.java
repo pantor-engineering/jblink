@@ -100,34 +100,34 @@ public final class SchemaReader
       void onNsDecl (String ns, Location loc) throws BlinkException.Schema;
 
       void onStartDefine (String name, String id, AnnotSet annots,
-			  Location loc) throws BlinkException.Schema;;
+                          Location loc) throws BlinkException.Schema;;
       void onEndDefine () throws BlinkException.Schema;
       void onStartGroupDef (String name, String id, String superName,
-			    AnnotSet annots, Location loc)
-	 throws BlinkException.Schema;
+                            AnnotSet annots, Location loc)
+         throws BlinkException.Schema;
       void onEndGroupDef () throws BlinkException.Schema;
       void onStartField (Location loc) throws BlinkException.Schema;
       void onEndField (String name, String id, Schema.Presence pres,
-		       AnnotSet annots) throws BlinkException.Schema;
+                       AnnotSet annots) throws BlinkException.Schema;
 
       void onPrimType (Schema.TypeCode t, Schema.Rank r, AnnotSet annots,
-		       Location loc);
+                       Location loc);
       void onStringType (Schema.Rank r, String ct, AnnotSet annots,
-			 Location loc) throws BlinkException.Schema;
+                         Location loc) throws BlinkException.Schema;
       void onTypeRef (String name, Schema.Layout layout, Schema.Rank r,
-		      AnnotSet annots, Location loc)
-	 throws BlinkException.Schema;
+                      AnnotSet annots, Location loc)
+         throws BlinkException.Schema;
 
       void onStartEnum (Location loc) throws BlinkException.Schema;
       void onEndEnum () throws BlinkException.Schema;
       void onEnumSym (String name, String val, AnnotSet annots, Location loc)
-	  throws BlinkException.Schema;
+         throws BlinkException.Schema;
 
       void onSchemaAnnot (AnnotSet annots, Location loc)
-	 throws BlinkException.Schema;
+         throws BlinkException.Schema;
       void onIncrAnnot (String name, String substep, Schema.PathType t,
-			String id, AnnotSet annots, Location loc)
-	 throws BlinkException.Schema;
+                        String id, AnnotSet annots, Location loc)
+         throws BlinkException.Schema;
    }
    
    public void read (Reader rd, String srcName)
@@ -143,11 +143,11 @@ public final class SchemaReader
       obs.onStartSchema ();
    
       if (next (Tk.KwNamespace))
-	 nsDecl ();
+         nsDecl ();
       
       while (! match (Tk.End))
-	 def ();
-
+         def ();
+      
       obs.onEndSchema ();
    }
 
@@ -215,29 +215,29 @@ public final class SchemaReader
 
       private String getText ()
       {
-	 return text.toString ();
+         return text.toString ();
       }
       
       private void clearText ()
       {
-	 text.setLength (0);
+         text.setLength (0);
       }
       
       private void appendText (char c)
       {
-	 text.append (c);
+         text.append (c);
       }
 
       private void setText (char c)
       {
-	 text.setLength (0);
-	 text.append (c);
+         text.setLength (0);
+         text.append (c);
       }
 
       private void setText (String s)
       {
-	 text.setLength (0);
-	 text.append (s);
+         text.setLength (0);
+         text.append (s);
       }
       
       Tk type;
@@ -257,22 +257,22 @@ public final class SchemaReader
    {
       if (match (expected))
       {
-	 next ();
-	 return true;
+         next ();
+         return true;
       }
       else
-	 return false;
+         return false;
    }
 
    private String nextOf (Tk... toks) throws IOException
    {
       for (Tk t : toks)
-	 if (match (t))
-	 {
-	    String val = curTok.getText ();
-	    next ();
-	    return val;
-	 }
+         if (match (t))
+         {
+            String val = curTok.getText ();
+            next ();
+            return val;
+         }
 
       return null;
    }
@@ -280,14 +280,14 @@ public final class SchemaReader
    private String nextNameOrKeyword () throws IOException
    {
       if (match (Tk.Name) || match (Tk.QName) ||
-	  curTok.type.ordinal () >= Tk.KwI8.ordinal ())
+          curTok.type.ordinal () >= Tk.KwI8.ordinal ())
       {
-	 String val = curTok.getText ();
-	 next ();
-	 return val;
+         String val = curTok.getText ();
+         next ();
+         return val;
       }
       else
-	 return null;
+         return null;
    }
 
    private boolean matchPend (Tk t)
@@ -299,16 +299,16 @@ public final class SchemaReader
    {
       if (buf [bufTake] == '\n')
       {
-	 ++ line;
-	 lineStart = bufTake + 1;
-	 col = 0;
+         ++ line;
+         lineStart = bufTake + 1;
+         col = 0;
       }
 
       ++ bufTake;
       ++ col;
          
       if (bufTake == bufEnd)
-	 fillBuf ();
+         fillBuf ();
    }
 
    private void fillBuf () throws IOException
@@ -326,32 +326,32 @@ public final class SchemaReader
    private char peek ()
    {
       if (hasMore)
-	 return buf [bufTake];
+         return buf [bufTake];
       else
-	 return '\0';
+         return '\0';
    }
 
    private char get () throws IOException
    {
       if (hasMore)
       {
-	 char c = peek ();
-	 consume ();
-	 return c;
+         char c = peek ();
+         consume ();
+         return c;
       }
       else
-	 return '\0';
+         return '\0';
    }
 
    private boolean lookahead (char expected) throws IOException
    {
       if (peek () == expected)
       {
-	 consume ();
-	 return true;
+         consume ();
+         return true;
       }
       else
-	 return false;
+         return false;
    }
 
    private boolean isDigit (char c)
@@ -379,8 +379,8 @@ public final class SchemaReader
 
       if (curTok.type == Tk.End)
       {
-	 pendTok.type = Tk.End;
-	 return;
+         pendTok.type = Tk.End;
+         return;
       }
 
       ++ tokPos;
@@ -395,10 +395,10 @@ public final class SchemaReader
       switch (c)
       {
        case ',':
-	 setToken (Tk.Comma);
-	 lastCommaPos = tokPos;
-	 lastCommaLine = line;
-	 break;
+          setToken (Tk.Comma);
+          lastCommaPos = tokPos;
+          lastCommaLine = line;
+          break;
 
        case '.': setToken (Tk.Dot); break;
        case '=': setToken (Tk.Eq); break;
@@ -412,80 +412,80 @@ public final class SchemaReader
        case '@': setToken (Tk.At); break;
 
        case '-':
-	 if (lookahead ('>'))
-	    setToken (Tk.RArrow);
-	 else
-	 {
-	    if (! isDigit (peek ()))
-	       throw lexError ("Expected digit or '>' after '-'");
-	    setToken (Tk.Int);
-	    readUInt (c);
-	 }
-	 break;
+          if (lookahead ('>'))
+             setToken (Tk.RArrow);
+          else
+          {
+             if (! isDigit (peek ()))
+                throw lexError ("Expected digit or '>' after '-'");
+             setToken (Tk.Int);
+             readUInt (c);
+          }
+          break;
 
        case '"': case '\'':
-	 setToken (Tk.Str);
-	 readStr (c);
-	 break;
+          setToken (Tk.Str);
+          readStr (c);
+          break;
 
        case '<':
-	 if (lookahead ('-'))
-	    setToken (Tk.LArrow);
-	 else
-	    throw lexError ("Expected dash after '<'");
-	 break;
+          if (lookahead ('-'))
+             setToken (Tk.LArrow);
+          else
+             throw lexError ("Expected dash after '<'");
+          break;
 
        case '(':
-	 {
-	    setToken (Tk.Ct);
-	    readStr (')');
-	 }
-	 break;
+       {
+          setToken (Tk.Ct);
+          readStr (')');
+       }
+       break;
             
        case '\\':
-	 {
-	    pendTok.clearText ();
-	    setToken (Tk.Name);
-	    if (hasMore)
-	       requireNameStart (peek (), "name after backslash");
-	    else
-	       throw lexError (
-		  "Missing name after backslash at end of file");
-	    readNcName ();
-	 }
-	 break;
+       {
+          pendTok.clearText ();
+          setToken (Tk.Name);
+          if (hasMore)
+             requireNameStart (peek (), "name after backslash");
+          else
+             throw lexError (
+                "Missing name after backslash at end of file");
+          readNcName ();
+       }
+       break;
 
-       case '\0':
-	 if (hasMore)
-	    throw lexError ("Character not allowed here", c);
-	 else
-	 {
-	    pendTok.start = 0;
-	    setToken (Tk.End);
-	 }
-	 break;
-	    
-       case '0':
-	 if (lookahead ('x'))
-	 {
-	    readHex ();
-	    break;
-	 }
-	 // Fallthrough
+      case '\0':
+         if (hasMore)
+            throw lexError ("Character not allowed here", c);
+         else
+         {
+            pendTok.start = 0;
+            setToken (Tk.End);
+         }
+         break;
+    
+      case '0':
+         if (lookahead ('x'))
+         {
+            readHex ();
+            break;
+         }
+         // Fallthrough
             
-       default:
-	 if (isDigit (c))
-	 {
-	    setToken (Tk.UInt);
-	    readUInt (c);
-	 }
-	 else if (isNameStartChar (c))
-	 {
-	    pendTok.setText (c);
-	    readNameOrKeyword ();
-	 }
-	 else
-	    throw lexError ("Character not allowed here", c);
+      default:
+         if (isDigit (c))
+         {
+            setToken (Tk.UInt);
+            readUInt (c);
+         }
+         else if (isNameStartChar (c))
+         {
+            pendTok.setText (c);
+            readNameOrKeyword ();
+         }
+         else
+            throw lexError ("Character not allowed here", c);
       }
    }
 
@@ -499,18 +499,18 @@ public final class SchemaReader
    private void skipWsAndComments () throws IOException
    {
       for (;;)
-	 switch (peek ())
-	 {
-	  case 0x9: case 0xd: case 0x20: case 0xa:
-	    consume ();
-	    break;
-	  case '#':
-	    consume ();
-	    skipComment ();
-	    break;
-	  default:
-	    return;
-	 }
+         switch (peek ())
+         {
+         case 0x9: case 0xd: case 0x20: case 0xa:
+            consume ();
+            break;
+         case '#':
+            consume ();
+            skipComment ();
+            break;
+         default:
+            return;
+         }
    }
    
    private void readUInt (char first) throws IOException, LexError
@@ -519,12 +519,12 @@ public final class SchemaReader
       char c;
       while (isDigit (c = peek ()))
       {
-	 consume ();
-	 pendTok.appendText (c);
+         consume ();
+         pendTok.appendText (c);
       }
 
       if (hasMore && isNameStartChar (c))
-	 throw lexError ("A number must end in digits");
+         throw lexError ("A number must end in digits");
    }
 
    private void readHex () throws IOException, LexError
@@ -534,12 +534,12 @@ public final class SchemaReader
       char c;
       while (isHexDigit (c = peek ()))
       {
-	 consume ();
-	 pendTok.appendText (c);
+         consume ();
+         pendTok.appendText (c);
       }
 
       if (hasMore && isNameStartChar (c))
-	 throw lexError ("A hex number must end in hex digits");
+         throw lexError ("A hex number must end in hex digits");
    }
 
    private void requireNameStart (char c, String what)
@@ -547,10 +547,10 @@ public final class SchemaReader
    {
       if (! isNameStartChar (c))
       {
-	 if (Character.isWhitespace (c))
-	    throw lexError ("Missing " + what);
-	 else
-	    throw lexError ("Character not allowed at start of " + what, c);
+         if (Character.isWhitespace (c))
+            throw lexError ("Missing " + what);
+         else
+            throw lexError ("Character not allowed at start of " + what, c);
       }
    }
 
@@ -559,8 +559,8 @@ public final class SchemaReader
       char c;
       while (isNameStartChar (c = peek ()) || isDigit (c))
       {
-	 consume ();
-	 pendTok.appendText (c);
+         consume ();
+         pendTok.appendText (c);
       }
    }
 
@@ -569,16 +569,16 @@ public final class SchemaReader
       pendTok.clearText ();
       while (hasMore)
       {
-	 char c = get ();
-	 if (c != end)
-	 {
-	    if (c != '\n')
-	       pendTok.appendText (c);
-	    else
-	       throw lexError ("Multiline literals are not allowed");
-	 }
-	 else
-	    return;
+         char c = get ();
+         if (c != end)
+         {
+            if (c != '\n')
+               pendTok.appendText (c);
+            else
+               throw lexError ("Multiline literals are not allowed");
+         }
+         else
+            return;
       }
 
       throw lexError ("Literal not terminated at end of file, expected", end);
@@ -589,44 +589,44 @@ public final class SchemaReader
       readNcName ();
       if (peek () == ':')
       {
-	 consume ();
-	 setToken (Tk.QName);
-	 pendTok.appendText (':');
-	 if (hasMore)
-	 {
-	    requireNameStart (peek (), "name part in qualified name");
-	    readNcName ();
-	 }
-	 else
-	    throw lexError ("Missing name part after colon at end of file");
+         consume ();
+         setToken (Tk.QName);
+         pendTok.appendText (':');
+         if (hasMore)
+         {
+            requireNameStart (peek (), "name part in qualified name");
+            readNcName ();
+         }
+         else
+            throw lexError ("Missing name part after colon at end of file");
       }
       else
       {
-	 Tk kw = kwMap.get (pendTok.getText ());
-	 if (kw != null)
-	    setToken (kw);
-	 else
-	    setToken (Tk.Name);
+         Tk kw = kwMap.get (pendTok.getText ());
+         if (kw != null)
+            setToken (kw);
+         else
+            setToken (Tk.Name);
       }
    }
    
    private void skipComment () throws IOException
    {
       while (hasMore)
-	 if (get () == '\n')
-	    return;
+         if (get () == '\n')
+            return;
    }
    
    private void next () throws IOException
    {
       try
       {
-	 innerNext ();
+         innerNext ();
       }
       catch (LexError e)
       {
-	 setToken (Tk.Err);
-	 pendTok.setText (e.msg);
+         setToken (Tk.Err);
+         pendTok.setText (e.msg);
       }
    }
 
@@ -640,21 +640,21 @@ public final class SchemaReader
       lastNameLine = curTok.line;
       if (match (Tk.QName))
       {
-	 pendName = require (Tk.QName);
-	 incrAnnot ();
+         pendName = require (Tk.QName);
+         incrAnnot ();
       }
       else if (match (Tk.KwSchema))
-	 incrAnnot ();
+         incrAnnot ();
       else
       {
-	 nameWithId ("group or type definition name, or an incremental " + 
-		     "annotation");
-	 if (match (Tk.LArrow) || match (Tk.Dot))
-	    incrAnnot ();
-	 else if (next (Tk.Eq))
-	    define ();
-	 else
-	    groupDef ();
+         nameWithId ("group or type definition name, or an incremental " + 
+                     "annotation");
+         if (match (Tk.LArrow) || match (Tk.Dot))
+            incrAnnot ();
+         else if (next (Tk.Eq))
+            define ();
+         else
+            groupDef ();
       }
    }
 
@@ -663,8 +663,8 @@ public final class SchemaReader
       // An enumeration starts with   "|", name "|", or name "/"
       
       return (match (Tk.Bar) ||
-	      (match (Tk.Name) &&
-	       (matchPend (Tk.Slash) || matchPend (Tk.Bar))));
+              (match (Tk.Name) &&
+               (matchPend (Tk.Slash) || matchPend (Tk.Bar))));
    }
    
    private void define () throws IOException, BlinkException.Schema
@@ -675,9 +675,9 @@ public final class SchemaReader
       annots ();
 
       if (matchEnum ())
-	 enumeration ();
+         enumeration ();
       else
-	 type ();
+         type ();
 
       obs.onEndDefine ();
    }
@@ -685,8 +685,8 @@ public final class SchemaReader
    private void groupDef () throws IOException, BlinkException.Schema
    {
       if (lastEmptyGrpLine == lastNameLine && lastEmptyGrpLine != 0)
-	 warning ("Multiple empty groups on the same line. Maybe " +
-		  "there is a missing '->' earlier", lastEmptyGrpLine);
+         warning ("Multiple empty groups on the same line. Maybe " +
+                  "there is a missing '->' earlier", lastEmptyGrpLine);
    
       int grpStartLine = lastNameLine;
 
@@ -694,24 +694,24 @@ public final class SchemaReader
    
       if (next (Tk.Colon))
       {
-	 grpStartLine = curTok.line;
-	 superName = superRef ();
+         grpStartLine = curTok.line;
+         superName = superRef ();
       }
 
       obs.onStartGroupDef (pendName, consumeId (), superName, annotations,
-			   lastLoc);
+                           lastLoc);
    
       clearAnnots ();
 
       if (next (Tk.RArrow))
-	 for (;;)
-	 {
-	    field ();
-	    if (! next (Tk.Comma))
-	       break;
-	 }
+         for (;;)
+         {
+            field ();
+            if (! next (Tk.Comma))
+               break;
+         }
       else
-	 lastEmptyGrpLine = grpStartLine;
+         lastEmptyGrpLine = grpStartLine;
 
       obs.onEndGroupDef ();
    }
@@ -720,9 +720,9 @@ public final class SchemaReader
    {
       String name = nextOf (Tk.Name, Tk.QName);
       if (name != null)
-	 return name;
+         return name;
       else
-	 throw expected ("supertype name");
+         throw expected ("supertype name");
    }
 
    private void field () throws IOException, BlinkException.Schema
@@ -736,7 +736,7 @@ public final class SchemaReader
       nameWithId ("field name");
       Schema.Presence pres = Schema.Presence.Required;
       if (next (Tk.QMark))
-	 pres = Schema.Presence.Optional;
+         pres = Schema.Presence.Optional;
       obs.onEndField (pendName, consumeId (), pres, annotations);
       clearAnnots ();
    }
@@ -748,9 +748,9 @@ public final class SchemaReader
       pendName = require (Tk.Name, what);
       if (next (Tk.Slash))
       {
-	 pendId = nextOf (Tk.UInt, Tk.Hex);
-	 if (pendId == null)
-	    throw expected ("unsigned integer or hex number");
+         pendId = nextOf (Tk.UInt, Tk.Hex);
+         if (pendId == null)
+            throw expected ("unsigned integer or hex number");
       }
    }
    
@@ -759,14 +759,14 @@ public final class SchemaReader
       obs.onStartEnum (lastLoc);
    
       if (next (Tk.Bar))
-	 sym ();
+         sym ();
       else
-	 for (;;)
-	 {
-	    sym ();
-	    if (! next (Tk.Bar))
-	       break;
-	 }
+         for (;;)
+         {
+            sym ();
+            if (! next (Tk.Bar))
+               break;
+         }
 
       obs.onEndEnum ();
    }
@@ -778,9 +778,9 @@ public final class SchemaReader
       String val = null;
       if (next (Tk.Slash))
       {
-	 val = nextOf (Tk.UInt, Tk.Int, Tk.Hex);
-	 if (val == null)
-	    throw expected ("integer or hex number");
+         val = nextOf (Tk.UInt, Tk.Int, Tk.Hex);
+         if (val == null)
+            throw expected ("integer or hex number");
       }
       obs.onEnumSym (name, val, annotations, lastLoc);
       clearAnnots ();
@@ -790,11 +790,11 @@ public final class SchemaReader
    {
       if (next (Tk.LBrk))
       {
-	 require (Tk.RBrk);
-	 return Schema.Rank.Sequence;
+         require (Tk.RBrk);
+         return Schema.Rank.Sequence;
       }
       else
-	 return Schema.Rank.Single;
+         return Schema.Rank.Single;
    }
 
    private void type () throws IOException, BlinkException.Schema
@@ -802,22 +802,22 @@ public final class SchemaReader
       switch (curTok.type)
       {
        case Name: case QName:
-	 ref ();
-	 break;
+          ref ();
+          break;
 
        case KwString:
-	 string ();
-	 break;
+          string ();
+          break;
 
        case KwI8: case KwU8: case KwI16: case KwU16: case KwI32: case KwU32:
        case KwI64: case KwU64: case KwF64: case KwDecimal: case KwDate:
        case KwTimeOfDayMilli: case KwTimeOfDayNano: case KwNanotime:
        case KwMillitime: case KwBool: case KwObject:
-	 primType ();
-	 break;
-      
+          primType ();
+          break;
+    
        default:
-	 throw expected ("type");
+          throw expected ("type");
       }
    }
 
@@ -836,7 +836,7 @@ public final class SchemaReader
       next ();
       Schema.Layout layout = Schema.Layout.Static;
       if (next (Tk.Asterisk))
-	 layout = Schema.Layout.Dynamic;
+         layout = Schema.Layout.Dynamic;
 
       Schema.Rank r = rank ();
    
@@ -862,7 +862,7 @@ public final class SchemaReader
    private void annots () throws IOException, BlinkException.Schema
    {
       while (next (Tk.At))
-	 annot ();
+         annot ();
    }
 
    private void annot () throws IOException, BlinkException.Schema
@@ -870,20 +870,20 @@ public final class SchemaReader
       String name = nextNameOrKeyword ();
       if (name != null)
       {
-	 require (Tk.Eq);
-	 StringBuilder val = new StringBuilder ();
-	 val.append (require (Tk.Str));
-	 for (;;)
-	 {
-	    String seg = nextOf (Tk.Str);
-	    if (seg == null)
-	       break;
-	    val.append (seg);
-	 }
-	 annotations.set (NsName.parse (name), val.toString ());
+         require (Tk.Eq);
+         StringBuilder val = new StringBuilder ();
+         val.append (require (Tk.Str));
+         for (;;)
+         {
+            String seg = nextOf (Tk.Str);
+            if (seg == null)
+               break;
+            val.append (seg);
+         }
+         annotations.set (NsName.parse (name), val.toString ());
       }
       else
-	 throw expected ("annotation name");
+         throw expected ("annotation name");
    }
 
    private void incrAnnot () throws IOException, BlinkException.Schema
@@ -891,42 +891,42 @@ public final class SchemaReader
       Location loc = lastLoc;
    
       if (! annotations.empty ())
-	 throw error ("An incremental annotation clause cannot be preceded" +
-		      " by annotations");
-
+         throw error ("An incremental annotation clause cannot be preceded" +
+                      " by annotations");
+      
       if (pendId != null)
-	 throw error ("An incremental annotation clause cannot set an" +
-		      " ID using the slash notation. Use '<- id' instead");
+         throw error ("An incremental annotation clause cannot set an" +
+                 " ID using the slash notation. Use '<- id' instead");
 
       if (next (Tk.KwSchema))
       {
-	 incrAnnotList ();
-	 consumeId ();
-	 obs.onSchemaAnnot (annotations, loc);
+         incrAnnotList ();
+         consumeId ();
+         obs.onSchemaAnnot (annotations, loc);
       }
       else
       {
-	 String substep = null;
-	 Schema.PathType pathType = Schema.PathType.NameStep;
+         String substep = null;
+         Schema.PathType pathType = Schema.PathType.NameStep;
 
-	 if (next (Tk.Dot))
-	 {
-	    if (next (Tk.KwType))
-	       pathType = Schema.PathType.TypeStep;
-	    else
-	    {
-	       substep = require (Tk.Name, "field or symbol name");
-	       if (next (Tk.Dot))
-	       {
-		  require (Tk.KwType);
-		  pathType = Schema.PathType.TypeStep;
-	       }
-	    }
-	 }
+         if (next (Tk.Dot))
+         {
+            if (next (Tk.KwType))
+               pathType = Schema.PathType.TypeStep;
+            else
+            {
+               substep = require (Tk.Name, "field or symbol name");
+               if (next (Tk.Dot))
+               {
+                  require (Tk.KwType);
+                  pathType = Schema.PathType.TypeStep;
+               }
+            }
+         }
 
-	 incrAnnotList ();
-	 obs.onIncrAnnot (pendName, substep, pathType, consumeId (),
-			  annotations, loc);
+         incrAnnotList ();
+         obs.onIncrAnnot (pendName, substep, pathType, consumeId (),
+                          annotations, loc);
       }
 
       clearAnnots ();
@@ -935,18 +935,18 @@ public final class SchemaReader
    private void incrAnnotList () throws IOException, BlinkException.Schema
    {
       if (! match (Tk.LArrow))
-	 throw expected (getTokenDescr (Tk.LArrow));
+         throw expected (getTokenDescr (Tk.LArrow));
 
       while (next (Tk.LArrow))
       {
-	 if (next (Tk.At))
-	    annot ();
-	 else
-	 {
-	    pendId = nextOf (Tk.Int, Tk.UInt, Tk.Hex);
-	    if (pendId == null)
-	       throw expected ("incremental annotation, integer or hex number");
-	 }
+         if (next (Tk.At))
+            annot ();
+         else
+         {
+            pendId = nextOf (Tk.Int, Tk.UInt, Tk.Hex);
+            if (pendId == null)
+               throw expected ("incremental annotation, integer or hex number");
+         }
       }
    }
 
@@ -967,12 +967,12 @@ public final class SchemaReader
    {
       if (match (t))
       {
-	 String val = curTok.getText ();
-	 next ();
-	 return val;
+         String val = curTok.getText ();
+         next ();
+         return val;
       }
       else
-	 throw expected (what != null ? what : getTokenDescr (t));
+         throw expected (what != null ? what : getTokenDescr (t));
    }
 
    private String require (Tk t) throws IOException, BlinkException.Schema
@@ -1055,7 +1055,7 @@ public final class SchemaReader
        case KwString: return Schema.TypeCode.String;
        case KwObject: return Schema.TypeCode.Object;
        default:
-	 throw new RuntimeException ("cannot happen");
+          throw new RuntimeException ("cannot happen");
       }
    }
 
@@ -1071,8 +1071,8 @@ public final class SchemaReader
    {
       LexError (String msg)
       {
-	 super (msg);
-	 this.msg = msg;
+         super (msg);
+         this.msg = msg;
       }
       String msg;
    }
@@ -1080,7 +1080,7 @@ public final class SchemaReader
    private LexError lexError (String msg, char c)
    {
       return new LexError (
-	 String.format ("%s: %s", msg, Util.displayStr (String.valueOf (c))));
+         String.format ("%s: %s", msg, Util.displayStr (String.valueOf (c))));
    }
    
    private BlinkException.Schema error (String msg, String details)
@@ -1088,35 +1088,35 @@ public final class SchemaReader
       StringBuilder sb = new StringBuilder ();
       sb.append (msg);
       if (details != null)
-	 sb.append (String.format ("%n  ")).append (details);
+         sb.append (String.format ("%n  ")).append (details);
       if (curTok.startOfLine < curTok.start)
       {
-	 int off = curTok.start - curTok.startOfLine;
-	 int from = curTok.startOfLine;
-	 int following = Math.min (70, bufEnd - curTok.start);
-	 int to = curTok.start;
-	 for (; to < curTok.start + following; ++ to)
-	    if (buf [to] == '\n')
-	       break;
+         int off = curTok.start - curTok.startOfLine;
+         int from = curTok.startOfLine;
+         int following = Math.min (70, bufEnd - curTok.start);
+         int to = curTok.start;
+         for (; to < curTok.start + following; ++ to)
+            if (buf [to] == '\n')
+               break;
 
-	 int size = to - from;
-	 if (size > 70)
-	 {
-	    int trim = size - 70;
-	    from += trim;
-	    off -= trim;
-	    size = 70;
-	 }
+         int size = to - from;
+         if (size > 70)
+         {
+            int trim = size - 70;
+            from += trim;
+            off -= trim;
+            size = 70;
+         }
 
-	 String content = Util.displayStr (new String (buf, from, size), 80);
-	 
-	 sb.append (String.format ("%n  Content: %s%n           %-" +
-				   String.valueOf (off) + "s^",
-				   content, ""));
+         String content = Util.displayStr (new String (buf, from, size), 80);
+ 
+         sb.append (String.format ("%n  Content: %s%n           %-" +
+                                   String.valueOf (off) + "s^",
+                                   content, ""));
       }
 
       return new BlinkException.Schema (sb.toString (),
-					new Location (srcName, line, col));
+                                        new Location (srcName, line, col));
    }
 
    private BlinkException.Schema error (String msg)
@@ -1132,32 +1132,32 @@ public final class SchemaReader
    private BlinkException.Schema expected (String what)
    {
       if (match (Tk.Err))
-	 return error (curTok.getText () + ", when expecting " + what);
+         return error (curTok.getText () + ", when expecting " + what);
       else
       {
-	 String details = null;
-	 if (lastCommaLine > 0 &&
-	     line != lastCommaLine && (tokPos - lastCommaPos - 1) <= 2)
-	    details = String.format ("Hint: There could be a superfluous " +
-				     "comma at line: %d", lastCommaLine);
-	 else if (lastFieldNameLine != lastFieldTypeLine &&
-		  pendTok.line == lastFieldNameLine)
-	    details = String.format ("Hint: There could be a missing field " +
-				     "name following the type on line %d",
-				     lastFieldTypeLine);
-	 else if (lastEmptyGrpLine == (pendTok.line - 1) &&
-		  lastEmptyGrpLine != 0)
-	    details = String.format ("Hint: There could be a missing '->' " +
-				     "at line %d", lastEmptyGrpLine);
-	 else
-	 {
-	    if (lastEmptyGrpLine == pendTok.line)
-	       details = "Hint: It could be a missing '->', " +
-		  "'=', ':', or '/' earlier";
-	 }
+         String details = null;
+         if (lastCommaLine > 0 &&
+             line != lastCommaLine && (tokPos - lastCommaPos - 1) <= 2)
+            details = String.format ("Hint: There could be a superfluous " +
+                                     "comma at line: %d", lastCommaLine);
+         else if (lastFieldNameLine != lastFieldTypeLine &&
+                  pendTok.line == lastFieldNameLine)
+            details = String.format ("Hint: There could be a missing field " +
+                                     "name following the type on line %d",
+                                     lastFieldTypeLine);
+         else if (lastEmptyGrpLine == (pendTok.line - 1) &&
+                  lastEmptyGrpLine != 0)
+            details = String.format ("Hint: There could be a missing '->' " +
+                                     "at line %d", lastEmptyGrpLine);
+         else
+         {
+            if (lastEmptyGrpLine == pendTok.line)
+               details = "Hint: It could be a missing '->', " +
+                         "'=', ':', or '/' earlier";
+         }
 
-	 return error ("Expected " + what + " but got " +
-		       getTokenDescr (curTok.type), details);
+         return error ("Expected " + what + " but got " +
+                       getTokenDescr (curTok.type), details);
 
       }
    }

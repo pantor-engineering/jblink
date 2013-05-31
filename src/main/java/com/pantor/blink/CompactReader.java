@@ -201,29 +201,29 @@ public final class CompactReader implements Reader
       
       try
       {
-	 if (missingData > 0)
-	 {
-	    if (fillPendData (src))
-	    {
-	       pendData.flip ();
-	       readMsg (pendData, pendData.size ());
-	       pendData.release (MaxLingeringScratchArea);
-	    }
-	    else
-	       return;
-	 }
+         if (missingData > 0)
+         {
+            if (fillPendData (src))
+            {
+               pendData.flip ();
+               readMsg (pendData, pendData.size ());
+               pendData.release (MaxLingeringScratchArea);
+            }
+            else
+               return;
+         }
 
-	 if (missingMsgSizeBytes > 0)
-	    if (! readOrSuspendMsg (src, fillPendMsgSize (src)))
-	       return;
+         if (missingMsgSizeBytes > 0)
+            if (! readOrSuspendMsg (src, fillPendMsgSize (src)))
+               return;
    
-	 for (;;)
-	    if (! readOrSuspendMsg (src, readMsgSize (src)))
-	       return;
+         for (;;)
+            if (! readOrSuspendMsg (src, readMsgSize (src)))
+               return;
       }
       catch (BlinkException.Decode e)
       {
-	 throw error (e.getMessage (), e.getContext ());
+         throw error (e.getMessage (), e.getContext ());
       }
    }
 
@@ -260,10 +260,10 @@ public final class CompactReader implements Reader
    public void close () throws BlinkException.Decode
    {
       if (! isComplete ())
-	 throw new BlinkException.Decode (
-	    "Incomplete compact blink message. The reader needs " +
-	    "more data to finish an incomplete trailing " +
-	    "message");
+         throw new BlinkException.Decode (
+            "Incomplete compact blink message. The reader needs " +
+            "more data to finish an incomplete trailing " +
+            "message");
    }
    
    // Primitive values
@@ -370,7 +370,7 @@ public final class CompactReader implements Reader
       int size = Vlc.readU32 (src);
       byte [] v = new byte [size];
       for (int i = 0; i < size; ++ i)
-	 v [i] = Vlc.readU8 (src);
+         v [i] = Vlc.readU8 (src);
       return v;
    }
 
@@ -380,7 +380,7 @@ public final class CompactReader implements Reader
       int size = Vlc.readU32 (src);
       byte [] v = new byte [size];
       for (int i = 0; i < size; ++ i)
-	 v [i] = Vlc.readI8 (src);
+         v [i] = Vlc.readI8 (src);
       return v;
    }
 
@@ -390,7 +390,7 @@ public final class CompactReader implements Reader
       int size = Vlc.readU32 (src);
       short [] v = new short [size];
       for (int i = 0; i < size; ++ i)
-	 v [i] = Vlc.readU16 (src);
+         v [i] = Vlc.readU16 (src);
       return v;
    }
 
@@ -400,7 +400,7 @@ public final class CompactReader implements Reader
       int size = Vlc.readU32 (src);
       short [] v = new short [size];
       for (int i = 0; i < size; ++ i)
-	 v [i] = Vlc.readI16 (src);
+         v [i] = Vlc.readI16 (src);
       return v;
    }
 
@@ -410,7 +410,7 @@ public final class CompactReader implements Reader
       int size = Vlc.readU32 (src);
       int [] v = new int [size];
       for (int i = 0; i < size; ++ i)
-	 v [i] = Vlc.readU32 (src);
+         v [i] = Vlc.readU32 (src);
       return v;
    }
 
@@ -420,7 +420,7 @@ public final class CompactReader implements Reader
       int size = Vlc.readU32 (src);
       int [] v = new int [size];
       for (int i = 0; i < size; ++ i)
-	 v [i] = Vlc.readI32 (src);
+         v [i] = Vlc.readI32 (src);
       return v;
    }
    
@@ -430,7 +430,7 @@ public final class CompactReader implements Reader
       int size = Vlc.readU32 (src);
       long [] v = new long [size];
       for (int i = 0; i < size; ++ i)
-	 v [i] = Vlc.readU64 (src);
+         v [i] = Vlc.readU64 (src);
       return v;
    }
 
@@ -440,7 +440,7 @@ public final class CompactReader implements Reader
       int size = Vlc.readU32 (src);
       long [] v = new long [size];
       for (int i = 0; i < size; ++ i)
-	 v [i] = Vlc.readI64 (src);
+         v [i] = Vlc.readI64 (src);
       return v;
    }
    
@@ -450,7 +450,7 @@ public final class CompactReader implements Reader
       int size = Vlc.readU32 (src);
       double [] v = new double [size];
       for (int i = 0; i < size; ++ i)
-	 v [i] = Double.longBitsToDouble (Vlc.readU64 (src));
+         v [i] = Double.longBitsToDouble (Vlc.readU64 (src));
       return v;
    }
    
@@ -460,7 +460,7 @@ public final class CompactReader implements Reader
       int size = Vlc.readU32 (src);
       Decimal [] v = new Decimal [size];
       for (int i = 0; i < size; ++ i)
-	 v [i] = readDecimal (src);
+         v [i] = readDecimal (src);
       return v;
    }
 
@@ -470,7 +470,7 @@ public final class CompactReader implements Reader
       int size = Vlc.readU32 (src);
       int [] v = new int [size];
       for (int i = 0; i < size; ++ i)
-	 v [i] = Vlc.readU32 (src);
+         v [i] = Vlc.readU32 (src);
       return v;
    }
 
@@ -480,7 +480,7 @@ public final class CompactReader implements Reader
       int size = Vlc.readU32 (src);
       int [] v = new int [size];
       for (int i = 0; i < size; ++ i)
-	 v [i] = Vlc.readU32 (src);
+         v [i] = Vlc.readU32 (src);
       return v;
    }
 
@@ -490,7 +490,7 @@ public final class CompactReader implements Reader
       int size = Vlc.readU32 (src);
       long [] v = new long [size];
       for (int i = 0; i < size; ++ i)
-	 v [i] = Vlc.readU64 (src);
+         v [i] = Vlc.readU64 (src);
       return v;
    }
 
@@ -500,7 +500,7 @@ public final class CompactReader implements Reader
       int size = Vlc.readU32 (src);
       long [] v = new long [size];
       for (int i = 0; i < size; ++ i)
-	 v [i] = Vlc.readI64 (src);
+         v [i] = Vlc.readI64 (src);
       return v;
    }
 
@@ -510,7 +510,7 @@ public final class CompactReader implements Reader
       int size = Vlc.readU32 (src);
       long [] v = new long [size];
       for (int i = 0; i < size; ++ i)
-	 v [i] = Vlc.readI64 (src);
+         v [i] = Vlc.readI64 (src);
       return v;
    }
 
@@ -520,7 +520,7 @@ public final class CompactReader implements Reader
       int size = Vlc.readU32 (src);
       boolean [] v = new boolean [size];
       for (int i = 0; i < size; ++ i)
-	 v [i] = readBool (src);
+         v [i] = readBool (src);
       return v;
    }
 
@@ -530,7 +530,7 @@ public final class CompactReader implements Reader
       int size = Vlc.readU32 (src);
       String [] v = new String [size];
       for (int i = 0; i < size; ++ i)
-	 v [i] = readString (src);
+         v [i] = readString (src);
       return v;
    }
    
@@ -538,7 +538,7 @@ public final class CompactReader implements Reader
       throws BlinkException
    {
       for (int i = 0; i < v.length; ++ i)
-	 v [i] = readObject (src);
+         v [i] = readObject (src);
       return v;
    }
 
@@ -550,14 +550,14 @@ public final class CompactReader implements Reader
    public static boolean readNull (ByteSource src) throws BlinkException.Decode
    {
       if (src.empty ())
-	 return true;
+         return true;
       else if (src.get () == Vlc.Null)
       {
-	 src.step ();
-	 return true;
+         src.step ();
+         return true;
       }
       else
-	 return false;
+         return false;
    }
 
    public static void skipByte (ByteSource src)
@@ -571,78 +571,78 @@ public final class CompactReader implements Reader
    {
       protected Decoder (Class<?> type, Schema.Group grp, Observer obs)
       {
-	 this.type = type;
-	 this.grp = grp;
-	 this.obs = obs;
+         this.type = type;
+         this.grp = grp;
+         this.obs = obs;
       }
       
       public void decodeMsg (ByteSource src, CompactReader rd, Block block)
-	 throws BlinkException.Decode, BlinkException.Binding
+         throws BlinkException.Decode, BlinkException.Binding
       {
-	 Object o = allocate (block);
-	 try
-	 {
-	    decode (src, o, rd);
-	    block.append (o);
-	    if (obs != null)
-	       obs.onObj (o, grp);
-	 }
-	 catch (BlinkException.Decode e)
-	 {
-	    free (o);
-	    throw e;
-	 }
-	 catch (RuntimeException e)
-	 {
-	    free (o);
-	    throw e;
-	 }
+         Object o = allocate (block);
+         try
+         {
+            decode (src, o, rd);
+            block.append (o);
+            if (obs != null)
+               obs.onObj (o, grp);
+         }
+         catch (BlinkException.Decode e)
+         {
+            free (o);
+            throw e;
+         }
+         catch (RuntimeException e)
+         {
+            free (o);
+            throw e;
+         }
       }
 
       public Object decodeGrp (ByteSource src, CompactReader rd, Block block)
-	 throws BlinkException.Decode, BlinkException.Binding
+         throws BlinkException.Decode, BlinkException.Binding
       {
-	 Object o = allocate (block);
-	 try
-	 {
-	    decode (src, o, rd);
-	    return o;
-	 }
-	 catch (BlinkException.Decode e)
-	 {
-	    free (o);
-	    throw e;
-	 }
-	 catch (RuntimeException e)
-	 {
-	    free (o);
-	    throw e;
-	 }
+         Object o = allocate (block);
+         try
+         {
+            decode (src, o, rd);
+            return o;
+         }
+         catch (BlinkException.Decode e)
+         {
+            free (o);
+            throw e;
+         }
+         catch (RuntimeException e)
+         {
+            free (o);
+            throw e;
+         }
       }
 
       @Override public Class<?> getType () { return type; }
 
       protected abstract void decode (ByteSource src, Object o,
-				      CompactReader rd)
-	 throws BlinkException.Decode, BlinkException.Binding;
+                                      CompactReader rd)
+         throws BlinkException.Decode, BlinkException.Binding;
 
       private Object allocate (Block block)
-	 throws BlinkException.Binding
+         throws BlinkException.Binding
       {
-	 if (pool == null || take >= pool.length)
-	 {
-	    pool = block.refill (this, pool);
-	    take = 0;
-	 }
-
-	 return pool [take ++];
+         if (pool == null || take >= pool.length)
+         {
+            pool = block.refill (this, pool);
+            take = 0;
+         }
+         
+         return pool [take ++];
       }
 
       private void free (Object o)
       {
-	 assert pool != null;
-	 -- take;
-	 pool [take] = o;
+         assert pool != null;
+         -- take;
+         pool [take] = o;
       }
       
       private final Class<?> type;
@@ -659,13 +659,13 @@ public final class CompactReader implements Reader
    {
       if (msgSize <= src.available ())
       {
-	 readMsg (src, (int)msgSize);
-	 return true;
+         readMsg (src, (int)msgSize);
+         return true;
       }
       else
       {
-	 if (msgSize < Long.MAX_VALUE)
-	    initPendData (src, msgSize);
+         if (msgSize < Long.MAX_VALUE)
+            initPendData (src, msgSize);
       }
 
       return false;
@@ -681,17 +681,17 @@ public final class CompactReader implements Reader
       
       try
       {
-	 long tid = Vlc.readU64 (src);
-	 dec = compiler.getDecoder (tid);
-	 dec.decodeMsg (src, this, curBlock);
-	 if (src.getPos () > limit)
-	    throw msgOverflowError (src);
-	 src.setSize (saveSize);
+         long tid = Vlc.readU64 (src);
+         dec = compiler.getDecoder (tid);
+         dec.decodeMsg (src, this, curBlock);
+         if (src.getPos () > limit)
+            throw msgOverflowError (src);
+         src.setSize (saveSize);
       }
       catch (ArrayIndexOutOfBoundsException e)
       {
-	 // FIXME: Localize any exception to the current decoder
-	 throw prematureEndOfMsg (src);
+         // FIXME: Localize any exception to the current decoder
+         throw prematureEndOfMsg (src);
       }
       // FIXME, more catches
    }
@@ -709,17 +709,17 @@ public final class CompactReader implements Reader
       
       try
       {
-	 dec = compiler.getDecoder (tid);
-	 Object o = dec.decodeGrp (src, this, curBlock);
-	 if (src.getPos () > limit)
-	    throw msgOverflowError (src);
-	 src.setSize (saveSize);
-	 return o;
+         dec = compiler.getDecoder (tid);
+         Object o = dec.decodeGrp (src, this, curBlock);
+         if (src.getPos () > limit)
+            throw msgOverflowError (src);
+         src.setSize (saveSize);
+         return o;
       }
       catch (ArrayIndexOutOfBoundsException e)
       {
-	 // FIXME: Localize any exception to the current decoder
-	 throw prematureEndOfMsg (src);
+         // FIXME: Localize any exception to the current decoder
+         throw prematureEndOfMsg (src);
       }
    }
 
@@ -730,25 +730,25 @@ public final class CompactReader implements Reader
       missingMsgSizeBytes -= toMove;
       if (missingMsgSizeBytes == 0)
       {
-	 pendMsgSizePreamble.flip ();
-	 long msgSize = Util.u32ToLong (Vlc.readU32 (pendMsgSizePreamble));
-	 pendMsgSizePreamble.clear ();
-	 return msgSize;
+         pendMsgSizePreamble.flip ();
+         long msgSize = Util.u32ToLong (Vlc.readU32 (pendMsgSizePreamble));
+         pendMsgSizePreamble.clear ();
+         return msgSize;
       }
       else
-	 return Long.MAX_VALUE;
+         return Long.MAX_VALUE;
    }
 
    void initPendData (ByteSource src, long msgSize) throws BlinkException.Decode
    {
       if (msgSize <= maxMsgSize)
       {
-	 missingData = (int)msgSize;
-	 fillPendData (src);
+         missingData = (int)msgSize;
+         fillPendData (src);
       }
       else
-	 throw error (String.format ("Max blink message size exceeded: %d > %d",
-				     msgSize, maxMsgSize), src);
+         throw error (String.format ("Max blink message size exceeded: %d > %d",
+                                     msgSize, maxMsgSize), src);
    }
 
    private boolean fillPendData (ByteSource src)
@@ -763,9 +763,9 @@ public final class CompactReader implements Reader
    private long readMsgSize (ByteSource src) throws BlinkException.Decode
    {
       if (src.available () >= Vlc.Int32MaxSize)
-	 return Util.u32ToLong (Vlc.readU32 (src));
+         return Util.u32ToLong (Vlc.readU32 (src));
       else
-	 return readMsgSizeIncremental (src);
+         return readMsgSizeIncremental (src);
    }
    
    private long readMsgSizeIncremental (ByteSource src)
@@ -774,41 +774,41 @@ public final class CompactReader implements Reader
       int available = src.available ();
       if (available == 0)
       {
-	 missingMsgSizeBytes = 0;
-	 return Long.MAX_VALUE;
+         missingMsgSizeBytes = 0;
+         return Long.MAX_VALUE;
       }
    
       int b = src.get ();
       if ((b & 0x80) == 0)
       {
-	 src.step ();
-	 return b;
+         src.step ();
+         return b;
       }
       else if ((b & 0x40) == 0)
       {
-	 if (available < 2)
-	 {
-	    pendMsgSizePreamble.write (b);
-	    missingMsgSizeBytes = 1;
-	    return Long.MAX_VALUE;
-	 }
-	 else
-	    return Util.u32ToLong (Vlc.readU32 (src));
+         if (available < 2)
+         {
+            pendMsgSizePreamble.write (b);
+            missingMsgSizeBytes = 1;
+            return Long.MAX_VALUE;
+         }
+         else
+            return Util.u32ToLong (Vlc.readU32 (src));
       }
       else
       {
-	 int w = b & 0x3f;
-	 if (w > 4)
-	    throw Vlc.overflowError ("u32", src);
-	 
-	 if (available < w + 1)
-	 {
-	    src.moveTo (pendMsgSizePreamble, available);
-	    missingMsgSizeBytes = w + 1 - available;
-	    return Long.MAX_VALUE;
-	 }
-	 else
-	    return Util.u32ToLong (Vlc.readU32 (src));
+         int w = b & 0x3f;
+         if (w > 4)
+            throw Vlc.overflowError ("u32", src);
+         
+         if (available < w + 1)
+         {
+            src.moveTo (pendMsgSizePreamble, available);
+            missingMsgSizeBytes = w + 1 - available;
+            return Long.MAX_VALUE;
+         }
+         else
+            return Util.u32ToLong (Vlc.readU32 (src));
       }
    }
 

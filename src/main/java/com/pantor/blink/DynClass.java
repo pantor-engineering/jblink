@@ -148,7 +148,7 @@ public final class DynClass
    public DynClass startMethod (String name, String sig, MtodFlag... flags)
    {
       if (curMtod != null)
-	 endMethod ();
+         endMethod ();
       curMtod = new Method (name, sig, mergeFlags (flags));
       methods.add (curMtod);
       return this;
@@ -161,7 +161,7 @@ public final class DynClass
    }
 
    public DynClass startPublicMethod (String name, String sig,
-				      MtodFlag... flags)
+                                      MtodFlag... flags)
    {
       MtodFlag [] extended = new MtodFlag [flags.length + 1];
       System.arraycopy (flags, 0, extended, 0, flags.length);
@@ -185,8 +185,8 @@ public final class DynClass
    public DynClass addDefaultConstructor ()
    {
       startPublicMethod ("<init>", "()V")
-	 .aload0 ().invokeSpecial ("java.lang.Object", "<init>", "()V")
-	 .return_ ().setMaxStack (1).endMethod ();
+         .aload0 ().invokeSpecial ("java.lang.Object", "<init>", "()V")
+         .return_ ().setMaxStack (1).endMethod ();
       return this;
    }
    
@@ -209,28 +209,28 @@ public final class DynClass
    {
       try
       {
-	 nextConst = 1;
-	 utf8ConstPool.clear ();
-	 classConstPool.clear ();
-	 constPoolBs = new ByteArrayOutputStream ();
-	 constPoolOs = new DataOutputStream (constPoolBs);
-	 
-      	 ByteArrayOutputStream bs = new ByteArrayOutputStream ();
-	 DataOutputStream os = new DataOutputStream (bs);
-	 byte [] body = renderBody ();
-	 os.writeInt (Cookie);
-	 os.writeShort (minorVer);
-	 os.writeShort (majorVer);
-	 os.writeShort (nextConst);
-	 constPoolOs.flush ();
-	 os.write (constPoolBs.toByteArray ());
-	 os.write (body);
-	 os.flush ();
-	 return bs.toByteArray ();
+         nextConst = 1;
+         utf8ConstPool.clear ();
+         classConstPool.clear ();
+         constPoolBs = new ByteArrayOutputStream ();
+         constPoolOs = new DataOutputStream (constPoolBs);
+         
+         ByteArrayOutputStream bs = new ByteArrayOutputStream ();
+         DataOutputStream os = new DataOutputStream (bs);
+         byte [] body = renderBody ();
+         os.writeInt (Cookie);
+         os.writeShort (minorVer);
+         os.writeShort (majorVer);
+         os.writeShort (nextConst);
+         constPoolOs.flush ();
+         os.write (constPoolBs.toByteArray ());
+         os.write (body);
+         os.flush ();
+         return bs.toByteArray ();
       }
       catch (IOException e)
       {
-	 throw new RuntimeException (e);
+         throw new RuntimeException (e);
       }
    }
 
@@ -271,12 +271,12 @@ public final class DynClass
    {
       if (index >= 0 && index < 4)
       {
-	 curMtod.addIns (0x2a + index);
-	 curMtod.setMaxLocal (index);
-	 return this;
+         curMtod.addIns (0x2a + index);
+         curMtod.setMaxLocal (index);
+         return this;
       }
       else
-	 return addPossiblyWideIns (0x19, index);
+         return addPossiblyWideIns (0x19, index);
    }
 
    public DynClass aload0 ()
@@ -482,12 +482,12 @@ public final class DynClass
    {
       if (index >= 0 && index < 4)
       {
-	 curMtod.addIns (0x26 + index);
-	 curMtod.setMaxLocal (index + 1);
-	 return this;
+         curMtod.addIns (0x26 + index);
+         curMtod.setMaxLocal (index + 1);
+         return this;
       }
       else
-	 return addPossiblyWideIns (0x18, index, 2);
+         return addPossiblyWideIns (0x18, index, 2);
    }
 
    public DynClass dload0 ()
@@ -693,12 +693,12 @@ public final class DynClass
    {
       if (index >= 0 && index < 4)
       {
-	 curMtod.addIns (0x22 + index);
-	 curMtod.setMaxLocal (index);
-	 return this;
+         curMtod.addIns (0x22 + index);
+         curMtod.setMaxLocal (index);
+         return this;
       }
       else
-	 return addPossiblyWideIns (0x17, index);
+         return addPossiblyWideIns (0x17, index);
    }
 
    public DynClass fload0 ()
@@ -1114,9 +1114,9 @@ public final class DynClass
    public DynClass iinc (int index, int amt)
    {
       if (index > 0xff || amt > 0xff)
-	 curMtod.addIns (0xc4, 0x84, index, amt);
+         curMtod.addIns (0xc4, 0x84, index, amt);
       else
-	 curMtod.addIns (0x84, (byte)index, (byte)amt);
+         curMtod.addIns (0x84, (byte)index, (byte)amt);
       curMtod.setMaxLocal (index);
       return this;
    }
@@ -1125,12 +1125,12 @@ public final class DynClass
    {
       if (index >= 0 && index < 4)
       {
-	 curMtod.addIns (0x1a + index);
-	 curMtod.setMaxLocal (index);
-	 return this;
+         curMtod.addIns (0x1a + index);
+         curMtod.setMaxLocal (index);
+         return this;
       }
       else
-	 return addPossiblyWideIns (0x15, index);
+         return addPossiblyWideIns (0x15, index);
    }
 
    public DynClass iload0 ()
@@ -1180,7 +1180,7 @@ public final class DynClass
    }
    
    public DynClass invokeInterface (String className, String method,
-				    String type)
+                                    String type)
    {
       curMtod.addIns (new IfaceIns (0xb9, className, method, type));
       return this;
@@ -1196,25 +1196,25 @@ public final class DynClass
    {
       // FIXME: implement at some point for completeness
       throw new RuntimeException ("DynClass: invokeDynamic not " +
-				  "implemented yet");
+                                  "implemented yet");
    }
 
    public DynClass invokeSpecial (String className, String method,
-				  String type)
+                                  String type)
    {
       curMtod.addInsMethodOp (0xb7, className, method, type);
       return this;
    }
 
    public DynClass invokeSpecial (Class<?> c, String method,
-				  String type)
+                                  String type)
    {
       curMtod.addInsMethodOp (0xb7, c.getName (), method, type);
       return this;
    }
 
    public DynClass invokeStatic (String className, String method,
-				 String type)
+                                 String type)
    {
       curMtod.addInsMethodOp (0xb8, className, method, type);
       return this;
@@ -1227,7 +1227,7 @@ public final class DynClass
    }
 
    public DynClass invokeVirtual (String className, String method,
-				  String type)
+                                  String type)
    {
       curMtod.addInsMethodOp (0xb6, className, method, type);
       return this;
@@ -1243,11 +1243,11 @@ public final class DynClass
    {
       Class<?> c = m.getDeclaringClass ();
       if (Modifier.isStatic (m.getModifiers ()))
-	 return invokeStatic (c, m.getName (),  getDescriptor (m));
+         return invokeStatic (c, m.getName (),  getDescriptor (m));
       else if (c.isInterface ())
-	 return invokeInterface (c, m.getName (), getDescriptor (m));
+         return invokeInterface (c, m.getName (), getDescriptor (m));
       else
-	 return invokeVirtual (c, m.getName (), getDescriptor (m));
+         return invokeVirtual (c, m.getName (), getDescriptor (m));
    }
 
    public DynClass ior ()
@@ -1492,12 +1492,12 @@ public final class DynClass
    {
       if (index >= 0 && index < 4)
       {
-	 curMtod.addIns (0x1e + index);
-	 curMtod.setMaxLocal (index + 1);
-	 return this;
+         curMtod.addIns (0x1e + index);
+         curMtod.setMaxLocal (index + 1);
+         return this;
       }
       else
-	 return addPossiblyWideIns (0x16, index, 2);
+         return addPossiblyWideIns (0x16, index, 2);
    }
 
    public DynClass lload0 ()
@@ -1772,7 +1772,7 @@ public final class DynClass
       StringBuilder descr = new StringBuilder ();
       descr.append ('(');
       for (Class<?> prm : m.getParameterTypes ())
-	 descr.append (getDescriptor (prm));
+         descr.append (getDescriptor (prm));
       descr.append (')');
       descr.append (getDescriptor (m.getReturnType ()));
       return descr.toString (); 
@@ -1783,11 +1783,11 @@ public final class DynClass
       String name = type.getName ();
       String descr = typeMap.get (name);
       if (descr != null)
-	 return descr;
+         return descr;
       else if (name.charAt (0) == '[')
-	 return DynClass.toInternal (name);
+         return DynClass.toInternal (name);
       else
-	 return "L" + DynClass.toInternal (name) + ";";
+         return "L" + DynClass.toInternal (name) + ";";
    }
 
    
@@ -1797,7 +1797,7 @@ public final class DynClass
    {
       int merged = 0;
       for (T f : flags)
-	 merged |= f.getVal ();
+         merged |= f.getVal ();
       return merged;
    }
    
@@ -1805,16 +1805,16 @@ public final class DynClass
    {
       Integer lbl = labelBySym.get (sym);
       if (lbl != null)
-	 return lbl.intValue ();
+         return lbl.intValue ();
       else
-	 throw new RuntimeException ("DynClass: no such label" + sym);
+         throw new RuntimeException ("DynClass: no such label" + sym);
    }
 
    private byte [] renderBody () throws IOException
    {
       ByteArrayOutputStream bs = new ByteArrayOutputStream ();
       DataOutputStream os = new DataOutputStream (bs);
-	 
+      
       os.writeShort ((short)flags);
 
       // this
@@ -1824,8 +1824,8 @@ public final class DynClass
       // super
 
       if (superName == null || superName.equals (""))
-	 superName = "java.lang.Object";
-	 
+         superName = "java.lang.Object";
+      
       os.writeShort ((short)getConstClass (toInternal (superName)));
 
       writeInterfaces (os);
@@ -1834,13 +1834,13 @@ public final class DynClass
 
       os.writeShort ((short)fields.size ());
       for (Field f : fields)
-	 writeField (f, os);
+         writeField (f, os);
 
       // methods
 
       os.writeShort ((short)methods.size ());
       for (Method m : methods)
-	 writeMethod (m, os);
+         writeMethod (m, os);
 
       // attributes
 
@@ -1855,15 +1855,15 @@ public final class DynClass
    {
       Integer i = classConstPool.get (val);
       if (i != null)
-	 return (short)i.intValue ();
+         return (short)i.intValue ();
       else
       {
-	 int strRef = getConstUtf8 (val);
-	 int ref = nextConst ++;
-	 classConstPool.put (val, ref);
-	 constPoolOs.write (Const.Class.getVal ());
-	 constPoolOs.writeShort ((short)strRef);
-	 return ref;
+         int strRef = getConstUtf8 (val);
+         int ref = nextConst ++;
+         classConstPool.put (val, ref);
+         constPoolOs.write (Const.Class.getVal ());
+         constPoolOs.writeShort ((short)strRef);
+         return ref;
       }
    }
 
@@ -1871,15 +1871,15 @@ public final class DynClass
    {
       Integer i = strConstPool.get (val);
       if (i != null)
-	 return (short)i.intValue ();
+         return (short)i.intValue ();
       else
       {
-	 int strRef = getConstUtf8 (val);
-	 int ref = nextConst ++;
-	 strConstPool.put (val, ref);
-	 constPoolOs.write (Const.String.getVal ());
-	 constPoolOs.writeShort ((short)strRef);
-	 return ref;
+         int strRef = getConstUtf8 (val);
+         int ref = nextConst ++;
+         strConstPool.put (val, ref);
+         constPoolOs.write (Const.String.getVal ());
+         constPoolOs.writeShort ((short)strRef);
+         return ref;
       }
    }
 
@@ -1887,14 +1887,14 @@ public final class DynClass
    {
       Integer i = intConstPool.get (val);
       if (i != null)
-	 return i.intValue ();
+         return i.intValue ();
       else
       {
-	 int ref = nextConst ++;
-	 intConstPool.put (val, ref);
-	 constPoolOs.write (Const.Integer.getVal ());
-	 constPoolOs.writeInt (val);
-	 return ref;
+         int ref = nextConst ++;
+         intConstPool.put (val, ref);
+         constPoolOs.write (Const.Integer.getVal ());
+         constPoolOs.writeInt (val);
+         return ref;
       }
    }
 
@@ -1902,14 +1902,14 @@ public final class DynClass
    {
       Integer i = utf8ConstPool.get (val);
       if (i != null)
-	 return i.intValue ();
+         return i.intValue ();
       else
       {
-	 int ref = nextConst ++;
-	 utf8ConstPool.put (val, ref);
-	 constPoolOs.write (Const.Utf8.getVal ());
-	 constPoolOs.writeUTF (val);
-	 return ref;
+         int ref = nextConst ++;
+         utf8ConstPool.put (val, ref);
+         constPoolOs.write (Const.Utf8.getVal ());
+         constPoolOs.writeUTF (val);
+         return ref;
       }
    }
 
@@ -1919,17 +1919,17 @@ public final class DynClass
       String key = className + ";" + name + ";" + type;
       Integer i = ifaceConstPool.get (key);
       if (i != null)
-	 return i.intValue ();
+         return i.intValue ();
       else
       {
-	 int classRef = getConstClass (className);
-	 int nameAndTypeRef = getConstNameAndType (name, type);
-	 int ref = nextConst ++;
-	 ifaceConstPool.put (key, ref);
-	 constPoolOs.write (Const.InterfaceMethodRef.getVal ());
-	 constPoolOs.writeShort ((short)classRef);
-	 constPoolOs.writeShort ((short)nameAndTypeRef);
-	 return ref;
+         int classRef = getConstClass (className);
+         int nameAndTypeRef = getConstNameAndType (name, type);
+         int ref = nextConst ++;
+         ifaceConstPool.put (key, ref);
+         constPoolOs.write (Const.InterfaceMethodRef.getVal ());
+         constPoolOs.writeShort ((short)classRef);
+         constPoolOs.writeShort ((short)nameAndTypeRef);
+         return ref;
       }
    }
 
@@ -1939,17 +1939,17 @@ public final class DynClass
       String key = className + ";" + name + ";" + type;
       Integer i = methodConstPool.get (key);
       if (i != null)
-	 return i.intValue ();
+         return i.intValue ();
       else
       {
-	 int classRef = getConstClass (className);
-	 int nameAndTypeRef = getConstNameAndType (name, type);
-	 int ref = nextConst ++;
-	 methodConstPool.put (key, ref);
-	 constPoolOs.write (Const.MethodRef.getVal ());
-	 constPoolOs.writeShort ((short)classRef);
-	 constPoolOs.writeShort ((short)nameAndTypeRef);
-	 return ref;
+         int classRef = getConstClass (className);
+         int nameAndTypeRef = getConstNameAndType (name, type);
+         int ref = nextConst ++;
+         methodConstPool.put (key, ref);
+         constPoolOs.write (Const.MethodRef.getVal ());
+         constPoolOs.writeShort ((short)classRef);
+         constPoolOs.writeShort ((short)nameAndTypeRef);
+         return ref;
       }
    }
 
@@ -1959,17 +1959,17 @@ public final class DynClass
       String key = className + ";" + name + ";" + type;
       Integer i = fieldConstPool.get (key);
       if (i != null)
-	 return i.intValue ();
+         return i.intValue ();
       else
       {
-	 int classRef = getConstClass (className);
-	 int nameAndTypeRef = getConstNameAndType (name, type);
-	 int ref = nextConst ++;
-	 fieldConstPool.put (key, ref);
-	 constPoolOs.write (Const.FieldRef.getVal ());
-	 constPoolOs.writeShort ((short)classRef);
-	 constPoolOs.writeShort ((short)nameAndTypeRef);
-	 return ref;
+         int classRef = getConstClass (className);
+         int nameAndTypeRef = getConstNameAndType (name, type);
+         int ref = nextConst ++;
+         fieldConstPool.put (key, ref);
+         constPoolOs.write (Const.FieldRef.getVal ());
+         constPoolOs.writeShort ((short)classRef);
+         constPoolOs.writeShort ((short)nameAndTypeRef);
+         return ref;
       }
    }
 
@@ -1979,17 +1979,17 @@ public final class DynClass
       String key = name + ";" + type;
       Integer i = nameAndTypeConstPool.get (key);
       if (i != null)
-	 return i.intValue ();
+         return i.intValue ();
       else
       {
-	 int nameRef = getConstUtf8 (name);
-	 int typeRef = getConstUtf8 (type);
-	 int ref = nextConst ++;
-	 nameAndTypeConstPool.put (key, ref);
-	 constPoolOs.write (Const.NameAndType.getVal ());
-	 constPoolOs.writeShort ((short)nameRef);
-	 constPoolOs.writeShort ((short)typeRef);
-	 return ref;
+         int nameRef = getConstUtf8 (name);
+         int typeRef = getConstUtf8 (type);
+         int ref = nextConst ++;
+         nameAndTypeConstPool.put (key, ref);
+         constPoolOs.write (Const.NameAndType.getVal ());
+         constPoolOs.writeShort ((short)nameRef);
+         constPoolOs.writeShort ((short)typeRef);
+         return ref;
       }
    }
    
@@ -1997,7 +1997,7 @@ public final class DynClass
    {
       os.writeShort ((short)interfaces.size ());
       for (String i : interfaces)
-	 os.writeShort (getConstClass (toInternal (i)));
+         os.writeShort (getConstClass (toInternal (i)));
    }
 
    private void writeField (Field f, DataOutputStream os) throws IOException
@@ -2052,7 +2052,7 @@ public final class DynClass
       // Resolve constants
 
       for (Ins i : m.instructions)
-	 i.resolveConst (this);
+         i.resolveConst (this);
 
       // Resolve jumps
 
@@ -2061,21 +2061,21 @@ public final class DynClass
       int addr = 0;
       for (Ins i : m.instructions)
       {
-	 i.resolveLabel (addr, jmpMap);
-	 addr += i.getSize ();
+         i.resolveLabel (addr, jmpMap);
+         addr += i.getSize ();
       }
 
       addr = 0;
       for (Ins i : m.instructions)
       {
-	 i.resolveJmp (addr, jmpMap);
-	 addr += i.getSize ();
+         i.resolveJmp (addr, jmpMap);
+         addr += i.getSize ();
       }
       
       // Write result
       
       for (Ins i : m.instructions)
-	 i.write (os);
+         i.write (os);
    }
    
    private static enum Const
@@ -2120,7 +2120,7 @@ public final class DynClass
       int getSize () { return 1; }
       void write (DataOutputStream os) throws IOException
       {
-	 os.write (opc);
+         os.write (opc);
       }
       final byte opc;
    }
@@ -2131,8 +2131,8 @@ public final class DynClass
       int getSize () { return 2; }
       void write (DataOutputStream os) throws IOException
       {
-	 os.write (opc);
-	 os.write (op);
+         os.write (opc);
+         os.write (op);
       }
       final byte opc;
       final byte op;
@@ -2142,18 +2142,18 @@ public final class DynClass
    {
       Ins3 (int opc, byte op1, byte op2)
       {
-	 this.opc = (byte)opc;
-	 this.op1 = op1;
-	 this.op2 = op2;
+         this.opc = (byte)opc;
+         this.op1 = op1;
+         this.op2 = op2;
       }
 
       int getSize () { return 3; }
       
       void write (DataOutputStream os) throws IOException
       {
-	 os.write (opc);
-	 os.write (op1);
-	 os.write (op2);
+         os.write (opc);
+         os.write (op1);
+         os.write (op2);
       }
       
       final byte opc;
@@ -2165,20 +2165,20 @@ public final class DynClass
    {
       Ins4 (int opc, byte op1, byte op2, byte op3)
       {
-	 this.opc = (byte)opc;
-	 this.op1 = op1;
-	 this.op2 = op2;
-	 this.op3 = op3;
+         this.opc = (byte)opc;
+         this.op1 = op1;
+         this.op2 = op2;
+         this.op3 = op3;
       }
 
       int getSize () { return 4; }
       
       void write (DataOutputStream os) throws IOException
       {
-	 os.write (opc);
-	 os.write (op1);
-	 os.write (op2);
-	 os.write (op3);
+         os.write (opc);
+         os.write (op1);
+         os.write (op2);
+         os.write (op3);
       }
 
       final byte opc;
@@ -2191,12 +2191,12 @@ public final class DynClass
    {
       Ins6 (int opc, byte op1, byte op2, byte op3, byte op4, byte op5)
       {
-	 this.opc = (byte)opc;
-	 this.op1 = op1;
-	 this.op2 = op2;
-	 this.op3 = op3;
-	 this.op4 = op4;
-	 this.op5 = op5;
+         this.opc = (byte)opc;
+         this.op1 = op1;
+         this.op2 = op2;
+         this.op3 = op3;
+         this.op4 = op4;
+         this.op5 = op5;
       }
 
       int getSize () { return 6; }
@@ -2210,12 +2210,12 @@ public final class DynClass
 
       void write (DataOutputStream os) throws IOException
       {
-	 os.write (opc);
-	 os.write (op1);
-	 os.write (op2);
-	 os.write (op3);
-	 os.write (op4);
-	 os.write (op5);
+         os.write (opc);
+         os.write (op1);
+         os.write (op2);
+         os.write (op3);
+         os.write (op4);
+         os.write (op5);
       }
    }
    
@@ -2223,25 +2223,25 @@ public final class DynClass
    {
       IfaceIns (int opc, String className, String mtod, String type)
       {
-	 this.opc = (byte)opc;
-	 this.className = toInternal (className);
-	 this.mtod = mtod;
-	 this.type = type;
+         this.opc = (byte)opc;
+         this.className = toInternal (className);
+         this.mtod = mtod;
+         this.type = type;
       }
 
       int getSize () { return 5; }
 
       void write (DataOutputStream os) throws IOException
       {
-	 os.write (opc);
-	 os.writeShort ((short)ref);
-	 os.write ((byte)countArgs (type));
-	 os.write (0);
+         os.write (opc);
+         os.writeShort ((short)ref);
+         os.write ((byte)countArgs (type));
+         os.write (0);
       }
 
       void resolveConst (DynClass self) throws IOException
       {
-	 ref = self.getConstIfaceMethod (className, mtod, type);
+         ref = self.getConstIfaceMethod (className, mtod, type);
       }
 
       final byte opc;
@@ -2255,21 +2255,21 @@ public final class DynClass
    {
       ClassIns (int opc, String className)
       {
-	 this.opc = (byte)opc;
-	 this.className = toInternal (className);
+         this.opc = (byte)opc;
+         this.className = toInternal (className);
       }
 
       void resolveConst (DynClass self) throws IOException
       {
-	 ref = self.getConstClass (className);
+         ref = self.getConstClass (className);
       }
 
       int getSize () { return 3; }
 
       void write (DataOutputStream os) throws IOException
       {
-	 os.write (opc);
-	 os.writeShort ((short)ref);
+         os.write (opc);
+         os.writeShort ((short)ref);
       }
 
       final byte opc;
@@ -2281,23 +2281,23 @@ public final class DynClass
    {
       FieldIns (int opc, String className, String field, String type)
       {
-	 this.opc = (byte)opc;
-	 this.className = toInternal (className);
-	 this.field = field;
-	 this.type = type;
+         this.opc = (byte)opc;
+         this.className = toInternal (className);
+         this.field = field;
+         this.type = type;
       }
 
       void resolveConst (DynClass self) throws IOException
       {
-	 ref = self.getConstField (className, field, type);
+         ref = self.getConstField (className, field, type);
       }
 
       int getSize () { return 3; }
 
       void write (DataOutputStream os) throws IOException
       {
-	 os.write (opc);
-	 os.writeShort ((short)ref);
+         os.write (opc);
+         os.writeShort ((short)ref);
       }
 
       final byte opc;
@@ -2311,23 +2311,23 @@ public final class DynClass
    {
       MethodIns (int opc, String className, String mtod, String type)
       {
-	 this.opc = (byte)opc;
-	 this.className = toInternal (className);
-	 this.mtod = mtod;
-	 this.type = type;
+         this.opc = (byte)opc;
+         this.className = toInternal (className);
+         this.mtod = mtod;
+         this.type = type;
       }
 
       void resolveConst (DynClass self) throws IOException
       {
-	 ref = self.getConstMethod (className, mtod, type);
+         ref = self.getConstMethod (className, mtod, type);
       }
 
       int getSize () { return 3; }
 
       void write (DataOutputStream os) throws IOException
       {
-	 os.write (opc);
-	 os.writeShort ((short)ref);
+         os.write (opc);
+         os.writeShort ((short)ref);
       }
       
       final byte opc;
@@ -2341,24 +2341,24 @@ public final class DynClass
    {
       int getSize ()
       {
-	 if (ref <= 255)
-	    return 2;
-	 else
-	    return 3;
+         if (ref <= 255)
+            return 2;
+         else
+            return 3;
       }
 
       void write (DataOutputStream os) throws IOException
       {
-	 if (getSize () == 2)
-	 {
-	    os.write (0x12); // ldc
-	    os.write ((byte)ref);
-	 }
-	 else
-	 {
-	    os.write (0x13); // ldc_w
-	    os.writeShort ((short)ref);
-	 }
+         if (getSize () == 2)
+         {
+            os.write (0x12); // ldc
+            os.write ((byte)ref);
+         }
+         else
+         {
+            os.write (0x13); // ldc_w
+            os.writeShort ((short)ref);
+         }
       }
       
       int ref;
@@ -2370,8 +2370,8 @@ public final class DynClass
 
       void write (DataOutputStream os) throws IOException
       {
-	 os.write (0x14); // ldc2_w
-	 os.writeShort ((short)ref);
+         os.write (0x14); // ldc2_w
+         os.writeShort ((short)ref);
       }
       
       int ref;
@@ -2382,7 +2382,7 @@ public final class DynClass
       LdcIntIns (int val) { this.val = val; }
       void resolveConst (DynClass self) throws IOException
       {
-	 ref = self.getConstInt (val);
+         ref = self.getConstInt (val);
       }
       final int val;
    }
@@ -2413,7 +2413,7 @@ public final class DynClass
       LdcClassIns (String name) { this.name = toInternal (name); }
       void resolveConst (DynClass self) throws IOException
       {
-	 ref = self.getConstClass (name);
+         ref = self.getConstClass (name);
       }
       final String name;
    }
@@ -2424,7 +2424,7 @@ public final class DynClass
 
       void resolveConst (DynClass self) throws IOException
       {
-	 ref = self.getConstStr (val);
+         ref = self.getConstStr (val);
       }
 
       final String val;
@@ -2435,7 +2435,7 @@ public final class DynClass
       LabelIns (int label) { this.label = label; }
       void resolveLabel (int addr, HashMap<Integer, Integer> jmpMap)
       {
-	 jmpMap.put (label, addr);
+         jmpMap.put (label, addr);
       }
       final int label;
    }
@@ -2444,28 +2444,28 @@ public final class DynClass
    {
       JmpIns (int opc, int label)
       {
-	 this.opc = (byte)opc;
-	 this.label = label;
+         this.opc = (byte)opc;
+         this.label = label;
       }
 
       void resolveJmp (int addr, HashMap<Integer, Integer> jmpMap)
       {
-	 Integer a = jmpMap.get (label);
-	 if (a == null)
-	    throw new RuntimeException ("DynClass: Dangling label: " + label);
-	 this.addr = a.intValue ();
-	 this.addr -= addr; // Relative
-	 if (this.addr > 0xFFFF)
-	    throw new RuntimeException ("DynClass: Far jumps not " +
-					"implemented yet");
+         Integer a = jmpMap.get (label);
+         if (a == null)
+            throw new RuntimeException ("DynClass: Dangling label: " + label);
+         this.addr = a.intValue ();
+         this.addr -= addr; // Relative
+         if (this.addr > 0xFFFF)
+            throw new RuntimeException ("DynClass: Far jumps not " +
+                                        "implemented yet");
       }
 
       int getSize () { return 3; }
 
       void write (DataOutputStream os) throws IOException
       {
-	 os.write (opc);
-	 os.writeShort ((short)addr);
+         os.write (opc);
+         os.writeShort ((short)addr);
       }
 
       final byte opc;
@@ -2483,41 +2483,41 @@ public final class DynClass
       int count = 0;
      Loop:
       for (int i = 0, len = type.length (); i < len;)
-	 switch (type.charAt (i))
-	 {
-	  case '(':
-	    ++ i;
-	    break;
-
-	  case 'B': case 'C': case 'D': case 'F': case 'I': case 'J': case 'S':
-	  case 'Z':
-	    ++ count;
-	    ++ i;
-	    break;
-
-	  case 'L':
-	    ++ count;
-	    i = type.indexOf (';', i);
-	    if (i != -1)
-	       ++ i;
-	    else
-	       break Loop;
-	    break;
-	    
-	  case '[':
-	    ++ count;
-	    i = skipFieldType (type, i + 1);
-	    break;
-	    
-	  case ')':
-	    return count + 1 /* this */;
-
-	  default:
-	    break Loop;
-	 }
-
+         switch (type.charAt (i))
+         {
+         case '(':
+            ++ i;
+            break;
+            
+         case 'B': case 'C': case 'D': case 'F': case 'I': case 'J': case 'S':
+         case 'Z':
+            ++ count;
+            ++ i;
+            break;
+            
+         case 'L':
+            ++ count;
+            i = type.indexOf (';', i);
+            if (i != -1)
+               ++ i;
+            else
+               break Loop;
+            break;
+            
+         case '[':
+            ++ count;
+            i = skipFieldType (type, i + 1);
+            break;
+            
+         case ')':
+            return count + 1 /* this */;
+            
+         default:
+            break Loop;
+         }
+      
       throw new RuntimeException ("DynClass: Bad method specifier syntax: " +
-				  type);
+                                  type);
    }
 
    private static int skipFieldType (String type, int i)
@@ -2526,113 +2526,113 @@ public final class DynClass
       {
        case 'B': case 'C': case 'D': case 'F': case 'I': case 'J': case 'S':
        case 'Z':
-	 return i + 1;
+          return i + 1;
 
        case 'L':
-	 i = type.indexOf (';', i);
-	 if (i != -1)
-	    return i + 1;
-	 else
-	    break;
-	    
-       case '[':
-	 return skipFieldType (type, i + 1);
-	    
-       default:
-	 break;
+          i = type.indexOf (';', i);
+          if (i != -1)
+             return i + 1;
+          else
+             break;
+          
+      case '[':
+         return skipFieldType (type, i + 1);
+         
+      default:
+         break;
       }
 
       throw new RuntimeException ("DynClass: Bad method specifier syntax: " +
-				  type);
+                                  type);
    }
    
    private static class Method
    {
       Method (String name, String type, int flags)
       {
-	 this.name = name;
-	 this.type = type;
-	 this.flags = (short)flags;
-
-	 maxLocals = countArgs (type) + (isStatic (flags) ? 0 : 1);
+         this.name = name;
+         this.type = type;
+         this.flags = (short)flags;
+         
+         maxLocals = countArgs (type) + (isStatic (flags) ? 0 : 1);
       }
 
       void addIns (int opc)
       {
-	 addIns (new Ins1 (opc));
+         addIns (new Ins1 (opc));
       }
 
       void addIns (int opc, byte op)
       {
-	 addIns (new Ins2 (opc, op));
+         addIns (new Ins2 (opc, op));
       }
 
       void addIns (int opc, short op)
       {
-	 addIns (new Ins3 (opc, (byte)(op >> 8), (byte)(op & 0xff)));
+         addIns (new Ins3 (opc, (byte)(op >> 8), (byte)(op & 0xff)));
       }
 
       void addIns (int opc, byte op1, byte op2)
       {
-	 addIns (new Ins3 (opc, op1, op2));
+         addIns (new Ins3 (opc, op1, op2));
       }
 
       void addIns (int opc1, int opc2, int op)
       {
-	 addIns (new Ins4 (opc1, (byte)opc2, (byte)(op >> 8),
-			   (byte)(op & 0xff)));
+         addIns (new Ins4 (opc1, (byte)opc2, (byte)(op >> 8),
+                           (byte)(op & 0xff)));
       }
 
       void addIns (int opc1, int opc2, int op1, int op2)
       {
-	 addIns (new Ins6 (opc1, (byte)opc2, (byte)(op1 >> 8),
-			   (byte)(op1 & 0xff),
-			   (byte)(op2 >> 8), (byte)(op2 & 0xff)));
+         addIns (new Ins6 (opc1, (byte)opc2, (byte)(op1 >> 8),
+                           (byte)(op1 & 0xff),
+                           (byte)(op2 >> 8), (byte)(op2 & 0xff)));
       }
 
       void addInsClassOp (int opc, String name)
       {
-	 addIns (new ClassIns (opc, name));
+         addIns (new ClassIns (opc, name));
       }
       
       void addInsFieldOp (int opc, String className, String field, String type)
       {
-	 addIns (new FieldIns (opc, className, field, type));
+         addIns (new FieldIns (opc, className, field, type));
       }
       
       void addInsMethodOp (int opc, String className, String mtod, String type)
       {
-	 addIns (new MethodIns (opc, className, mtod, type));
+         addIns (new MethodIns (opc, className, mtod, type));
       }
 
       void addJmpIns (int opc, int label)
       {
-	 addIns (new JmpIns (opc, label));
+         addIns (new JmpIns (opc, label));
       }
 
       void addIns (Ins ins)
       {
-	 instructions.add (ins);
+         instructions.add (ins);
       }
       
       void addLabel (int label)
       {
-	 addIns (new LabelIns (label));
+         addIns (new LabelIns (label));
       }
 
       void setMaxLocal (int index)
       {
-	 maxLocals = Math.max (maxLocals, index + 1);
+         maxLocals = Math.max (maxLocals, index + 1);
       }
 
       void setMaxStack (int depth)
       {
-	 maxStack = Math.max (maxStack, depth);
+         maxStack = Math.max (maxStack, depth);
       }
 
       void setIns (int pos, Ins ins)
       {
-	 instructions.set (pos, ins);
+         instructions.set (pos, ins);
       }
 
       final String name;
@@ -2647,9 +2647,9 @@ public final class DynClass
    {
       Field (String name, String type, int flags)
       {
-	 this.name = name;
-	 this.type = type;
-	 this.flags = (short)flags;
+         this.name = name;
+         this.type = type;
+         this.flags = (short)flags;
       }
 
       final String name;
@@ -2660,9 +2660,9 @@ public final class DynClass
    private DynClass addPossiblyWideIns (int opc, int index, int localSize)
    {
       if (index > 0xff)
-	 curMtod.addIns (0xc4, opc, index);
+         curMtod.addIns (0xc4, opc, index);
       else
-	 curMtod.addIns (opc, (byte)index);
+         curMtod.addIns (opc, (byte)index);
       curMtod.setMaxLocal (index + localSize - 1);
       return this;
    }

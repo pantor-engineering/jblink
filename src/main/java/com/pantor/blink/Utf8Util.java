@@ -50,33 +50,33 @@ public final class Utf8Util
       int start = sink.getPos ();
       for (int i = from; i < len; ++ i)
       {
-	 char c = val.charAt (i);
-	 if (c < 0x0080)
-	    sink.write (c);
-	 else if (c < 0x0800)
-	    sink.write (0xc0 | ((c >> 6) & 0x1f),
-			0x80 |   c       & 0x3f);
-	 else if (c < 0xd800 || c > 0xdfff)
-	    sink.write (0xe0 | ((c >> 12) & 0x0f),
-			0x80 | ((c >> 6)  & 0x3f),
-			0x80 |   c        & 0x3f);
-	 else
-	 {
-	    ++ i;
-	    if (i < len)
-	    {
-	       char c2 = val.charAt (i);
-	       int u = (int)c << 10 + (int)c2 + SurrogateOffset;
+         char c = val.charAt (i);
+         if (c < 0x0080)
+            sink.write (c);
+         else if (c < 0x0800)
+            sink.write (0xc0 | ((c >> 6) & 0x1f),
+                        0x80 |   c       & 0x3f);
+         else if (c < 0xd800 || c > 0xdfff)
+            sink.write (0xe0 | ((c >> 12) & 0x0f),
+                        0x80 | ((c >> 6)  & 0x3f),
+                        0x80 |   c        & 0x3f);
+         else
+         {
+            ++ i;
+            if (i < len)
+            {
+               char c2 = val.charAt (i);
+               int u = (int)c << 10 + (int)c2 + SurrogateOffset;
 
-	       sink.write (0xf0 | ((u >> 18) & 0x07),
-			   0x80 | ((u >> 12) & 0x3f),
-			   0x80 | ((u >> 6)  & 0x3f),
-			   0x80 |   u        & 0x3f);
-	    }
-	    else
-	       throw new BlinkException.Encode (
-		  "Incomplete UTF-16 surrogate pair");
-	 }
+               sink.write (0xf0 | ((u >> 18) & 0x07),
+                           0x80 | ((u >> 12) & 0x3f),
+                           0x80 | ((u >> 6)  & 0x3f),
+                           0x80 |   u        & 0x3f);
+            }
+            else
+               throw new BlinkException.Encode (
+                  "Incomplete UTF-16 surrogate pair");
+         }
       }
 
       return sink.getPos () - start;

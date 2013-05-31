@@ -206,7 +206,7 @@ public interface ByteSink
     */
    
    void write (int b0, int b1, int b2, int b3, int b4, int b5, int b6, int b7,
-	       int b8);
+               int b8);
    /**
       Puts a single byte at the current position. The sink must have
       room for at least one byte at the current position.

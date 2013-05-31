@@ -163,7 +163,7 @@ public final class ByteBuf implements Buf
 
    @Override
    public void write (int b0, int b1, int b2, int b3, int b4, int b5,
-		      int b6)
+                      int b6)
    {
       data_ [pos    ] = (byte)b0;
       data_ [pos + 1] = (byte)b1;
@@ -177,7 +177,7 @@ public final class ByteBuf implements Buf
 
    @Override
    public void write (int b0, int b1, int b2, int b3, int b4, int b5,
-		      int b6, int b7)
+                      int b6, int b7)
    {
       data_ [pos    ] = (byte)b0;
       data_ [pos + 1] = (byte)b1;
@@ -192,7 +192,7 @@ public final class ByteBuf implements Buf
    
    @Override
    public void write (int b0, int b1, int b2, int b3, int b4, int b5,
-		      int b6, int b7, int b8)
+                      int b6, int b7, int b8)
    {
       data_ [pos    ] = (byte)b0;
       data_ [pos + 1] = (byte)b1;
@@ -270,14 +270,14 @@ public final class ByteBuf implements Buf
    {
       try
       {
-	 String s = new String (data_, pos, size, "UTF-8");
-	 pos += size;
-	 return s;
+         String s = new String (data_, pos, size, "UTF-8");
+         pos += size;
+         return s;
       }
       catch (UnsupportedEncodingException e)
       {
-	 // FIXME: Should we raise BlinkException.Decode instead?
-	 throw new RuntimeException (e);
+         // FIXME: Should we raise BlinkException.Decode instead?
+         throw new RuntimeException (e);
       }
    }
 
@@ -286,12 +286,12 @@ public final class ByteBuf implements Buf
    {
       if (pos > 0)
       {
-	 if (dst instanceof OutputStream)
-	    ((OutputStream)dst).write (data_, 0, pos);
-	 else
-	    throw new IOException ("Unsupported output destination: " + dst);
-	 
-	 clear ();
+         if (dst instanceof OutputStream)
+            ((OutputStream)dst).write (data_, 0, pos);
+         else
+            throw new IOException ("Unsupported output destination: " + dst);
+         
+         clear ();
       }
    }
 
@@ -321,9 +321,9 @@ public final class ByteBuf implements Buf
       int capacity = pos + additionalCapacity;
       if (capacity > data_.length)
       {
-	 byte [] newData = new byte [(int)(capacity * 1.5)];
-	 System.arraycopy (data_, 0, newData, 0, pos);
-	 data_ = newData;
+         byte [] newData = new byte [(int)(capacity * 1.5)];
+         System.arraycopy (data_, 0, newData, 0, pos);
+         data_ = newData;
       }
    }
    
@@ -332,12 +332,12 @@ public final class ByteBuf implements Buf
    {
       if (data_.length > limit)
       {
-	 data_ = emptyData;
-	 pos = 0;
-	 end = 0;
+         data_ = emptyData;
+         pos = 0;
+         end = 0;
       }
       else
-	 clear ();
+         clear ();
    }
 
    @Override
@@ -350,9 +350,9 @@ public final class ByteBuf implements Buf
    public boolean fillFrom (Object src) throws IOException
    {
       if (src instanceof InputStream)
-	 return fillFromStream ((InputStream)src);
+         return fillFromStream ((InputStream)src);
       else
-	 throw new IOException ("Unsupported input src: " + src);
+         throw new IOException ("Unsupported input src: " + src);
    }
 
    /**
@@ -372,11 +372,11 @@ public final class ByteBuf implements Buf
       pos = is.read (data_);
       end = data_.length;
       if (pos != -1)
-	 return true;
+         return true;
       else
       {
-	 pos = 0;
-	 return false;
+         pos = 0;
+         return false;
       }
    }
 
@@ -404,9 +404,9 @@ public final class ByteBuf implements Buf
       StringBuilder s = new StringBuilder ();
       for (int i = 0; i < size (); ++ i)
       {
-	 if (i > 0)
-	    s.append (' ');
-	 s.append (String.format ("%02x", data_ [i]));
+         if (i > 0)
+            s.append (' ');
+         s.append (String.format ("%02x", data_ [i]));
       }
       return s.toString ();
    }

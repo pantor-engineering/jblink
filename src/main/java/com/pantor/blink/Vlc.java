@@ -51,15 +51,15 @@ public final class Vlc
    public static int getUintSize (int x)
    {
       if (x <= OneByteUintMax)
-	 return 1;
+         return 1;
       else if (x <= TwoByteUintMax)
-	 return 2;
+         return 2;
       else if (x <= ThreeByteUintMax)
-	 return 3;
+         return 3;
       else if (x <= FourByteUintMax)
-	 return 4;
+         return 4;
       else
-	 return 5;
+         return 5;
    }
    
    public static void write7 (int val, ByteSink sink)
@@ -75,79 +75,79 @@ public final class Vlc
    public static void write16 (int val, ByteSink sink)
    {
       sink.write (0xc2,
-		  val & 0xff,
-		  (val & 0xff00) >> 8);
+                  val & 0xff,
+                  (val & 0xff00) >> 8);
    }
 
    public static void write24 (int val, ByteSink sink)
    {
       sink.write (0xc3,
-		  val & 0xff,
-		  (val & 0xff00) >> 8,
-		  (val & 0xff0000) >> 16);
+                  val & 0xff,
+                  (val & 0xff00) >> 8,
+                  (val & 0xff0000) >> 16);
    }
    
    public static void write32 (int val, ByteSink sink)
    {
       sink.write (0xc4,
-		  val & 0xff,
-		  (val & 0xff00) >> 8,
-		  (val & 0xff0000) >> 16,
-		  (val & 0xff000000) >> 24);
+                  val & 0xff,
+                  (val & 0xff00) >> 8,
+                  (val & 0xff0000) >> 16,
+                  (val & 0xff000000) >> 24);
    }
 
    public static void write40 (long val, ByteSink sink)
    {
       sink.write (0xc5,
-		  (int)(val & 0xffL),
-		  (int)((val & 0xff00L) >> 8),
-		  (int)((val & 0xff0000L) >> 16),
-		  (int)((val & 0xff000000L) >> 24),
-		  (int)((val & 0xff00000000L) >> 32));
+                  (int)(val & 0xffL),
+                  (int)((val & 0xff00L) >> 8),
+                  (int)((val & 0xff0000L) >> 16),
+                  (int)((val & 0xff000000L) >> 24),
+                  (int)((val & 0xff00000000L) >> 32));
    }
 
    public static void write48 (long val, ByteSink sink)
    {
       sink.write (0xc6,
-		  (int)((val & 0xffL)),
-		  (int)((val & 0xff00L) >> 8),
-		  (int)((val & 0xff0000L) >> 16),
-		  (int)((val & 0xff000000L) >> 24),
-		  (int)((val & 0xff00000000L) >> 32),
-		  (int)((val & 0xff0000000000L) >> 40));
+                  (int)((val & 0xffL)),
+                  (int)((val & 0xff00L) >> 8),
+                  (int)((val & 0xff0000L) >> 16),
+                  (int)((val & 0xff000000L) >> 24),
+                  (int)((val & 0xff00000000L) >> 32),
+                  (int)((val & 0xff0000000000L) >> 40));
    }
 
    public static void write56 (long val, ByteSink sink)
    {
       sink.write (0xc7,
-		  (int)((val & 0xffL)),
-		  (int)((val & 0xff00L) >> 8),
-		  (int)((val & 0xff0000L) >> 16),
-		  (int)((val & 0xff000000L) >> 24),
-		  (int)((val & 0xff00000000L) >> 32),
-		  (int)((val & 0xff0000000000L) >> 40),
-		  (int)((val & 0xff000000000000L) >> 48));
+                  (int)((val & 0xffL)),
+                  (int)((val & 0xff00L) >> 8),
+                  (int)((val & 0xff0000L) >> 16),
+                  (int)((val & 0xff000000L) >> 24),
+                  (int)((val & 0xff00000000L) >> 32),
+                  (int)((val & 0xff0000000000L) >> 40),
+                  (int)((val & 0xff000000000000L) >> 48));
    }
 
    public static void write64 (long val, ByteSink sink)
    {
       sink.write (0xc8,
-		  (int)((val & 0xffL)),
-		  (int)((val & 0xff00L) >> 8),
-		  (int)((val & 0xff0000L) >> 16),
-		  (int)((val & 0xff000000L) >> 24),
-		  (int)((val & 0xff00000000L) >> 32),
-		  (int)((val & 0xff0000000000L) >> 40),
-		  (int)((val & 0xff000000000000L) >> 48),
-		  (int)((val & 0xff00000000000000L) >> 56));
+                  (int)((val & 0xffL)),
+                  (int)((val & 0xff00L) >> 8),
+                  (int)((val & 0xff0000L) >> 16),
+                  (int)((val & 0xff000000L) >> 24),
+                  (int)((val & 0xff00000000L) >> 32),
+                  (int)((val & 0xff0000000000L) >> 40),
+                  (int)((val & 0xff000000000000L) >> 48),
+                  (int)((val & 0xff00000000000000L) >> 56));
    }
    
    public static int writeU32 (int val, ByteSink sink)
    {
       if (val < 0)
       {
-	 write32 (val, sink);
-	 return 5;
+         write32 (val, sink);
+         return 5;
       }
       else if (val < 0x00000080)
       {
@@ -244,7 +244,7 @@ public final class Vlc
       if (val < 0)
       {
          write64 (val, sink);
-	 return 9;
+         return 9;
       }
       else if (val < 0x0000000000000080L)
       {
@@ -401,23 +401,23 @@ public final class Vlc
       int b = src.get ();
       if ((b & 0x80) == 0)
       {
-	 src.step ();
-	 return (byte)b;
+         src.step ();
+         return (byte)b;
       }
       else if ((b & 0x40) == 0)
       {
-	 byte val = (byte)((src.get (1) << 6) | (b & 0x3f));
-	 src.step (2);
-	 return val;
+         byte val = (byte)((src.get (1) << 6) | (b & 0x3f));
+         src.step (2);
+         return val;
       }
       else
       {
-	 int w = b & 0x3f;
-	 if (w > 1)
-	    throw overflowError ("u8", src);
-	 int val = src.get (1);
-	 src.step (2);
-	 return (byte)val;
+         int w = b & 0x3f;
+         if (w > 1)
+            throw overflowError ("u8", src);
+         int val = src.get (1);
+         src.step (2);
+         return (byte)val;
       }
    }
 
@@ -426,25 +426,25 @@ public final class Vlc
       int b = src.get ();
       if ((b & 0x80) == 0)
       {
-	 src.step ();
-	 return (short)b;
+         src.step ();
+         return (short)b;
       }
       else if ((b & 0x40) == 0)
       {
-	 short val = (short)((src.get (1) << 6) | (b & 0x3f));
-	 src.step (2);
-	 return val;
+         short val = (short)((src.get (1) << 6) | (b & 0x3f));
+         src.step (2);
+         return val;
       }
       else
       {
-	 int w = b & 0x3f;
-	 if (w > 2)
-	    throw overflowError ("u16", src);
-	 int val = 0;
-	 for (int i = 0; i < w; ++ i)
-	    val |= src.get (i + 1) << (i << 3);
-	 src.step (w + 1);
-	 return (short)val;
+         int w = b & 0x3f;
+         if (w > 2)
+            throw overflowError ("u16", src);
+         int val = 0;
+         for (int i = 0; i < w; ++ i)
+            val |= src.get (i + 1) << (i << 3);
+         src.step (w + 1);
+         return (short)val;
       }
    }
 
@@ -453,25 +453,25 @@ public final class Vlc
       int b = src.get ();
       if ((b & 0x80) == 0)
       {
-	 src.step ();
-	 return b;
+         src.step ();
+         return b;
       }
       else if ((b & 0x40) == 0)
       {
-	 int val = (src.get (1) << 6) | (b & 0x3f);
-	 src.step (2);
-	 return val;
+         int val = (src.get (1) << 6) | (b & 0x3f);
+         src.step (2);
+         return val;
       }
       else
       {
-	 int w = b & 0x3f;
-	 if (w > 4)
-	    throw overflowError ("u32", src);
-	 int val = 0;
-	 for (int i = 0; i < w; ++ i)
-	    val |= src.get (i + 1) << (i << 3);
-	 src.step (w + 1);
-	 return val;
+         int w = b & 0x3f;
+         if (w > 4)
+            throw overflowError ("u32", src);
+         int val = 0;
+         for (int i = 0; i < w; ++ i)
+            val |= src.get (i + 1) << (i << 3);
+         src.step (w + 1);
+         return val;
       }
    }
 
@@ -480,25 +480,25 @@ public final class Vlc
       int b = src.get ();
       if ((b & 0x80) == 0)
       {
-	 src.step ();
-	 return b;
+         src.step ();
+         return b;
       }
       else if ((b & 0x40) == 0)
       {
-	 long val = (src.get (1) << 6) | (b & 0x3f);
-	 src.step (2);
-	 return val;
+         long val = (src.get (1) << 6) | (b & 0x3f);
+         src.step (2);
+         return val;
       }
       else
       {
-	 int w = b & 0x3f;
-	 if (w > 8)
-	    throw overflowError ("u64", src);
-	 long val = 0;
-	 for (int i = 0; i < w; ++ i)
-	    val |= (long)src.get (i + 1) << (i << 3);
-	 src.step (w + 1);
-	 return val;
+         int w = b & 0x3f;
+         if (w > 8)
+            throw overflowError ("u64", src);
+         long val = 0;
+         for (int i = 0; i < w; ++ i)
+            val |= (long)src.get (i + 1) << (i << 3);
+         src.step (w + 1);
+         return val;
       }
    }
 
@@ -507,23 +507,23 @@ public final class Vlc
       int b = src.get ();
       if ((b & 0x80) == 0)
       {
-	 src.step ();
-	 return (byte)((b << 25) >> 25);
+         src.step ();
+         return (byte)((b << 25) >> 25);
       }
       else if ((b & 0x40) == 0)
       {
-	 byte val = (byte)((src.get (1) << 6) | (b & 0x3f));
-	 src.step (2);
-	 return val;
+         byte val = (byte)((src.get (1) << 6) | (b & 0x3f));
+         src.step (2);
+         return val;
       }
       else
       {
-	 int w = b & 0x3f;
-	 if (w > 1)
-	    throw overflowError ("i8", src);
-	 int val = src.get (1);
-	 src.step (2);
-	 return (byte)val;
+         int w = b & 0x3f;
+         if (w > 1)
+            throw overflowError ("i8", src);
+         int val = src.get (1);
+         src.step (2);
+         return (byte)val;
       }
    }
 
@@ -532,26 +532,26 @@ public final class Vlc
       int b = src.get ();
       if ((b & 0x80) == 0)
       {
-	 src.step ();
-	 return (short)((b << 25) >> 25);
+         src.step ();
+         return (short)((b << 25) >> 25);
       }
       else if ((b & 0x40) == 0)
       {
-	 short val = (short)((((src.get (1) << 6) | (b & 0x3f)) << 18) >> 18);
-	 src.step (2);
-	 return val;
+         short val = (short)((((src.get (1) << 6) | (b & 0x3f)) << 18) >> 18);
+         src.step (2);
+         return val;
       }
       else
       {
-	 int w = b & 0x3f;
-	 if (w > 2)
-	    throw overflowError ("i16", src);
-	 int val = 0;
-	 for (int i = 0; i < w; ++ i)
-	    val |= src.get (i + 1) << (i << 3);
-	 src.step (w + 1);
-	 int bits = (4 - w) << 3;
-	 return (short)((val << bits) >> bits);
+         int w = b & 0x3f;
+         if (w > 2)
+            throw overflowError ("i16", src);
+         int val = 0;
+         for (int i = 0; i < w; ++ i)
+            val |= src.get (i + 1) << (i << 3);
+         src.step (w + 1);
+         int bits = (4 - w) << 3;
+         return (short)((val << bits) >> bits);
       }
    }
 
@@ -560,26 +560,26 @@ public final class Vlc
       int b = src.get ();
       if ((b & 0x80) == 0)
       {
-	 src.step ();
-	 return (b << 25) >> 25;
+         src.step ();
+         return (b << 25) >> 25;
       }
       else if ((b & 0x40) == 0)
       {
-	 int val = (((src.get (1) << 6) | (b & 0x3f)) << 18) >> 18;
-	 src.step (2);
-	 return val;
+         int val = (((src.get (1) << 6) | (b & 0x3f)) << 18) >> 18;
+         src.step (2);
+         return val;
       }
       else
       {
-	 int w = b & 0x3f;
-	 if (w > 4)
-	    throw overflowError ("i32", src);
-	 int val = 0;
-	 for (int i = 0; i < w; ++ i)
-	    val |= src.get (i + 1) << (i << 3);
-	 src.step (w + 1);
-	 int bits = (4 - w) << 3;
-	 return (val << bits) >> bits;
+         int w = b & 0x3f;
+         if (w > 4)
+            throw overflowError ("i32", src);
+         int val = 0;
+         for (int i = 0; i < w; ++ i)
+            val |= src.get (i + 1) << (i << 3);
+         src.step (w + 1);
+         int bits = (4 - w) << 3;
+         return (val << bits) >> bits;
       }
    }
    
@@ -588,29 +588,29 @@ public final class Vlc
       int b = src.get ();
       if ((b & 0x80) == 0)
       {
-	 src.step ();
-	 return ((long)b << 57) >> 57;
+         src.step ();
+         return ((long)b << 57) >> 57;
       }
       else if ((b & 0x40) == 0)
       {
-	 long val =
-	    (((long)(src.get (1) << 6) | (long)(b & 0x3f)) << 50) >> 50;
-	 src.step (2);
-	 return val;
+         long val =
+            (((long)(src.get (1) << 6) | (long)(b & 0x3f)) << 50) >> 50;
+         src.step (2);
+         return val;
       }
       else
       {
-	 int w = b & 0x3f;
-	 if (w > 8)
-	    throw overflowError ("i64", src);
-	 long val = 0;
+         int w = b & 0x3f;
+         if (w > 8)
+            throw overflowError ("i64", src);
+         long val = 0;
 
-	 for (int i = 0; i < w; ++ i)
-	    val |= (long)src.get (i + 1) << (i << 3);
-	 
-	 src.step (w + 1);
-	 int bits = (8 - w) << 3;
-	 return (val << bits) >> bits;
+         for (int i = 0; i < w; ++ i)
+            val |= (long)src.get (i + 1) << (i << 3);
+ 
+         src.step (w + 1);
+         int bits = (8 - w) << 3;
+         return (val << bits) >> bits;
       }
    }
    
@@ -618,6 +618,6 @@ public final class Vlc
       String type, ByteSource src)
    {
       return new BlinkException.Decode (
-	 "VLC entity overflow (" + type + ")", src);
+         "VLC entity overflow (" + type + ")", src);
    }
 }

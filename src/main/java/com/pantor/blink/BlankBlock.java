@@ -90,9 +90,9 @@ public class BlankBlock implements Block
       throws BlinkException.Binding
    {
       if (o == null)
-	 o = new Object [slabSize];
+         o = new Object [slabSize];
       for (int i = 0; i < o.length; ++ i)
-	 o [i] = ctor.newInstance ();
+         o [i] = ctor.newInstance ();
       return o;
    }
 
@@ -104,7 +104,7 @@ public class BlankBlock implements Block
    public void reclaim (Object [] o, int from, int len)
    {
       for (int i = from; i < from + len; ++ i)
-	 o [i] = null;
+         o [i] = null;
    }
 
    public void reset ()

@@ -136,8 +136,8 @@ public final class Client implements Runnable
    {
       String [] parts = addr.split (":");
       if (parts.length != 2)
-	 throw new IllegalArgumentException (
-	    "Address must be on the form 'host:port'");
+         throw new IllegalArgumentException (
+            "Address must be on the form 'host:port'");
       this.sock = new Socket (parts [0], Integer.parseInt (parts [1]));
       this.om = om;
       this.oreg = new DefaultObsRegistry (om);
@@ -217,13 +217,13 @@ public final class Client implements Runnable
    {
       try
       {
-	 readLoop ();
+         readLoop ();
       }
       catch (Throwable e)
       {
-	 while (e.getCause () != null)
-	    e = e.getCause ();
-	 log.severe (String.format ("%s: %s", sock, e));
+         while (e.getCause () != null)
+            e = e.getCause ();
+         log.severe (String.format ("%s: %s", sock, e));
       }
    }
 
@@ -241,24 +241,24 @@ public final class Client implements Runnable
       InputStream is = null;
       try
       {
-	 is = sock.getInputStream ();
-	 CompactReader rd = new CompactReader (om, oreg);
-	 Buf buf = DirectBuf.newInstance (4096);
-	 for (;;)
-	 {
-	    if (! buf.fillFrom (is))
-	       break;
-	    rd.read (buf);
-	 }
+         is = sock.getInputStream ();
+         CompactReader rd = new CompactReader (om, oreg);
+         Buf buf = DirectBuf.newInstance (4096);
+         for (;;)
+         {
+            if (! buf.fillFrom (is))
+               break;
+            rd.read (buf);
+         }
 
-	 log.info (sock + ": closed");
+         log.info (sock + ": closed");
       }
       finally
       {
-	 os.close ();
-	 if (is != null)
-	    is.close ();
-	 sock.close ();
+         os.close ();
+         if (is != null)
+            is.close ();
+         sock.close ();
       }
    }
 

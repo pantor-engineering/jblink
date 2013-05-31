@@ -48,9 +48,9 @@ public final class DefaultObsRegistry implements ObserverRegistry
    {
       this.om = om;
       if (om != null)
-	 this.dload = new DynClassLoader ();
+         this.dload = new DynClassLoader ();
       else
-	 this.dload = null;
+         this.dload = null;
    }
 
    public DefaultObsRegistry ()
@@ -63,9 +63,9 @@ public final class DefaultObsRegistry implements ObserverRegistry
    {
       if (om != null)
       {
-	 ObjectModel.GroupBinding bnd = findGroupBinding (type);
-	 if (bnd != null)
-	    return findObserver (bnd.getGroup ());
+         ObjectModel.GroupBinding bnd = findGroupBinding (type);
+         if (bnd != null)
+            return findObserver (bnd.getGroup ());
       }
 
       return null;
@@ -77,9 +77,9 @@ public final class DefaultObsRegistry implements ObserverRegistry
    {
       Observer obs = obsByName.get (g.getName ());
       if (obs != null)
-	 return obs;
+         return obs;
       else
-	 return findInAncestry (g.getSuperGroup ());
+         return findInAncestry (g.getSuperGroup ());
    }
 
    @Override
@@ -87,9 +87,9 @@ public final class DefaultObsRegistry implements ObserverRegistry
    {
       if (om != null)
       {
-	 ObjectModel.GroupBinding bnd = findGroupBinding (type);
-	 if (bnd != null)
-	    return findDirectObserver (bnd.getGroup ());
+         ObjectModel.GroupBinding bnd = findGroupBinding (type);
+         if (bnd != null)
+            return findDirectObserver (bnd.getGroup ());
       }
 
       return null;
@@ -122,14 +122,14 @@ public final class DefaultObsRegistry implements ObserverRegistry
    {
       if (om != null)
       {
-	 for (Method m : obs.getClass ().getMethods ())
-	    if (m.getName ().startsWith (prefix))
-	       addObserver (m, obs);
+         for (Method m : obs.getClass ().getMethods ())
+            if (m.getName ().startsWith (prefix))
+               addObserver (m, obs);
       }
       else
-	 throw new RuntimeException ("DefaultObsRegistry: Cannot add " +
-				     "dynamic observer if no data model is " +
-				     "specified: " + obs.getClass ());
+         throw new RuntimeException ("DefaultObsRegistry: Cannot add " +
+                                     "dynamic observer if no data model is " +
+                                     "specified: " + obs.getClass ());
    }
 
    public void addObserver (Object obs, Class<? extends Annotation> annot)
@@ -137,74 +137,74 @@ public final class DefaultObsRegistry implements ObserverRegistry
    {
       if (om != null)
       {
-	 for (Method m : obs.getClass ().getMethods ())
-	    if (m.isAnnotationPresent (annot))
-	       if (! addObserver (m, obs))
-		  throw new BlinkException.Binding (
-		     "Observer method signature does not match any known " +
-		     "blink type: " + m);
+         for (Method m : obs.getClass ().getMethods ())
+            if (m.isAnnotationPresent (annot))
+               if (! addObserver (m, obs))
+                  throw new BlinkException.Binding (
+                     "Observer method signature does not match any known " +
+                     "blink type: " + m);
       }
       else
-	 throw new RuntimeException ("DefaultObsRegistry: Cannot add " +
-				     "dynamic observer if no data model is " +
-				     "specified: " + obs.getClass ());
+         throw new RuntimeException ("DefaultObsRegistry: Cannot add " +
+                                     "dynamic observer if no data model is " +
+                                     "specified: " + obs.getClass ());
    }
 
    private boolean addObserver (Method m, Object obs) throws BlinkException
    {
       if (m.getReturnType () == void.class &&
-	  ! Modifier.isStatic (m.getModifiers ()))
+          ! Modifier.isStatic (m.getModifiers ()))
       {
-	 m.setAccessible (true);
-	 
-	 Class<?> [] prms = m.getParameterTypes ();
+         m.setAccessible (true);
+         
+         Class<?> [] prms = m.getParameterTypes ();
 
-	 if (prms.length == 1)
-	 {
-	    ObjectModel.GroupBinding bnd = findGroupBinding (prms [0]);
-	    if (bnd != null)
-	    {
-	       obsByName.put (bnd.getGroup ().getName (),
-			      createDynObs (m, obs, false));
-	       return true;
-	    }
-	 }
-	 else
-	 {
-	    if (prms.length == 2 && prms [1] == Schema.Group.class)
-	    {
-	       ObjectModel.GroupBinding bnd = findGroupBinding (prms [0]);
-	       if (bnd != null)
-	       {
-		  obsByName.put (bnd.getGroup ().getName (),
-				 createDynObs (m, obs, true));
-		  return true;
-	       }
-	    }
-	 }
+         if (prms.length == 1)
+         {
+            ObjectModel.GroupBinding bnd = findGroupBinding (prms [0]);
+            if (bnd != null)
+            {
+               obsByName.put (bnd.getGroup ().getName (),
+                              createDynObs (m, obs, false));
+               return true;
+            }
+         }
+         else
+         {
+            if (prms.length == 2 && prms [1] == Schema.Group.class)
+            {
+               ObjectModel.GroupBinding bnd = findGroupBinding (prms [0]);
+               if (bnd != null)
+               {
+                  obsByName.put (bnd.getGroup ().getName (),
+                                 createDynObs (m, obs, true));
+                  return true;
+               }
+            }
+         }
 
-	 // Test for fallback void onAny (Object o) or
-	 // void onAny (Object o, Schema.Group g)
-	    
-	 if (prms.length > 0)
-	 {
-	    if (prms [0] == Object.class)
-	    {
-	       if (prms.length == 1)
-	       {
-		  fallback = createDynObs (m, obs, false);
-		  return true;
-	       }
-	       else
-	       {
-		  if (prms.length == 2 && prms [1] == Schema.Group.class)
-		  {
-		     fallback = createDynObs (m, obs, true);
-		     return true;
-		  }
-	       }
-	    }
-	 }
+         // Test for fallback void onAny (Object o) or
+         // void onAny (Object o, Schema.Group g)
+   
+         if (prms.length > 0)
+         {
+            if (prms [0] == Object.class)
+            {
+               if (prms.length == 1)
+               {
+                  fallback = createDynObs (m, obs, false);
+                  return true;
+               }
+               else
+               {
+                  if (prms.length == 2 && prms [1] == Schema.Group.class)
+                  {
+                     fallback = createDynObs (m, obs, true);
+                     return true;
+                  }
+               }
+            }
+         }
       }
 
       return false;
@@ -214,11 +214,11 @@ public final class DefaultObsRegistry implements ObserverRegistry
    {
       try
       {
-	 return om.getGroupBinding (c);
+         return om.getGroupBinding (c);
       }
       catch (BlinkException e)
       {
-	 return null;
+         return null;
       }
    }
 
@@ -249,30 +249,30 @@ public final class DefaultObsRegistry implements ObserverRegistry
       dc.addInterface ("com.pantor.blink.Observer");
 
       dc.addField ("obs", obsDescr, DynClass.FieldFlag.Private,
-		   DynClass.FieldFlag.Final);
-		   
+                   DynClass.FieldFlag.Final);
+      
       // Constructor
 
       dc.startPublicMethod ("<init>", "(" + obsDescr + ")V")
-	 .aload0 ()
-	 .invokeSpecial ("java.lang.Object", "<init>", "()V") // super ()
-	 .aload0 ()
-	 .aload1 ()
-	 .putField (obsName, "obs", obsDescr)
-	 .return_ ().setMaxStack (2).endMethod ();
+         .aload0 ()
+         .invokeSpecial ("java.lang.Object", "<init>", "()V") // super ()
+         .aload0 ()
+         .aload1 ()
+         .putField (obsName, "obs", obsDescr)
+         .return_ ().setMaxStack (2).endMethod ();
 
       // void onObj (Object, Schema.Group g)
 
       dc.startPublicMethod ("onObj", onObjSig)
-	 .aload0 () // this
-	 .getField (obsName, "obs", obsDescr)
-	 .aload1 () // obj
-	 .checkCast (m.getParameterTypes () [0]);
+         .aload0 () // this
+         .getField (obsName, "obs", obsDescr)
+         .aload1 () // obj
+         .checkCast (m.getParameterTypes () [0]);
       if (withGroup)
-	 dc.aload2 (); // group
+         dc.aload2 (); // group
 
       dc.invoke (m)
-	 .return_ ().setMaxStack (2 + (withGroup ? 1 : 0)).endMethod ();
+         .return_ ().setMaxStack (2 + (withGroup ? 1 : 0)).endMethod ();
 
       return createInstance (dc, obs);
    }
@@ -282,26 +282,26 @@ public final class DefaultObsRegistry implements ObserverRegistry
    {
       try
       {
-	 Class<?> pojoObsClass = obs.getClass ();
-	 Class<?> obsClass = dload.loadPrivileged (dc, pojoObsClass);
-	 Constructor<?> ctor = obsClass.getConstructor (pojoObsClass);
-	 return (Observer)ctor.newInstance (obs);
+         Class<?> pojoObsClass = obs.getClass ();
+         Class<?> obsClass = dload.loadPrivileged (dc, pojoObsClass);
+         Constructor<?> ctor = obsClass.getConstructor (pojoObsClass);
+         return (Observer)ctor.newInstance (obs);
       }
       catch (NoSuchMethodException e)
       {
-	 throw new BlinkException.Binding (e);
+         throw new BlinkException.Binding (e);
       }
       catch (InstantiationException e)
       {
-	 throw new BlinkException.Binding (e);
+         throw new BlinkException.Binding (e);
       }
       catch (IllegalAccessException e)
       {
-	 throw new BlinkException.Binding (e);
+         throw new BlinkException.Binding (e);
       }
       catch (InvocationTargetException e)
       {
-	 throw new BlinkException.Binding (e);
+         throw new BlinkException.Binding (e);
       }
    }
    
@@ -309,17 +309,17 @@ public final class DefaultObsRegistry implements ObserverRegistry
    {
       if (g != null)
       {
-	 Observer obs = obsByName.get (g.getName ());
-	 if (obs != null)
-	 {
-	    obsByName.put (g.getName (), obs);
-	    return obs;
-	 }
-	 else
-	    return findInAncestry (g.getSuperGroup ());
+         Observer obs = obsByName.get (g.getName ());
+         if (obs != null)
+         {
+            obsByName.put (g.getName (), obs);
+            return obs;
+         }
+         else
+            return findInAncestry (g.getSuperGroup ());
       }
       else
-	 return fallback;
+         return fallback;
    }
 
    private final HashMap<NsName, Observer> obsByName =

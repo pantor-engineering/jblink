@@ -52,53 +52,53 @@ public class PerfTest
 
       if (task == "roundtrip")
       {
-	 DefaultBlock result = new DefaultBlock ();
-	 ByteArrayOutputStream os = new ByteArrayOutputStream ();
-	 CompactWriter wr = new CompactWriter (om, os);
-	 int count = 0;
-	 long decTime = 0;
-	 long encTime = 0;
-	 
-	 FileInputStream is = new FileInputStream (args [3]);
-	 
-	 Buf buf = DirectBuf.newInstance ();
+         DefaultBlock result = new DefaultBlock ();
+         ByteArrayOutputStream os = new ByteArrayOutputStream ();
+         CompactWriter wr = new CompactWriter (om, os);
+         int count = 0;
+         long decTime = 0;
+         long encTime = 0;
+ 
+         FileInputStream is = new FileInputStream (args [3]);
+ 
+         Buf buf = DirectBuf.newInstance ();
 
-	 try
-	 {
-	    for (;;)
-	    {
-	       if (! buf.fillFrom (is))
-		  break;
+         try
+         {
+            for (;;)
+            {
+               if (! buf.fillFrom (is))
+                  break;
 
-	       buf.flip ();
-	       result.clear ();
-	       os.reset ();
+               buf.flip ();
+               result.clear ();
+               os.reset ();
 
-	       long t1 = System.currentTimeMillis ();
-	       rd.read (buf, result);
-	       long t2 = System.currentTimeMillis ();
-	       for (Object o : result)
-		  wr.write (o);
-	       wr.flush ();
-	       long t3 = System.currentTimeMillis ();
-	       decTime += t2 - t1;
-	       encTime += t3 - t2;
-	       count += result.size ();
-	    }
-	 }
-	 finally
-	 {
-	    is.close ();
-	 }
+               long t1 = System.currentTimeMillis ();
+               rd.read (buf, result);
+               long t2 = System.currentTimeMillis ();
+               for (Object o : result)
+                  wr.write (o);
+               wr.flush ();
+               long t3 = System.currentTimeMillis ();
+               decTime += t2 - t1;
+               encTime += t3 - t2;
+               count += result.size ();
+            }
+         }
+         finally
+         {
+            is.close ();
+         }
 
-	 System.out.printf ("Decoded %d msgs in %d ms (%.2f msgs/s)%n",
-			    count, decTime,
-			    1000 * (double)count/(double)decTime);
-	 System.out.printf ("Encoded %d msgs in %d ms (%.2f msgs/s)%n",
-			    count, encTime,
-			    1000 * (double)count/(double)encTime);
+         System.out.printf ("Decoded %d msgs in %d ms (%.2f msgs/s)%n",
+                            count, decTime,
+                            1000 * (double)count/(double)decTime);
+         System.out.printf ("Encoded %d msgs in %d ms (%.2f msgs/s)%n",
+                            count, encTime,
+                            1000 * (double)count/(double)encTime);
       }
       else
-	 throw new RuntimeException ("Unknown PerfTest task: " + task);
+         throw new RuntimeException ("Unknown PerfTest task: " + task);
    }
 }

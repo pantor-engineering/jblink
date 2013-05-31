@@ -60,8 +60,8 @@ public final class NsName
       NsName nm = local_.get (ns, name);
       if (nm == null)
       {
-	 nm = global.put (ns, name);
-	 local_.cache (nm);
+         nm = global.put (ns, name);
+         local_.cache (nm);
       }
       return nm;
    }
@@ -75,20 +75,20 @@ public final class NsName
    {
       String [] parts = lit.split (":");
       if (parts.length == 1)
-	 return get (parts [0]);
+         return get (parts [0]);
       else if (parts.length == 2)
-	 return get (parts [0], parts [1]);
+         return get (parts [0], parts [1]);
       else
-	 return null;
+         return null;
    }
 
    @Override
    public String toString ()
    {
       if (ns.equals (""))
-	 return name;
+         return name;
       else
-	 return ns + ":" + name;
+         return ns + ":" + name;
    }
 
    public boolean isQualified () { return ! ns.equals (""); }
@@ -105,34 +105,34 @@ public final class NsName
    {
       synchronized NsName put (String ns, String name)
       {
-	 Ns nsMap = namespaces.get (ns);
-	 if (nsMap == null)
-	    namespaces.put (ns, nsMap = new Ns ());
-	 NsName nm = nsMap.get (name);
-	 if (nm == null)
-	    nsMap.put (name, nm = new NsName (ns, name));
-	 return nm;
+         Ns nsMap = namespaces.get (ns);
+         if (nsMap == null)
+            namespaces.put (ns, nsMap = new Ns ());
+         NsName nm = nsMap.get (name);
+         if (nm == null)
+            nsMap.put (name, nm = new NsName (ns, name));
+         return nm;
       }
 
       NsName get (String ns, String name)
       {
-	 Ns nsMap = namespaces.get (ns);
-	 if (nsMap != null)
-	    return nsMap.get (name);
-	 else
-	    return null;
+         Ns nsMap = namespaces.get (ns);
+         if (nsMap != null)
+            return nsMap.get (name);
+         else
+            return null;
       }
 
       void cache (NsName name)
       {
-	 Ns nsMap = namespaces.get (name.getNs ());
-	 if (nsMap == null)
-	    namespaces.put (name.getNs (), nsMap = new Ns ());
-	 nsMap.put (name.getName (), name);
+         Ns nsMap = namespaces.get (name.getNs ());
+         if (nsMap == null)
+            namespaces.put (name.getNs (), nsMap = new Ns ());
+         nsMap.put (name.getName (), name);
       }
       
       private final HashMap <String, Ns> namespaces =
-	 new HashMap <String, Ns> ();
+         new HashMap <String, Ns> ();
    }
    
    private final String ns;
