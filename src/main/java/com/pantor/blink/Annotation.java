@@ -88,10 +88,10 @@ public final class Annotation
       int pos = 0;
       for (String s : segs)
       {
-	 if (pos > 0)
-	    sb.append (" '\"' ");
-	 sb.append ('"' + s + '"');
-	 ++ pos;
+         if (pos > 0)
+            sb.append (" '\"' ");
+         sb.append ('"' + s + '"');
+         ++ pos;
       }
       return sb.toString ();
    }

@@ -46,7 +46,7 @@ public class AnnotatedBase implements Annotated
    public AnnotatedBase (AnnotSet annots)
    {
       if (annots != null && ! annots.empty ())
-	 addAnnotations (annots);
+         addAnnotations (annots);
    }
 
    public AnnotatedBase ()
@@ -113,7 +113,7 @@ public class AnnotatedBase implements Annotated
    private AnnotSet ants ()
    {
       if (annots == null)
-	 annots = new AnnotSet ();
+         annots = new AnnotSet ();
       return annots;
    }
       

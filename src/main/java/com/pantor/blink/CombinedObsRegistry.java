@@ -105,10 +105,10 @@ public final class CombinedObsRegistry implements ObserverRegistry
       Observer o = byClass.get (type);
       if (o == null)
       {
-	 ObjectModel.GroupBinding bnd = om.getGroupBinding (type);
-	 if (bnd != null)
-	    o = findObserver (bnd.getGroup ());
-	 byClass.put (type, o);
+         ObjectModel.GroupBinding bnd = om.getGroupBinding (type);
+         if (bnd != null)
+            o = findObserver (bnd.getGroup ());
+         byClass.put (type, o);
       }
       return o;
    }
@@ -121,8 +121,8 @@ public final class CombinedObsRegistry implements ObserverRegistry
       Observer o = byName.get (n);
       if (o == null)
       {
-	 o = lookupPoly (g);
-	 byName.put (n, o);
+         o = lookupPoly (g);
+         byName.put (n, o);
       }
       return o;
    }
@@ -133,10 +133,10 @@ public final class CombinedObsRegistry implements ObserverRegistry
       Observer o = byClassDirect.get (type);
       if (o == null)
       {
-	 ObjectModel.GroupBinding bnd = om.getGroupBinding (type);
-	 if (bnd != null)
-	    o = findDirectObserver (bnd.getGroup ());
-	 byClassDirect.put (type, o);
+         ObjectModel.GroupBinding bnd = om.getGroupBinding (type);
+         if (bnd != null)
+            o = findDirectObserver (bnd.getGroup ());
+         byClassDirect.put (type, o);
       }
       return o;
    }
@@ -149,8 +149,8 @@ public final class CombinedObsRegistry implements ObserverRegistry
       Observer o = byNameDirect.get (n);
       if (o == null)
       {
-	 o = lookupDirect (g);
-	 byNameDirect.put (n, o);
+         o = lookupDirect (g);
+         byNameDirect.put (n, o);
       }
       return o;
    }
@@ -160,9 +160,9 @@ public final class CombinedObsRegistry implements ObserverRegistry
    {
       for (ObserverRegistry oreg : oregs)
       {
-	 Observer o = oreg.getFallbackObserver ();
-	 if (o != null)
-	    return o;
+         Observer o = oreg.getFallbackObserver ();
+         if (o != null)
+            return o;
       }
 
       return fallback;
@@ -177,30 +177,30 @@ public final class CombinedObsRegistry implements ObserverRegistry
 
      POLY:
       for (Schema.Group candidate = g; candidate != null;
-	   candidate = candidate.getSuperGroup ())
+           candidate = candidate.getSuperGroup ())
       {
-	 for (ObserverRegistry oreg : oregs)
-	 {
-	    o = oreg.findDirectObserver (candidate);
-	    if (o != null)
-	       break POLY;
-	 }
+         for (ObserverRegistry oreg : oregs)
+         {
+            o = oreg.findDirectObserver (candidate);
+            if (o != null)
+               break POLY;
+         }
       }
 
       if (o == null)
-	 // Look for the first fallback in the registries
-	 for (ObserverRegistry oreg : oregs)
-	 {
-	    o = oreg.getFallbackObserver ();
-	    if (o != null)
-	       break;
-	 }
+         // Look for the first fallback in the registries
+         for (ObserverRegistry oreg : oregs)
+         {
+            o = oreg.getFallbackObserver ();
+            if (o != null)
+               break;
+         }
 
       // as a final resort, use any fallback defined directly on this
       // registry
       
       if (o == null)
-	 o = fallback;
+         o = fallback;
       
       return o;
    }
@@ -209,9 +209,9 @@ public final class CombinedObsRegistry implements ObserverRegistry
    {
       for (ObserverRegistry oreg : oregs)
       {
-	 Observer o = oreg.findDirectObserver (g);
-	 if (o != null)
-	    return o;
+         Observer o = oreg.findDirectObserver (g);
+         if (o != null)
+            return o;
       }
 
       return null;

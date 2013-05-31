@@ -53,12 +53,12 @@ public final class Readers
    {
       Buf b = DirectBuf.newInstance ();
       for (;;)
-	 if (b.fillFrom (src))
-	 {
-	    b.flip ();
-	    rd.read (b);
-	 }
-	 else
-	    break;
+         if (b.fillFrom (src))
+         {
+            b.flip ();
+            rd.read (b);
+         }
+         else
+            break;
    }
 }

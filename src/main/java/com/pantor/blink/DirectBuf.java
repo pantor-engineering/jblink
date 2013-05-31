@@ -63,10 +63,10 @@ public final class DirectBuf implements Buf
    public static Buf newInstance (int capacity)
    {
       if (unsafe != null)
-	 return new DirectBuf (capacity);
+         return new DirectBuf (capacity);
       else
-	 // FIXME: Fallback to nio-based impl
-	 return new ByteBuf (capacity);
+         // FIXME: Fallback to nio-based impl
+         return new ByteBuf (capacity);
    }
 
    /**
@@ -164,7 +164,7 @@ public final class DirectBuf implements Buf
 
    @Override
    public void write (int b0, int b1, int b2, int b3, int b4, int b5,
-		      int b6)
+                      int b6)
    {
       unsafe.putByte (pos, (byte)b0);
       unsafe.putByte (pos + 1, (byte)b1);
@@ -178,7 +178,7 @@ public final class DirectBuf implements Buf
 
    @Override
    public void write (int b0, int b1, int b2, int b3, int b4, int b5,
-		      int b6, int b7)
+                      int b6, int b7)
    {
       unsafe.putByte (pos, (byte)b0);
       unsafe.putByte (pos + 1, (byte)b1);
@@ -193,7 +193,7 @@ public final class DirectBuf implements Buf
    
    @Override
    public void write (int b0, int b1, int b2, int b3, int b4, int b5,
-		      int b6, int b7, int b8)
+                      int b6, int b7, int b8)
    {
       unsafe.putByte (pos, (byte)b0);
       unsafe.putByte (pos + 1, (byte)b1);
@@ -261,7 +261,7 @@ public final class DirectBuf implements Buf
    {
       // FIXME: Verify that copyMemory handles overlapping src and dst
       unsafe.copyMemory (null, start + from, null, start + from + delta,
-			 pos - from - start);
+                         pos - from - start);
       pos += delta;
    }
 
@@ -288,15 +288,15 @@ public final class DirectBuf implements Buf
    {
       try
       {
-	 // FIXME: Find something more efficient here
-	 byte [] tmp = new byte [size];
-	 read (tmp);
-	 return new String (tmp, "UTF-8");
+         // FIXME: Find something more efficient here
+         byte [] tmp = new byte [size];
+         read (tmp);
+         return new String (tmp, "UTF-8");
       }
       catch (UnsupportedEncodingException e)
       {
-	 // FIXME: Should we raise BlinkException.Decode instead?
-	 throw new RuntimeException (e);
+         // FIXME: Should we raise BlinkException.Decode instead?
+         throw new RuntimeException (e);
       }
    }
 
@@ -305,12 +305,12 @@ public final class DirectBuf implements Buf
    {
       if (pos > start)
       {
-	 if (dst instanceof WritableByteChannel)
-	    flushToChannel ((WritableByteChannel)dst);
-	 else if (dst instanceof OutputStream)
-	    flushToChannel (Channels.newChannel ((OutputStream)dst));
-	 else
-	    throw new IOException ("Unsupported output destination: " + dst);
+         if (dst instanceof WritableByteChannel)
+            flushToChannel ((WritableByteChannel)dst);
+         else if (dst instanceof OutputStream)
+            flushToChannel (Channels.newChannel ((OutputStream)dst));
+         else
+            throw new IOException ("Unsupported output destination: " + dst);
       }
    }
 
@@ -357,15 +357,15 @@ public final class DirectBuf implements Buf
       int required = size + additionalCapacity;
       if (required > capacity)
       {
-	 capacity = (int)(required * 1.5);
-	 ByteBuffer newBuf = ByteBuffer.allocateDirect (capacity);
-	 newBuf = newBuf.order (ByteOrder.LITTLE_ENDIAN);
-	 long newStart = ((sun.nio.ch.DirectBuffer)newBuf).address ();
-	 unsafe.copyMemory (null, start, null, newStart, size);
-	 buf = newBuf;
-	 start = newStart;
-	 pos = start + size;
-	 end = start + capacity;
+         capacity = (int)(required * 1.5);
+         ByteBuffer newBuf = ByteBuffer.allocateDirect (capacity);
+         newBuf = newBuf.order (ByteOrder.LITTLE_ENDIAN);
+         long newStart = ((sun.nio.ch.DirectBuffer)newBuf).address ();
+         unsafe.copyMemory (null, start, null, newStart, size);
+         buf = newBuf;
+         start = newStart;
+         pos = start + size;
+         end = start + capacity;
       }
    }
 
@@ -374,12 +374,12 @@ public final class DirectBuf implements Buf
    {
       if (capacity > limit)
       {
-	 capacity = 0;
-	 buf = null;
-	 start = pos = end = 0;
+         capacity = 0;
+         buf = null;
+         start = pos = end = 0;
       }
       else
-	 clear ();
+         clear ();
    }
 
    @Override
@@ -392,11 +392,11 @@ public final class DirectBuf implements Buf
    public boolean fillFrom (Object src) throws IOException
    {
       if (src instanceof ReadableByteChannel)
-	 return fillFromChannel ((ReadableByteChannel)src);
+         return fillFromChannel ((ReadableByteChannel)src);
       else if (src instanceof InputStream)
-	 return fillFromChannel (Channels.newChannel ((InputStream)src));
+         return fillFromChannel (Channels.newChannel ((InputStream)src));
       else
-	 throw new IOException ("Unsupported input src: " + src);
+         throw new IOException ("Unsupported input src: " + src);
    }
 
    /**
@@ -417,13 +417,13 @@ public final class DirectBuf implements Buf
       int n = ch.read (buf);
       if (n >= 0)
       {
-	 pos = start + n;
-	 return true;
+         pos = start + n;
+         return true;
       }
       else
       {
-	 pos = start;
-	 return false;
+         pos = start;
+         return false;
       }
    }
 
@@ -451,9 +451,9 @@ public final class DirectBuf implements Buf
       StringBuilder s = new StringBuilder ();
       for (int i = 0; i < size (); ++ i)
       {
-	 if (i > 0)
-	    s.append (' ');
-	 s.append (String.format ("%02x", unsafe.getByte (start + i)));
+         if (i > 0)
+            s.append (' ');
+         s.append (String.format ("%02x", unsafe.getByte (start + i)));
       }
       return s.toString ();
    }
@@ -471,15 +471,15 @@ public final class DirectBuf implements Buf
       // times more efficient using the approach used in DirectBuf.
       
       if (false)
-	 try
-	 {
-	    Field f = sun.misc.Unsafe.class.getDeclaredField ("theUnsafe");
-	    f.setAccessible (true);
-	    return (sun.misc.Unsafe) f.get (null);
-	 }
-	 catch (Exception e)
-	 {
-	 }
+         try
+         {
+            Field f = sun.misc.Unsafe.class.getDeclaredField ("theUnsafe");
+            f.setAccessible (true);
+            return (sun.misc.Unsafe) f.get (null);
+         }
+         catch (Exception e)
+         {
+         }
 
       return null;
    }

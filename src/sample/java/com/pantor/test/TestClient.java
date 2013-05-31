@@ -15,16 +15,16 @@ public class TestClient
    {
       try
       {
-	 int val = pong.getValue ();
-	 System.err.printf ("Got pong (%d), sending ping (%d)%n", val, val + 1);
-	 Thread.sleep (1000);
-	 c.send (new TestMessages.Ping (val + 1));
+         int val = pong.getValue ();
+         System.err.printf ("Got pong (%d), sending ping (%d)%n", val, val + 1);
+         Thread.sleep (1000);
+         c.send (new TestMessages.Ping (val + 1));
       }
       catch (Throwable e)
       {
-	 while (e.getCause () != null)
-	    e = e.getCause ();
-	 System.err.println (e);
+         while (e.getCause () != null)
+            e = e.getCause ();
+         System.err.println (e);
       }
    }
    

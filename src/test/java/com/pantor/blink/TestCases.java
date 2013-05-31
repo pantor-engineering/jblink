@@ -49,14 +49,14 @@ public class TestCases
       assertEquals ((short)-4711, Vlc.readI16 (toBuf ("99 b6")));
       assertEquals (-100000, Vlc.readI32 (toBuf ("c3 60 79 fe")));
       assertEquals (-1111111111111L,
-		    Vlc.readI64 (toBuf ("c6 39 ee 9d 4c fd fe")));
+                    Vlc.readI64 (toBuf ("c6 39 ee 9d 4c fd fe")));
 
       assertEquals ((byte)17, Vlc.readU8  (toBuf ("11")));
       assertEquals ((short)4711, Vlc.readU16 (toBuf ("a7 49")));
       assertEquals (100000, Vlc.readU32 (toBuf ("c3 a0 86 01")));
       assertEquals (1111111111111L,
-		    Vlc.readU64 (toBuf ("c6 c7 11 62 b3 02 01")));
-
+                    Vlc.readU64 (toBuf ("c6 c7 11 62 b3 02 01")));
+      
       assertEquals ((byte)-128, Vlc.readI8  (toBuf ("80 fe")));
       assertEquals ((byte)127, Vlc.readI8  (toBuf ("bf 01")));
 
@@ -67,9 +67,9 @@ public class TestCases
       assertEquals (2147483647, Vlc.readI32 (toBuf ("c4 ff ff ff 7f")));
 
       assertEquals (Vlc.readI64 (toBuf ("c8 00 00 00 00 00 00 00 80")),
-		    -9223372036854775808L);
+                    -9223372036854775808L);
       assertEquals (Vlc.readI64 (toBuf ("c8 ff ff ff ff ff ff ff 7f")),
-		    9223372036854775807L);
+                    9223372036854775807L);
    }
 
    @Test public void vlcSign () throws BlinkException
@@ -140,7 +140,7 @@ public class TestCases
       schemaRoundtrip ("@x:y='z' Foo -> string @v:s='t' Bar, i32 [] Baz?");
       schemaRoundtrip ("Foo = Bar* Bar");
       schemaRoundtrip ("Colors = @rgb='ff0000' Red/0 | " +
-		       "@rgb='00ff00' Green/1 | @rgb='0000ff' Blue/2");
+                       "@rgb='00ff00' Green/1 | @rgb='0000ff' Blue/2");
    }
 
    public static class Foo
@@ -176,7 +176,7 @@ public class TestCases
       foo.setBar (17);
       foo.setBaz ("Hello");
       assertEquals ("88 00 01 11 05 48 65 6c 6c 6f",
-		    encodeCompact ("Foo/1 -> u32 Bar, string Baz", foo));
+                    encodeCompact ("Foo/1 -> u32 Bar, string Baz", foo));
    }
 
    @Test public void simpleCompactRoundtrip ()
@@ -200,15 +200,15 @@ public class TestCases
       assertEquals (((Foo)compactRoundtrip (om, foo)).getBaz (), foo.getBaz ());
 
       foo.setBaz ("ööööööööööööööööööööööööööööööööööööööööööööööö" +
-		  "ööööööööööööööööööööööööööööööööööööööööööööööö" +
-		  "ööööööööööööööööööööööööööööööööö");
+                  "ööööööööööööööööööööööööööööööööööööööööööööööö" +
+                  "ööööööööööööööööööööööööööööööööö");
       assertEquals (((Foo)compactRoundtrip (om, foo)).getBaz (), foo.getBaz ());
 
       foo.setBaz ("ööööööööööööööööööööööööööööööööööööööööööööööö" +
-		  "ööööööööööööööööööööööööööööööööööööööööööööööö" +
-		  "ööööööööööööööööööööööööööööööööööööööööööööööö" +
-		  "ööööööööööööööööööööööööööööööööööööööööööööööö" +
-		  "ööööööööööööööööööööööööööööööööööööööööööööööö");
+                  "ööööööööööööööööööööööööööööööööööööööööööööööö" +
+                  "ööööööööööööööööööööööööööööööööööööööööööööööö" +
+                  "ööööööööööööööööööööööööööööööööööööööööööööööö" +
+                  "ööööööööööööööööööööööööööööööööööööööööööööööö");
       assertEquals (((Foo)compactRoundtrip (om, foo)).getBaz (), foo.getBaz ());
    }
 
@@ -220,7 +220,7 @@ public class TestCases
       // @Foo|Bar=17|Baz=Hello
       
       decodeCompact ("Foo/1 -> u32 Bar, string Baz",
-		     "08 01 11 05 48 65 6c 6c 6f", result);
+                     "08 01 11 05 48 65 6c 6c 6f", result);
 
       assertEquals (1, result.size ());
       assertTrue (result.getObjects ().get (0) instanceof Foo);
@@ -250,7 +250,7 @@ public class TestCases
       // @Baz|Foo=17|Bar=Hello
       
       decodeCompact ("Baz/1 -> u32 Foo?, string Bar",
-		     "08 01 11 05 48 65 6c 6c 6f", result);
+                     "08 01 11 05 48 65 6c 6c 6f", result);
 
       assertEquals (1, result.size ());
       assertTrue (result.getObjects ().get (0) instanceof Baz);
@@ -350,7 +350,7 @@ public class TestCases
       // @Rect|Pos={X=1|Y=2}|Width=10|Height=20|Descr=Test
 
       decodeCompact (ShapeSchema,
-		     "0a 01 04 54 65 73 74 01 02 0a 14", result);
+                     "0a 01 04 54 65 73 74 01 02 0a 14", result);
 
       assertEquals (1, result.size ());
       assertTrue (result.getObjects ().get (0) instanceof Rect);
@@ -373,8 +373,8 @@ public class TestCases
       //                 @Polygon|Points=[X=1|Y=2;X=17|Y=18]|Descr=Elephant]
 
       decodeCompact (ShapeSchema,
-		     "1b 04 02 86 00 01 c0 01 02 01 02 8f 00 03 08 45" +
-		     "6c 65 70 68 61 6e 74 02 01 02 11 12", result);
+                     "1b 04 02 86 00 01 c0 01 02 01 02 8f 00 03 08 45" +
+                     "6c 65 70 68 61 6e 74 02 01 02 11 12", result);
 
       assertEquals (1, result.size ());
       assertTrue (result.getObjects ().get (0) instanceof Canvas);
@@ -401,8 +401,8 @@ public class TestCases
       //                 @Polygon|Points=[X=1|Y=2;X=17|Y=18]|Descr=Elephant]
 
       decodeCompact (ShapeSchema,
-		     "1b 04 02 86 00 01 c0 01 02 01 02 8f 00 03 08 45" +
-		     "6c 65 70 68 61 6e 74 02 01 02 11 12", result);
+                     "1b 04 02 86 00 01 c0 01 02 01 02 8f 00 03 08 45" +
+                     "6c 65 70 68 61 6e 74 02 01 02 11 12", result);
       
       assertEquals (1, result.size ());
       assertTrue (result.getObjects ().get (0) instanceof Canvas);
@@ -482,8 +482,8 @@ public class TestCases
       // @Car|Color=Blue
 
       decodeCompact ("Car/1 -> Color Color " +
-		     "Color = Red | Green | Blue",
-		     "02 01 02", result);
+                     "Color = Red | Green | Blue",
+                     "02 01 02", result);
 
       assertEquals (1, result.size ());
       assertTrue (result.getObjects ().get (0) instanceof Car);
@@ -497,7 +497,7 @@ public class TestCases
       Car car = new Car ();
       car.setColor (Color.Blue);
       Car result = (Car)compactRoundtrip ("Car/1 -> Color Color " +
-					  "Color = Red | Green | Blue", car);
+                                          "Color = Red | Green | Blue", car);
       assertEquals (Color.Blue, result.getColor ());
    }
    
@@ -512,7 +512,7 @@ public class TestCases
       c.addInterface ("com.pantor.blink.TestCases$Bar");
       c.addDefaultConstructor ();
       c.startPublicMethod ("get", "()Ljava/lang/String;")
-	 .ldc ("Hello").areturn ().setMaxStack (1).endMethod ();
+         .ldc ("Hello").areturn ().setMaxStack (1).endMethod ();
       DynClassLoader loader = new DynClassLoader ();
       Bar bar = (Bar)loader.load (c).newInstance ();
       assertEquals ("Hello", bar.get ());
@@ -547,17 +547,17 @@ public class TestCases
    {
       public void onA (A a, Schema.Group g)
       {
-	 result = "onA: " + a.getValue () + " (" + g.getName () + ")";
+         result = "onA: " + a.getValue () + " (" + g.getName () + ")";
       }
 
       public void onB (B a)
       {
-	 result = "onB: " + a.getNum ();
+         result = "onB: " + a.getNum ();
       }
 
       public void onAny (Object o, Schema.Group g)
       {
-	 result = "onAny: (" + g.getName () + ")";
+         result = "onAny: (" + g.getName () + ")";
       }
 
       String result = "";
@@ -613,7 +613,7 @@ public class TestCases
       DefaultObsRegistry oreg = new DefaultObsRegistry (om);
       final Foo [] sink = new Foo [1];
       oreg.addObserver (
-	 new Object() { public void onFoo (Foo foo) { sink [0] = foo; } });
+         new Object() { public void onFoo (Foo foo) { sink [0] = foo; } });
 
       compactRoundtrip (om, new Foo (), oreg);
       assertTrue (sink [0] instanceof Foo);
@@ -633,7 +633,7 @@ public class TestCases
    {
       double in = 123.456789;
       Price out = (Price)compactRoundtrip ("Price/1 -> f64 Value",
-					   new Price (in));
+                                           new Price (in));
       assertEquals (in, out.getValue (), 0 /* Exact match */);
    }
 
@@ -707,7 +707,7 @@ public class TestCases
 
                      "-:1:29: error: The field " + 
                      "Bar.x shadows a field inherited from Foo\n" +
-		     "  Defined here: -:1:10");
+                     "  Defined here: -:1:10");
 
       assertInvalid ("Foo\n" + 
                      "Bar = Foo * " + 
@@ -763,9 +763,9 @@ public class TestCases
    @Test public void camelback ()
    {
       assertEquals ("FOO_BAR",
-		    Util.splitCamelback ("FooBar", "_").toUpperCase ());
+                    Util.splitCamelback ("FooBar", "_").toUpperCase ());
       assertEquals ("FOO_BAR",
-		    Util.splitCamelback ("fooBar", "_").toUpperCase ());
+                    Util.splitCamelback ("fooBar", "_").toUpperCase ());
       assertEquals ("BAR", Util.splitCamelback ("Bar", "_").toUpperCase ());
       assertEquals ("MY_ID", Util.splitCamelback ("MyID", "_").toUpperCase ());
    } 
@@ -774,7 +774,7 @@ public class TestCases
    {
       public void onA (A a, Schema.Group g)
       {
-	 result = "onA: " + a.getValue () + " (" + g.getName () + ")";
+         result = "onA: " + a.getValue () + " (" + g.getName () + ")";
       }
 
       String result = "";
@@ -784,7 +784,7 @@ public class TestCases
    {
       public void onB (B a)
       {
-	 result = "onB: " + a.getNum ();
+         result = "onB: " + a.getNum ();
       }
 
       String result = "";
@@ -857,7 +857,7 @@ public class TestCases
    }
 
    private static Object compactRoundtrip (ObjectModel om, Object in,
-					   ObserverRegistry oreg)
+                                           ObserverRegistry oreg)
       throws BlinkException, IOException
    {
       ByteArrayOutputStream os = new ByteArrayOutputStream ();
@@ -891,7 +891,7 @@ public class TestCases
    {
       Schema s = toSchema (lit);
       assertEquals (Util.normalizeSpace (lit).replace ("\"", "'"),
-		    Util.normalizeSpace (s.toString ()).replace ("\"", "'"));
+                    Util.normalizeSpace (s.toString ()).replace ("\"", "'"));
    }
 
    private static ObjectModel toModel (String lit)
@@ -922,14 +922,14 @@ public class TestCases
       hex = hex.replace (" ", "").replace ("\n", "");
       int len = hex.length ();
       if (len % 2 != 0)
-	 throw new IllegalArgumentException (
-	    "The input is not an even multiple of hex digit pairs");
+         throw new IllegalArgumentException (
+            "The input is not an even multiple of hex digit pairs");
       byte[] data = new byte [len / 2];
 
       for (int i = 0; i < len; i += 2)
       {
-	 data [i / 2] = (byte) ((Character.digit (hex.charAt (i), 16) << 4) +
-				Character.digit (hex.charAt (i + 1), 16));
+         data [i / 2] = (byte) ((Character.digit (hex.charAt (i), 16) << 4) +
+                                Character.digit (hex.charAt (i + 1), 16));
       }
 
       return data;
@@ -979,16 +979,16 @@ public class TestCases
    {
       try
       {
-	 toSchema (s);
-	 fail ("Expected invalid schema");
+         toSchema (s);
+         fail ("Expected invalid schema");
       }
       catch (BlinkException e)
       {
-	 assertEquals (msg, e.toString ());
+         assertEquals (msg, e.toString ());
       }
       catch (IOException e)
       {
-	 assertEquals (msg, e.toString ());
+         assertEquals (msg, e.toString ());
       }
    }
 

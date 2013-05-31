@@ -109,27 +109,27 @@ public final class Dispatcher
       Context cx = omap.get (c);
       if (cx == null)
       {
-	 Observer obs = oreg.findObserver (c);
-	 Schema.Group grp = om.getGroupBinding (c).getGroup ();
-	 if (obs != null)
-	    cx = new Context (obs, grp);
+         Observer obs = oreg.findObserver (c);
+         Schema.Group grp = om.getGroupBinding (c).getGroup ();
+         if (obs != null)
+            cx = new Context (obs, grp);
       }
-	 
+      
       if (cx != null)
       {
-	 cx.dispatch (o);
-	 return true;
+         cx.dispatch (o);
+         return true;
       }
       else
-	 return false;
+         return false;
    }
 
    private final static class Context
    {
       Context (Observer obs, Schema.Group grp)
       {
-	 this.obs = obs;
-	 this.grp = grp;
+         this.obs = obs;
+         this.grp = grp;
       }
 
       void dispatch (Object obj) { obs.onObj (obj, grp); }

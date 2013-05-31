@@ -314,8 +314,8 @@ public final class DefaultObjectModel implements ObjectModel
    {
       synchronized (monitor)
       {
-	 init ();
-	 return schema;
+         init ();
+         return schema;
       }
    }
 
@@ -332,8 +332,8 @@ public final class DefaultObjectModel implements ObjectModel
    {
       synchronized (monitor)
       {
-	 for (String f : schemas)
-	    SchemaReader.read (f, schema);
+         for (String f : schemas)
+            SchemaReader.read (f, schema);
       }
    }
 
@@ -350,8 +350,8 @@ public final class DefaultObjectModel implements ObjectModel
    {
       synchronized (monitor)
       {
-	 for (Reader rd : schemas)
-	    SchemaReader.read (rd, "-", schema);
+         for (Reader rd : schemas)
+            SchemaReader.read (rd, "-", schema);
       }
    }
 
@@ -370,8 +370,8 @@ public final class DefaultObjectModel implements ObjectModel
    {
       synchronized (monitor)
       {
-	 for (String lit : literals)
-	    SchemaReader.readFromString (lit, schema);
+         for (String lit : literals)
+            SchemaReader.readFromString (lit, schema);
       }
    }
 
@@ -386,7 +386,7 @@ public final class DefaultObjectModel implements ObjectModel
    {
       synchronized (monitor)
       {
-	 this.wrapper = wrapper;
+         this.wrapper = wrapper;
       }
    }
 
@@ -402,7 +402,7 @@ public final class DefaultObjectModel implements ObjectModel
    {
       synchronized (monitor)
       {
-	 this.pkg = pkg;
+         this.pkg = pkg;
       }
    }
 
@@ -419,7 +419,7 @@ public final class DefaultObjectModel implements ObjectModel
    {
       synchronized (monitor)
       {
-	 pkgByNs.put (ns, pkg);
+         pkgByNs.put (ns, pkg);
       }
    }
 
@@ -436,7 +436,7 @@ public final class DefaultObjectModel implements ObjectModel
    {
       synchronized (monitor)
       {
-	 setInclusiveClassAnnot (state ? Blink.class : null);
+         setInclusiveClassAnnot (state ? Blink.class : null);
       }
    }
 
@@ -451,7 +451,7 @@ public final class DefaultObjectModel implements ObjectModel
    {
       synchronized (monitor)
       {
-	 this.inclusiveClassAnnot = inclusiveClassAnnot;
+         this.inclusiveClassAnnot = inclusiveClassAnnot;
       }
    }
 
@@ -466,7 +466,7 @@ public final class DefaultObjectModel implements ObjectModel
    {
       synchronized (monitor)
       {
-	 this.exclusiveClassAnnot = exclusiveClassAnnot;
+         this.exclusiveClassAnnot = exclusiveClassAnnot;
       }
    }
 
@@ -483,7 +483,7 @@ public final class DefaultObjectModel implements ObjectModel
    {
       synchronized (monitor)
       {
-	 setInclusiveMethodAnnot (state ? Blink.class : null);
+         setInclusiveMethodAnnot (state ? Blink.class : null);
       }
    }
 
@@ -498,7 +498,7 @@ public final class DefaultObjectModel implements ObjectModel
    {
       synchronized (monitor)
       {
-	 this.inclusiveMethodAnnot = inclusiveMethodAnnot;
+         this.inclusiveMethodAnnot = inclusiveMethodAnnot;
       }
    }
 
@@ -513,7 +513,7 @@ public final class DefaultObjectModel implements ObjectModel
    {
       synchronized (monitor)
       {
-	 this.exclusiveMethodAnnot = exclusiveMethodAnnot;
+         this.exclusiveMethodAnnot = exclusiveMethodAnnot;
       }
    }
 
@@ -524,12 +524,12 @@ public final class DefaultObjectModel implements ObjectModel
       // FIXME: use TLS
       synchronized (monitor)
       {
-	 init ();
-	 GroupBinding b = grpBndById.get (tid);
-	 if (b != null)
-	    return b;
-	 else
-	    throw noBindingError (tid);
+         init ();
+         GroupBinding b = grpBndById.get (tid);
+         if (b != null)
+            return b;
+         else
+            throw noBindingError (tid);
       }
    }
    
@@ -539,13 +539,13 @@ public final class DefaultObjectModel implements ObjectModel
    {
       synchronized (monitor)
       {
-	 // FIXME: use TLS
-	 init ();
-	 GroupBinding b = grpBndByName.get (name);
-	 if (b != null)
-	    return b;
-	 else
-	    throw noBindingError (name);
+         // FIXME: use TLS
+         init ();
+         GroupBinding b = grpBndByName.get (name);
+         if (b != null)
+            return b;
+         else
+            throw noBindingError (name);
       }
    }
 
@@ -555,13 +555,13 @@ public final class DefaultObjectModel implements ObjectModel
    {
       synchronized (monitor)
       {
-	 // FIXME: use TLS
-	 init ();
-	 GroupBinding b = grpBndByClass.get (name);
-	 if (b != null)
-	    return b;
-	 else
-	    throw noBindingError (name);
+         // FIXME: use TLS
+         init ();
+         GroupBinding b = grpBndByClass.get (name);
+         if (b != null)
+            return b;
+         else
+            throw noBindingError (name);
       }
    }
 
@@ -571,13 +571,13 @@ public final class DefaultObjectModel implements ObjectModel
    {
       synchronized (monitor)
       {
-	 // FIXME: use TLS
-	 init ();
-	 EnumBinding b = enumBndByName.get (name);
-	 if (b != null)
-	    return b;
-	 else
-	    throw noBindingError (name);
+         // FIXME: use TLS
+         init ();
+         EnumBinding b = enumBndByName.get (name);
+         if (b != null)
+            return b;
+         else
+            throw noBindingError (name);
       }
    }
 
@@ -597,54 +597,54 @@ public final class DefaultObjectModel implements ObjectModel
       Class<? extends java.lang.annotation.Annotation> ex)
    {
       return
-	 (ex == null || ! e.isAnnotationPresent (ex)) &&
-	 (inc == null || e.isAnnotationPresent (inc));
+         (ex == null || ! e.isAnnotationPresent (ex)) &&
+         (inc == null || e.isAnnotationPresent (inc));
    }
    
    private void init () throws BlinkException.Binding, BlinkException.Schema
    {
       if (initialized)
-	 return;
+         return;
       initialized = true;
       
       schema.finalizeSchema ();
 
       for (Schema.Group g : schema.getGroups ())
       {
-	 // Look for a matching binding to the group or one of its ancestor
-	 
-	 GroupBinding bnd = null;
-	 for (Schema.Group candidate = g; candidate != null && bnd == null;
-	      candidate = candidate.getSuperGroup ())
-	    bnd = createGroupBinding (candidate);
-	 
-	 if (bnd != null)
-	 {
-	    if (g.hasId ())
-	    {
-	       if (grpBndById.containsKey (g.getId ()))
-		  throw ambiguousTypeIdError (g);
-	       else
-		  grpBndById.put (g.getId (), bnd);
-	    }
-	 }
-	 else
-	 {
-	    unboundByName.put (g.getName (), g);
-	    if (g.hasId ())
-	       unboundById.put (g.getId (), g);
-	 }
+         // Look for a matching binding to the group or one of its ancestor
+         
+         GroupBinding bnd = null;
+         for (Schema.Group candidate = g; candidate != null && bnd == null;
+              candidate = candidate.getSuperGroup ())
+            bnd = createGroupBinding (candidate);
+         
+         if (bnd != null)
+         {
+            if (g.hasId ())
+            {
+               if (grpBndById.containsKey (g.getId ()))
+             throw ambiguousTypeIdError (g);
+               else
+                  grpBndById.put (g.getId (), bnd);
+            }
+         }
+         else
+         {
+            unboundByName.put (g.getName (), g);
+            if (g.hasId ())
+               unboundById.put (g.getId (), g);
+         }
       }
    }
 
    private static class GroupBindingImpl implements GroupBinding
    {
       public GroupBindingImpl (Schema.Group grp, Class<?> tgtType,
-			       ArrayList<Field> fields)
+                               ArrayList<Field> fields)
       {
-	 this.grp = grp;
-	 this.tgtType = tgtType;
-	 this.fields = fields;
+         this.grp = grp;
+         this.tgtType = tgtType;
+         this.fields = fields;
       }
 
       @Override public EnumBinding toEnum () { return null; }
@@ -656,7 +656,7 @@ public final class DefaultObjectModel implements ObjectModel
       @Override
       public Iterator<Field> iterator ()
       {
-	 return fields.iterator ();
+         return fields.iterator ();
       }
       
       private final Schema.Group grp;
@@ -667,11 +667,11 @@ public final class DefaultObjectModel implements ObjectModel
    private static class EnumBindingImpl implements EnumBinding
    {
       public EnumBindingImpl (Schema.Define def, Class<?> tgtType,
-			      ArrayList<Symbol> syms)
+                              ArrayList<Symbol> syms)
       {
-	 this.def = def;
-	 this.tgtType = tgtType;
-	 this.syms = syms;
+         this.def = def;
+         this.tgtType = tgtType;
+         this.syms = syms;
       }
       
       @Override public GroupBinding toGroup () { return null; }
@@ -683,7 +683,7 @@ public final class DefaultObjectModel implements ObjectModel
       @Override
       public Iterator<Symbol> iterator ()
       {
-	 return syms.iterator ();
+         return syms.iterator ();
       }
       
       private final Schema.Define def;
@@ -694,15 +694,15 @@ public final class DefaultObjectModel implements ObjectModel
    private static class FieldImpl implements Field
    {
       public FieldImpl (Schema.Field field, Schema.TypeInfo fieldType,
-			Method getter, Method setter, Method predicate,
-			Binding compBinding)
+                        Method getter, Method setter, Method predicate,
+                        Binding compBinding)
       {
-	 this.field = field;
-	 this.fieldType = fieldType;
-	 this.getter = getter;
-	 this.setter = setter;
-	 this.predicate = predicate;
-	 this.compBinding = compBinding;
+         this.field = field;
+         this.fieldType = fieldType;
+         this.getter = getter;
+         this.setter = setter;
+         this.predicate = predicate;
+         this.compBinding = compBinding;
       }
 
       @Override public Schema.Field getField () { return field; }
@@ -724,8 +724,8 @@ public final class DefaultObjectModel implements ObjectModel
    {
       public SymbolImpl (Schema.Symbol sym, String tgtName)
       {
-	 this.sym = sym;
-	 this.tgtName = tgtName;
+         this.sym = sym;
+         this.tgtName = tgtName;
       }
 
       @Override public Schema.Symbol getSymbol () { return sym; }
@@ -742,14 +742,14 @@ public final class DefaultObjectModel implements ObjectModel
       
       GroupBinding b = grpBndByName.get (name);
       if (b != null)
-	 return b;
+         return b;
 
       Class<?> tgtType = findMatchingClass (g.getName (), g);
       
       if (tgtType != null)
-	 return createGroupBinding (g, tgtType);
+         return createGroupBinding (g, tgtType);
       else
-	 return null;
+         return null;
    }
 
    private Class<?> findMatchingClass (NsName name, Schema.Component comp)
@@ -757,59 +757,59 @@ public final class DefaultObjectModel implements ObjectModel
       Class<?> c = null;
       
       if (wrapper != null)
-	 // <wrapper>$<name|alias>
-	 c = getIncludedClass (wrapper.getName () + "$", name, comp);
-
+         // <wrapper>$<name|alias>
+         c = getIncludedClass (wrapper.getName () + "$", name, comp);
+      
       if (c == null)
       {
-	 if (name.isQualified ())
-	 {
-	    String ns = name.getNs ();
-	    String nsPkg = pkgByNs.get (ns);
-	    if (nsPkg != null)
-	    {
-	       // <package[ns]>.<ns>$<name|alias>
-	       c = getIncludedClass (nsPkg + "." + Util.escName (ns) + "$",
-				     name, comp);
-	       if (c == null)
-		  // <package[ns]>.<name|alias>
-		  c = getIncludedClass (nsPkg + ".", name, comp);
-	    }
+         if (name.isQualified ())
+         {
+            String ns = name.getNs ();
+            String nsPkg = pkgByNs.get (ns);
+            if (nsPkg != null)
+            {
+               // <package[ns]>.<ns>$<name|alias>
+               c = getIncludedClass (nsPkg + "." + Util.escName (ns) + "$",
+                                     name, comp);
+               if (c == null)
+                  // <package[ns]>.<name|alias>
+                  c = getIncludedClass (nsPkg + ".", name, comp);
+            }
 
-	    if (c == null)
-	    {
-	       nsPkg = Util.escName (splitCamelbackLower (ns));
-	       if (Util.isSet (pkg))
-	       {
-		  // <package>.<ns>.<name|alias>
-		  c = getIncludedClass (pkg + "." + nsPkg + ".",  name, comp);
+            if (c == null)
+            {
+               nsPkg = Util.escName (splitCamelbackLower (ns));
+               if (Util.isSet (pkg))
+               {
+                  // <package>.<ns>.<name|alias>
+                  c = getIncludedClass (pkg + "." + nsPkg + ".",  name, comp);
 
-		  if (c == null)
-		     // <package>.<ns>$<name|alias>
-		     c = getIncludedClass (pkg + "." + Util.escName (ns) + "$",
-					   name, comp);
-	       
-	       }
-	       else
-	       {
-		  // <ns>.<name|alias>
-		  c = getIncludedClass (nsPkg + ".", name, comp);
-
-		  if (c == null)
-		     // <ns>$<name|alias>
-		     c = getIncludedClass (Util.escName (ns) + "$", name, comp);
-	       }
-	    }
-	 }
-	 else
-	 {
-	    if (Util.isSet (pkg))
-	       // <package>.<name|alias>
-	       c = getIncludedClass (pkg + ".", name, comp);
-	    else
-	       // <name|alias>
-	       c = getIncludedClass ("", name, comp);
-	 }
+                  if (c == null)
+                     // <package>.<ns>$<name|alias>
+                     c = getIncludedClass (pkg + "." + Util.escName (ns) + "$",
+                                           name, comp);
+                  
+               }
+               else
+               {
+                  // <ns>.<name|alias>
+                  c = getIncludedClass (nsPkg + ".", name, comp);
+                  
+                  if (c == null)
+                     // <ns>$<name|alias>
+                     c = getIncludedClass (Util.escName (ns) + "$", name, comp);
+               }
+            }
+         }
+         else
+         {
+            if (Util.isSet (pkg))
+               // <package>.<name|alias>
+               c = getIncludedClass (pkg + ".", name, comp);
+            else
+               // <name|alias>
+               c = getIncludedClass ("", name, comp);
+         }
       }
 
       return c;
@@ -818,14 +818,14 @@ public final class DefaultObjectModel implements ObjectModel
    private final static NsName BlinkAlias = NsName.get ("blink", "alias");
    
    private Class<?> getIncludedClass (String stem, NsName name,
-				      Schema.Component comp)
+                                      Schema.Component comp)
    {
       Class<?> c = getIncludedClass (stem + Util.escName (name.getName ()));
       if (c == null)
       {
-	 String alias = comp.getAnnot (BlinkAlias);
-	 if (alias != null)
-	    c = getIncludedClass (stem + Util.escName (alias));
+         String alias = comp.getAnnot (BlinkAlias);
+         if (alias != null)
+            c = getIncludedClass (stem + Util.escName (alias));
       }
       return c;
    }
@@ -834,9 +834,9 @@ public final class DefaultObjectModel implements ObjectModel
    {
       try
       {
-	 Class<?> c = Class.forName (name);
-	 if (isIncludedClass (c))
-	    return c;
+         Class<?> c = Class.forName (name);
+         if (isIncludedClass (c))
+            return c;
       }
       catch (ClassNotFoundException e)
       {
@@ -848,33 +848,33 @@ public final class DefaultObjectModel implements ObjectModel
    private static enum MethodType { Getter, Setter, DecGetter, DecSetter }
    
    private static Method findMethod (HashMap<String, Method> allMethods,
-				     String prefix, String name,
-				     Schema.Component comp, MethodType mtype)
+                                     String prefix, String name,
+                                     Schema.Component comp, MethodType mtype)
    {
       Method m = findMethod (allMethods, prefix, name, mtype);
       if (m == null)
       {
-	 String alias = comp.getAnnot (BlinkAlias);
-	 if (alias != null)
-	    m = findMethod (allMethods, prefix, alias, mtype);
+         String alias = comp.getAnnot (BlinkAlias);
+         if (alias != null)
+            m = findMethod (allMethods, prefix, alias, mtype);
       }
       return m;
    }
 
    private static Method findMethod (HashMap<String, Method> allMethods,
-				     String prefix, String name,
-				     MethodType mtype)
+                                     String prefix, String name,
+                                     MethodType mtype)
    {
       Method m = allMethods.get (prefix + name);
       if (m == null || ! signatureMatchesType (m, mtype))
       {
-	 m = allMethods.get (prefix + "_" + name);
-	 if (m == null || ! signatureMatchesType (m, mtype))
-	 {
-	    m = allMethods.get (prefix + Util.capitalize (name));
-	    if (m != null && ! signatureMatchesType (m, mtype))
-	       m = null;
-	 }
+         m = allMethods.get (prefix + "_" + name);
+         if (m == null || ! signatureMatchesType (m, mtype))
+         {
+            m = allMethods.get (prefix + Util.capitalize (name));
+            if (m != null && ! signatureMatchesType (m, mtype))
+               m = null;
+         }
       }
 
       return m;
@@ -887,19 +887,19 @@ public final class DefaultObjectModel implements ObjectModel
       switch (mtype)
       {
        case Getter:
-	 return m.getReturnType () != void.class && len == 0;
+          return m.getReturnType () != void.class && len == 0;
        case Setter:
-	 return m.getReturnType () == void.class && len == 1;
+          return m.getReturnType () == void.class && len == 1;
        case DecGetter:
-	 return (m.getReturnType () != void.class && len == 0) ||
-	    (m.getReturnType () == void.class && len == 1 && prms [0] ==
-	     DecimalResult.class);
+          return (m.getReturnType () != void.class && len == 0) ||
+             (m.getReturnType () == void.class && len == 1 && prms [0] ==
+              DecimalResult.class);
        case DecSetter:
-	 return m.getReturnType () == void.class &&
-	    (len == 1 || (len == 2 && prms [0] == long.class &&
-			  prms [1] == int.class));
+          return m.getReturnType () == void.class &&
+             (len == 1 || (len == 2 && prms [0] == long.class &&
+                           prms [1] == int.class));
        default:
-	 return false;
+          return false;
       }
    }
 
@@ -908,13 +908,13 @@ public final class DefaultObjectModel implements ObjectModel
    {
       EnumBinding b = enumBndByName.get (d.getName ());
       if (b != null)
-	 return b;
+         return b;
       
       Class<?> tgtType = findMatchingClass (d.getName (), d);
       if (tgtType != null && tgtType.isEnum ())
-	 return createEnumBinding (d, tgtType);
+         return createEnumBinding (d, tgtType);
       else
-	 return null;
+         return null;
    }
 
    private GroupBinding createGroupBinding (Schema.Group g, Class<?> tgtType)
@@ -938,7 +938,7 @@ public final class DefaultObjectModel implements ObjectModel
       ArrayList<Symbol> syms = new ArrayList<Symbol> ();
 
       for (Schema.Symbol s : d.getType ().toEnum ())
-	 syms.add (new SymbolImpl (s, findEnumConstant (tgtType, s)));
+         syms.add (new SymbolImpl (s, findEnumConstant (tgtType, s)));
       
       EnumBinding b = new EnumBindingImpl (d, tgtType, syms);
       enumBndByName.put (d.getName (), b);
@@ -951,24 +951,24 @@ public final class DefaultObjectModel implements ObjectModel
       String tgt = findEnumConstant (c, name);
       if (tgt == null)
       {
-	 String alias = s.getAnnot (BlinkAlias);
-	 if (alias != null)
-	    tgt = findEnumConstant (c, alias);
-	 if (tgt == null)
-	 {
-	    tgt = findEnumConstant (c, name.toUpperCase ());
-	    if (tgt == null)
-	    {
-	       if (alias != null)
-		  tgt = findEnumConstant (c, alias.toUpperCase ());
-	       if (tgt == null)
-	       {
-		  tgt = findEnumConstant (c, splitCamelbackUpper (name));
-		  if (tgt == null && alias != null)
-		     tgt = findEnumConstant (c, splitCamelbackUpper (alias));
-	       }
-	    }
-	 }
+         String alias = s.getAnnot (BlinkAlias);
+         if (alias != null)
+            tgt = findEnumConstant (c, alias);
+         if (tgt == null)
+         {
+            tgt = findEnumConstant (c, name.toUpperCase ());
+            if (tgt == null)
+            {
+               if (alias != null)
+                  tgt = findEnumConstant (c, alias.toUpperCase ());
+               if (tgt == null)
+               {
+                  tgt = findEnumConstant (c, splitCamelbackUpper (name));
+                  if (tgt == null && alias != null)
+                     tgt = findEnumConstant (c, splitCamelbackUpper (alias));
+               }
+            }
+         }
       }
 
       return tgt;
@@ -988,9 +988,9 @@ public final class DefaultObjectModel implements ObjectModel
    {
       try
       {
-	 name = Util.escName (name);
-	 if (c.getDeclaredField (name).isEnumConstant ())
-	    return name;
+         name = Util.escName (name);
+         if (c.getDeclaredField (name).isEnumConstant ())
+            return name;
       }
       catch (NoSuchFieldException e)
       {
@@ -1000,77 +1000,77 @@ public final class DefaultObjectModel implements ObjectModel
    }
 
    private void mapFields (Schema.Group g, HashMap<String, Method> allMethods,
-			   ArrayList<Field> bindingFields)
+                           ArrayList<Field> bindingFields)
       throws BlinkException.Binding
    {
       if (g.hasSuper ())
-	 mapFields (g.getSuperGroup (), allMethods, bindingFields);
+         mapFields (g.getSuperGroup (), allMethods, bindingFields);
 
       for (Schema.Field f : g)
       {
-	 Schema.TypeInfo t = schema.resolve (f.getType ());
+         Schema.TypeInfo t = schema.resolve (f.getType ());
 
-	 String name = Util.escMethodName (f.getName ());
-	 Method getter = null;
-	 Method setter = null;
-	 Method predicate = null;
+         String name = Util.escMethodName (f.getName ());
+         Method getter = null;
+         Method setter = null;
+         Method predicate = null;
 
-	 if (isDecimal (t))
-	 {
-	    getter = findMethod (allMethods, "get", name, f,
-				 MethodType.DecGetter);
-	    setter = findMethod (allMethods, "set", name, f,
-				 MethodType.DecSetter);
-	 }
-	 else
-	 {
-	    getter = findMethod (allMethods, "get", name, f, MethodType.Getter);
-	    setter = findMethod (allMethods, "set", name, f, MethodType.Setter);
-	 }
-	 
-	 if (f.isOptional ())
-	    predicate = findMethod (allMethods, "has", name, f,
-				    MethodType.Getter);
-	 
-	 Binding comp = null;
-	 if (t.isGroup ())
-	    comp = createGroupBinding (t.getGroup ());
-	 else
-	 {
-	    if (t.isEnum ())
-	       comp = createEnumBinding (t.getEnum ());
-	 }
-
-	 Field bf = new FieldImpl (f, t, getter, setter, predicate, comp);
-	 bindingFields.add (bf);
+         if (isDecimal (t))
+         {
+            getter = findMethod (allMethods, "get", name, f,
+                                 MethodType.DecGetter);
+            setter = findMethod (allMethods, "set", name, f,
+                                 MethodType.DecSetter);
+         }
+         else
+         {
+            getter = findMethod (allMethods, "get", name, f, MethodType.Getter);
+            setter = findMethod (allMethods, "set", name, f, MethodType.Setter);
+         }
+         
+         if (f.isOptional ())
+            predicate = findMethod (allMethods, "has", name, f,
+                                    MethodType.Getter);
+         
+         Binding comp = null;
+         if (t.isGroup ())
+            comp = createGroupBinding (t.getGroup ());
+         else
+         {
+            if (t.isEnum ())
+               comp = createEnumBinding (t.getEnum ());
+         }
+         
+         Field bf = new FieldImpl (f, t, getter, setter, predicate, comp);
+         bindingFields.add (bf);
       }
    }
 
    private static boolean isDecimal (Schema.TypeInfo t)
    {
       return t.isPrimitive () &&
-	 t.getType ().getCode () == Schema.TypeCode.Decimal;
+         t.getType ().getCode () == Schema.TypeCode.Decimal;
    }
 
    private void getAllMethods (Class <?> c, HashMap<String, Method> all)
    {
       for (Method m : c.getDeclaredMethods ())
-	 if (isIncludedMethod (m))
-	    all.put (m.getName (), m);
+         if (isIncludedMethod (m))
+            all.put (m.getName (), m);
 
       Class<?> s = c.getSuperclass ();
       if (s != null)
-	 getAllMethods (s, all);
+         getAllMethods (s, all);
    }
    
    private BlinkException.Binding noBindingError (long tid)
    {
       Schema.Group g = unboundById.get (tid);
       if (g == null)
-	 return new BlinkException.Binding (
-	    String.format ("Unknown type id in blink message: %d", tid));
+         return new BlinkException.Binding (
+            String.format ("Unknown type id in blink message: %d", tid));
       else
-	 return noBindingError (g);
+         return noBindingError (g);
    }
 
    private BlinkException.Binding ambiguousTypeIdError (Schema.Group g)
@@ -1078,9 +1078,9 @@ public final class DefaultObjectModel implements ObjectModel
       Schema.Group other = grpBndById.get (g.getId ()).getGroup ();
       String id = Util.toU64Str (g.getId ().longValue ());
       String msg =
-	 String.format ("Ambiguous type identifier:%n  %s: %s/%s%n  %s: %s/%s",
-			g.getLocation (), g.getName (), id,
-			other.getLocation (), other.getName (), id);
+         String.format ("Ambiguous type identifier:%n  %s: %s/%s%n  %s: %s/%s",
+                        g.getLocation (), g.getName (), id,
+                        other.getLocation (), other.getName (), id);
       return new BlinkException.Binding (msg);
    }
 
@@ -1088,24 +1088,24 @@ public final class DefaultObjectModel implements ObjectModel
    {
       Schema.Group g = unboundByName.get (name);
       if (g == null)
-	 return new BlinkException.Binding (
-	    String.format ("No such blink type: %s", name));
+         return new BlinkException.Binding (
+            String.format ("No such blink type: %s", name));
       else
-	 return noBindingError (g);
+         return noBindingError (g);
    }
 
    private BlinkException.Binding noBindingError (Schema.Group g)
    {
       return new BlinkException.Binding (
-	 String.format ("No Java class found for Blink type %s", g.getName ()),
-	 g.getLocation ());
+         String.format ("No Java class found for Blink type %s", g.getName ()),
+         g.getLocation ());
    }
 
    private BlinkException.Binding noBindingError (Class<?> cl)
    {
       return new BlinkException.Binding (
-	 String.format ("No matching blink group found when encoding object" +
-			" of Java class %s", cl.getName ()));
+         String.format ("No matching blink group found when encoding object" +
+                        " of Java class %s", cl.getName ()));
    }
 
    private final Object monitor = new Object ();
@@ -1129,9 +1129,9 @@ public final class DefaultObjectModel implements ObjectModel
    private boolean initialized;
    private Class<? extends java.lang.annotation.Annotation> inclusiveClassAnnot;
    private Class<? extends java.lang.annotation.Annotation>
-		   exclusiveClassAnnot = NoBlink.class;
+                   exclusiveClassAnnot = NoBlink.class;
    private Class<? extends java.lang.annotation.Annotation>
-		   inclusiveMethodAnnot;
+                   inclusiveMethodAnnot;
    private Class<? extends java.lang.annotation.Annotation>
-		   exclusiveMethodAnnot = NoBlink.class;
+                   exclusiveMethodAnnot = NoBlink.class;
 }

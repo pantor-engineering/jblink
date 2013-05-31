@@ -14,18 +14,18 @@ public class TestServer implements Server.ConnectionObserver
       
       public void onPing (TestMessages.Ping ping)
       {
-	 try
-	 {
-	    int val = ping.getValue ();
-	    System.err.printf ("Got ping (%d), sending pong (%d)%n", val, val);
-	    sn.send (new TestMessages.Pong (val));
-	 }
-	 catch (Throwable e)
-	 {
-	    while (e.getCause () != null)
-	       e = e.getCause ();
-	    System.err.println (e);
-	 }
+         try
+         {
+            int val = ping.getValue ();
+            System.err.printf ("Got ping (%d), sending pong (%d)%n", val, val);
+            sn.send (new TestMessages.Pong (val));
+         }
+         catch (Throwable e)
+         {
+            while (e.getCause () != null)
+               e = e.getCause ();
+            System.err.println (e);
+         }
       }
 
       private final Server.Session sn;
@@ -36,15 +36,15 @@ public class TestServer implements Server.ConnectionObserver
    {
       try
       {
-	 MsgObs obs = new MsgObs (sn);
-	 sn.addObserver (obs);
-	 sn.start ();
+         MsgObs obs = new MsgObs (sn);
+         sn.addObserver (obs);
+         sn.start ();
       }
       catch (Throwable e)
       {
-	 while (e.getCause () != null)
-	    e = e.getCause ();
-	 System.err.println (e);
+         while (e.getCause () != null)
+            e = e.getCause ();
+         System.err.println (e);
       }
    }
    

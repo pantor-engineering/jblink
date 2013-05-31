@@ -53,15 +53,15 @@ public class SchemaBuilder implements SchemaReader.Observer
    }
 
    @Override public void onStartGroupDef (String name, String id,
-					  String superName,
-					  AnnotSet annots,
-					  Location loc)
+                                          String superName,
+                                          AnnotSet annots,
+                                          Location loc)
        throws BlinkException.Schema
    {
       curGrp = schema.addGroup (
-	 NsName.get (defaultNs, name), parseTypeId (id, loc),
-	 superName != null ? NsName.parse (superName) : null,
-	 annots, loc);
+         NsName.get (defaultNs, name), parseTypeId (id, loc),
+         superName != null ? NsName.parse (superName) : null,
+         annots, loc);
    }
 
    private final Long parseTypeId (String id, Location loc)
@@ -69,22 +69,22 @@ public class SchemaBuilder implements SchemaReader.Observer
    {
       Long id_ = null;
       if (id != null && ! id.equals (""))
-	 try
-	 {
-	    id_ = Util.parseU64IdAnnot (id);
-	 }
-	 catch (NumberFormatException e)
-	 {
-	    throw new BlinkException.Schema ("Bad type id syntax: " + id, loc);
-	 }
+         try
+         {
+            id_ = Util.parseU64IdAnnot (id);
+         }
+         catch (NumberFormatException e)
+         {
+            throw new BlinkException.Schema ("Bad type id syntax: " + id, loc);
+         }
       return id_;
    }
 
    @Override public void onEndGroupDef () { }
    
    @Override public void onStartDefine (String name, String id,
-					AnnotSet annots,
-					Location loc)
+                                        AnnotSet annots,
+                                        Location loc)
        throws BlinkException.Schema
    {
       curDef = schema.addDefine (NsName.get (defaultNs, name), id, annots, loc);
@@ -101,32 +101,32 @@ public class SchemaBuilder implements SchemaReader.Observer
    }
    
    @Override public void onEndField (String name, String id,
-				     Schema.Presence pres,
-				     AnnotSet annots)
+                                     Schema.Presence pres,
+                                     AnnotSet annots)
        throws BlinkException.Schema
    {
       curGrp.addField (name, id, pendType, pres, annots, pendLoc);
    }
 
    @Override public void onPrimType (Schema.TypeCode t, Schema.Rank r,
-				     AnnotSet annots, Location loc)
+                                     AnnotSet annots, Location loc)
    {
       pendType = new Schema.Type (t, r, annots, loc);
    }
       
    @Override public void onStringType (Schema.Rank r, String ct,
-				       AnnotSet annots,
-				       Location loc)
+                                       AnnotSet annots,
+                                       Location loc)
    {
       pendType = new Schema.StrType (ct, r, annots, loc);
    }
    
    @Override public void onTypeRef (String name, Schema.Layout layout,
-				    Schema.Rank r, AnnotSet annots,
-				    Location loc)
+                                    Schema.Rank r, AnnotSet annots,
+                                    Location loc)
    {
       pendType = new Schema.Ref (NsName.parse (name), defaultNs, r, layout,
-				 annots, loc);
+                                 annots, loc);
    }
    
    @Override public void onStartEnum (Location loc)
@@ -139,23 +139,23 @@ public class SchemaBuilder implements SchemaReader.Observer
    @Override public void onEndEnum () { }
    
    @Override public void onEnumSym (String name, String val,
-				    AnnotSet annots, Location loc)
+                                    AnnotSet annots, Location loc)
        throws BlinkException.Schema
    {
       int intVal;
       if (val == null || val.equals (""))
-	 intVal = nextEnumVal;
+         intVal = nextEnumVal;
       else
       {
-	 try
-	 {
-	    intVal = Util.parseI32IdAnnot (val);
-	 }
-	 catch (NumberFormatException e)
-	 {
-	    throw new BlinkException.Schema ("Bad enum value syntax: " + val,
-					     loc);
-	 }
+         try
+         {
+            intVal = Util.parseI32IdAnnot (val);
+         }
+         catch (NumberFormatException e)
+         {
+            throw new BlinkException.Schema ("Bad enum value syntax: " + val,
+                                             loc);
+         }
       }
 
       nextEnumVal = intVal + 1;
@@ -168,12 +168,12 @@ public class SchemaBuilder implements SchemaReader.Observer
    }
    
    @Override public void onIncrAnnot (String name, String substep,
-				      Schema.PathType t, String id,
-				      AnnotSet annots,
-				      Location loc)
+                                      Schema.PathType t, String id,
+                                      AnnotSet annots,
+                                      Location loc)
    {
       schema.addIncrAnnot (NsName.parse (name), defaultNs, substep, t, id,
-			   annots, loc);
+                           annots, loc);
    }
    
    private final Schema schema;

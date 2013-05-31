@@ -43,13 +43,13 @@ public final class DynClassLoader extends ClassLoader
    {
       try
       {
-	 defc = ClassLoader.class.getDeclaredMethod (
-	    "defineClass", String.class, byte[].class, int.class, int.class);
-	 defc.setAccessible (true);
+         defc = ClassLoader.class.getDeclaredMethod (
+            "defineClass", String.class, byte[].class, int.class, int.class);
+         defc.setAccessible (true);
       }
       catch (Exception e)
       {
-	 throw new RuntimeException (e); // FIXME
+         throw new RuntimeException (e); // FIXME
       }
    }
 
@@ -57,7 +57,7 @@ public final class DynClassLoader extends ClassLoader
    {
       byte [] b = dc.render ();
       if (false)
-	 dump (dc, b);
+         dump (dc, b);
       
       return defineClass (dc.getName (), b, 0, b.length);
    }
@@ -66,18 +66,18 @@ public final class DynClassLoader extends ClassLoader
    {
       byte [] b = dc.render ();
       if (false)
-	 dump (dc, b);
+         dump (dc, b);
 
       try
       {
-	 // Try to load class with the loader of the specified scope
-	 ClassLoader priv = scope.getClassLoader ();
-	 return (Class<?>)defc.invoke (priv, dc.getName (), b, 0, b.length);
+         // Try to load class with the loader of the specified scope
+         ClassLoader priv = scope.getClassLoader ();
+         return (Class<?>)defc.invoke (priv, dc.getName (), b, 0, b.length);
       }
       catch (Exception ignored)
       {
-	 // Fallback to non-privileged loading
-	 return defineClass (dc.getName (), b, 0, b.length);
+         // Fallback to non-privileged loading
+         return defineClass (dc.getName (), b, 0, b.length);
       }   
    }
 
@@ -85,10 +85,10 @@ public final class DynClassLoader extends ClassLoader
    {
       try
       {
-	 java.io.FileOutputStream f =
-	    new java.io.FileOutputStream (dc.getName () + ".class");
-	 f.write (b);
-	 f.close ();
+         java.io.FileOutputStream f =
+            new java.io.FileOutputStream (dc.getName () + ".class");
+         f.write (b);
+         f.close ();
       }
       catch (Exception e)
       {

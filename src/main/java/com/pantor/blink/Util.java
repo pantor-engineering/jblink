@@ -49,21 +49,21 @@ public final class Util
       int n = Math.min (len, limit);
       for (int i = 0; i < n; ++ i)
       {
-	 char c = s.charAt (i);
-	 if (c > 0xff)
-	    result.append (String.format ("\\u%04x", c));
-	 else if (c < 0x20 || c > 0x7f)
-	    result.append (String.format ("\\x%02x", c));
-	 else if (c == '"')
-	    result.append ("\\\"");
-	 else
-	    result.append (c);
+         char c = s.charAt (i);
+         if (c > 0xff)
+            result.append (String.format ("\\u%04x", c));
+         else if (c < 0x20 || c > 0x7f)
+            result.append (String.format ("\\x%02x", c));
+         else if (c == '"')
+            result.append ("\\\"");
+         else
+            result.append (c);
       }
 
       if (n < len)
-	 result.append ("\" ...");
+         result.append ("\" ...");
       else
-	 result.append ('"');
+         result.append ('"');
 
       return result.toString ();
    }
@@ -77,22 +77,22 @@ public final class Util
    {
       int len = s.length ();
       if (len == 0)
-	 return s;
+         return s;
       else if (len == 1)
-	 return Character.toUpperCase (s.charAt (0)) + "";
+         return Character.toUpperCase (s.charAt (0)) + "";
       else
-	 return Character.toUpperCase (s.charAt (0)) + s.substring (1);
+         return Character.toUpperCase (s.charAt (0)) + s.substring (1);
    }
 
    public static String decapitalize (String s)
    {
       int len = s.length ();
       if (len == 0)
-	 return s;
+         return s;
       else if (len == 1)
-	 return Character.toLowerCase (s.charAt (0)) + "";
+         return Character.toLowerCase (s.charAt (0)) + "";
       else
-	 return Character.toLowerCase (s.charAt (0)) + s.substring (1);
+         return Character.toLowerCase (s.charAt (0)) + s.substring (1);
    }
 
    public static <T> String join (Iterable <T> a, String sep)
@@ -101,10 +101,10 @@ public final class Util
       int pos = 0;
       for (T i : a)
       {
-	 if (pos > 0)
-	    sb.append (sep);
-	 sb.append (i);
-	 ++ pos;
+         if (pos > 0)
+            sb.append (sep);
+         sb.append (i);
+         ++ pos;
       }
       return sb.toString ();
    }
@@ -142,25 +142,25 @@ public final class Util
    public static long parseU64IdAnnot (String id)
    {
       if (id.startsWith ("0x"))
-	 return parseU64 (id.substring (2), 16);
+         return parseU64 (id.substring (2), 16);
       else
-	 return parseU64 (id);
+         return parseU64 (id);
    }
 
    public static int parseI32IdAnnot (String id)
    {
       if (id.startsWith ("0x"))
-	 return Integer.parseInt (id.substring (2), 16);
+         return Integer.parseInt (id.substring (2), 16);
       else
-	 return Integer.parseInt (id);
+         return Integer.parseInt (id);
    }
    
    public static String toU64Str (long val)
    {
       if (val > 0)
-	 return String.valueOf (val);
+         return String.valueOf (val);
       else
-	 return BigInteger.valueOf (val).add (Two64).toString ();
+         return BigInteger.valueOf (val).add (Two64).toString ();
    }
 
    public static boolean isSet (String s)
@@ -171,17 +171,17 @@ public final class Util
    public static String escName (String n)
    {
       if (n.endsWith ("_") || JavaKeywords.contains (n))
-	 return n + "_";
+         return n + "_";
       else
-	 return n;
+         return n;
    }
 
    public static String escMethodName (String n)
    {
       if (n.endsWith ("_") || n.equals ("Class"))
-	 return n + "_";
+         return n + "_";
       else
-	 return n;
+         return n;
    }
 
    private final static HashSet<String> JavaKeywords = new HashSet<String> ();
@@ -189,14 +189,14 @@ public final class Util
    static
    {
       String [] kwds = {
-	 "abstract", "continue", "for", "new", "switch", "assert", "default", 
-	 "goto", "package", "synchronized", "boolean", "do", "if", "private", 
-	 "this", "break", "double", "implements", "protected", "throw", "byte", 
-	 "else", "import", "public", "throws", "case", "enum", "instanceof", 
-	 "return", "transient", "catch", "extends", "int", "short", "try",
-	 "char", "final", "interface", "static", "void", "class", "finally",
-	 "long", "strictfp", "volatile", "const", "float", "native", "super",
-	 "while", "true", "false", "null" 
+         "abstract", "continue", "for", "new", "switch", "assert", "default", 
+         "goto", "package", "synchronized", "boolean", "do", "if", "private", 
+         "this", "break", "double", "implements", "protected", "throw", "byte", 
+         "else", "import", "public", "throws", "case", "enum", "instanceof", 
+         "return", "transient", "catch", "extends", "int", "short", "try",
+         "char", "final", "interface", "static", "void", "class", "finally",
+         "long", "strictfp", "volatile", "const", "float", "native", "super",
+         "while", "true", "false", "null" 
       };
 
       JavaKeywords.addAll (Arrays.asList (kwds));

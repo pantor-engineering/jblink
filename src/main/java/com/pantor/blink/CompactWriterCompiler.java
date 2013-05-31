@@ -53,18 +53,18 @@ public final class CompactWriterCompiler
    {
       CompactWriter.Encoder e = encByClass.get (cl);
       if (e != null)
-	 return e;
+         return e;
       else
-	 return compile (cl);
+         return compile (cl);
    }
 
    public CompactWriter.Encoder getEncoder (NsName name) throws BlinkException
    {
       CompactWriter.Encoder d = encByName.get (name);
       if (d != null)
-	 return d;
+         return d;
       else
-	 return compile (om.getGroupBinding (name));
+         return compile (om.getGroupBinding (name));
    }
 
    public void primeGroup (NsName name) throws BlinkException
@@ -76,7 +76,7 @@ public final class CompactWriterCompiler
       throws BlinkException.Binding
    {
       if (! enumEncs.contains (bnd.getEnum ().getName ()))
-	 compileEnum (bnd);
+         compileEnum (bnd);
    }
 
    private CompactWriter.Encoder compile (Class<?> cl) throws BlinkException
@@ -84,7 +84,7 @@ public final class CompactWriterCompiler
       ObjectModel.GroupBinding bnd = om.getGroupBinding (cl);
       CompactWriter.Encoder e = getEncoder (bnd.getGroup ().getName ());
       if (e == null)
-	 e = compile (bnd);
+         e = compile (bnd);
       encByClass.put (cl, e);
       return e;
    }
@@ -132,35 +132,35 @@ public final class CompactWriterCompiler
    {
       private final static class Guard
       {
-	 Guard (int pos, int size)
-	 {
-	    this.pos = pos;
-	    this.size = size;
-	 }
-
-	 final int pos;
-	 final int size;
+         Guard (int pos, int size)
+         {
+            this.pos = pos;
+            this.size = size;
+         }
+         
+         final int pos;
+         final int size;
       }
 
       SizeContext (int sinkReg) { this.sinkReg = sinkReg; }
       
       void addGuard (DynClass dc)
       {
-	 dc.aload (sinkReg);
-	 int pos = dc.reserveIns ();
-	 dc.invokeInterface ("com.pantor.blink.ByteSink", "reserve", "(I)V");
-	 guards.add (new Guard (pos, size));
+         dc.aload (sinkReg);
+         int pos = dc.reserveIns ();
+         dc.invokeInterface ("com.pantor.blink.ByteSink", "reserve", "(I)V");
+         guards.add (new Guard (pos, size));
       }
 
       void addSize (int size)
       {
-	 this.size += size;
+         this.size += size;
       }
 
       void patchGuards (DynClass dc)
       {
-	 for (Guard g : guards)
-	    dc.ldc (g.pos, size - g.size);
+         for (Guard g : guards)
+            dc.ldc (g.pos, size - g.size);
       }
       
       private final ArrayList<Guard> guards = new ArrayList<Guard> ();
@@ -181,35 +181,35 @@ public final class CompactWriterCompiler
       dc.setFlags (DynClass.ClassFlag.Final);
 
       String ctorSig =
-	 "([BLjava/lang/Class;Lcom/pantor/blink/Schema$Group;)V";
+         "([BLjava/lang/Class;Lcom/pantor/blink/Schema$Group;)V";
       
       dc.setSuper ("com.pantor.blink.CompactWriter$Encoder");
 
       // Constructor
       
       dc.startPublicMethod ("<init>", ctorSig)
-	 .aload0 ().aload1 ().aload2 ().aload3 ()
-	 .invokeSpecial ("com/pantor/blink/CompactWriter$Encoder",
-			 "<init>", ctorSig)
-	 .return_ ().setMaxStack (4).endMethod ();
+         .aload0 ().aload1 ().aload2 ().aload3 ()
+         .invokeSpecial ("com/pantor/blink/CompactWriter$Encoder",
+                         "<init>", ctorSig)
+         .return_ ().setMaxStack (4).endMethod ();
 
       // void encode (src, sink, wr)
 
       String encSig = "(Ljava/lang/Object;Lcom/pantor/blink/ByteSink;" +
-	 "Lcom/pantor/blink/CompactWriter;)V";
+                      "Lcom/pantor/blink/CompactWriter;)V";
 
       String srcName = bnd.getTargetType ().getName ();
 
       String innerSig = getInnerEncodeSignature (bnd);
       
       dc.startPublicMethod ("encode", encSig)
-	 .aload2 () // sink
-	 .aload0 () // this
-	 .getField ("com.pantor.blink.CompactWriter$Encoder", "tid", "[B")
-	 .invokeInterface ("com.pantor.blink.ByteSink", "write", "([B)V")
-	 .aload1 ().checkCast (srcName).aload2 ().aload3 ()
-	 .invokeStatic (encoderName, "innerEncode", innerSig)
-	 .return_ ().setMaxStack (3).endMethod ();
+         .aload2 () // sink
+         .aload0 () // this
+         .getField ("com.pantor.blink.CompactWriter$Encoder", "tid", "[B")
+         .invokeInterface ("com.pantor.blink.ByteSink", "write", "([B)V")
+         .aload1 ().checkCast (srcName).aload2 ().aload3 ()
+         .invokeStatic (encoderName, "innerEncode", innerSig)
+         .return_ ().setMaxStack (3).endMethod ();
 
       // public static void encodeArray (T [] objs, sink, rd)
 
@@ -217,7 +217,7 @@ public final class CompactWriterCompiler
       int loopEnd = dc.declareLabel ();
 
       dc.startPublicStaticMethod ("encodeArray",
-				  getEncodeArraySignature (srcName));
+                                  getEncodeArraySignature (srcName));
 
       dc.aload0 (); // objs
       dc.arrayLength ();
@@ -226,23 +226,23 @@ public final class CompactWriterCompiler
       dc.aload1 (); // sink
       invokeWriter (dc, "writeU32", "I");
       dc.iconst0 ()
-	 .istore (4) // i = 0
-	 .label (loop)
-	 .iload (4) // i
-	 .iload3 () // size
-	 .ifIcmpGe (loopEnd) // jump if i >= size
-	 .aload0 () // objs
-	 .iload (4) // i
-	 .aaload () // objs [i]
-	 .aload1 () // sink
-	 .aload2 () // wr
-	 .invokeStatic (encoderName, "innerEncode", innerSig)
-	 .iinc (4, 1) // ++ i
-	 .goto_ (loop)
-	 .label (loopEnd)
-	 .return_ ()
-	 .setMaxStack (3)
-	 .endMethod ();
+         .istore (4) // i = 0
+         .label (loop)
+         .iload (4) // i
+         .iload3 () // size
+         .ifIcmpGe (loopEnd) // jump if i >= size
+         .aload0 () // objs
+         .iload (4) // i
+         .aaload () // objs [i]
+         .aload1 () // sink
+         .aload2 () // wr
+         .invokeStatic (encoderName, "innerEncode", innerSig)
+         .iinc (4, 1) // ++ i
+         .goto_ (loop)
+         .label (loopEnd)
+         .return_ ()
+         .setMaxStack (3)
+         .endMethod ();
       
       // static void innerEncode (src, sink, wr)
       
@@ -254,7 +254,7 @@ public final class CompactWriterCompiler
       // Emit encoding instructions for each field
       
       for (ObjectModel.Field f : bnd)
-	 compile (bnd, f, dc, scx);
+         compile (bnd, f, dc, scx);
 
       scx.patchGuards (dc);
 
@@ -263,7 +263,7 @@ public final class CompactWriterCompiler
       // static void encodeBlank (sink)
       
       dc.startPublicStaticMethod ("encodeBlank",
-				  "(Lcom/pantor/blink/ByteSink;)V");
+                                  "(Lcom/pantor/blink/ByteSink;)V");
 
       SizeContext blankScx = new SizeContext (0);
       blankScx.addGuard (dc);
@@ -271,7 +271,7 @@ public final class CompactWriterCompiler
       // Emit blank encoding instructions for each field
       
       for (ObjectModel.Field f : bnd)
-	 compileBlankField (f.getField (), 0, dc, blankScx);
+         compileBlankField (f.getField (), 0, dc, blankScx);
 
       blankScx.patchGuards (dc);
       
@@ -282,11 +282,11 @@ public final class CompactWriterCompiler
       byte [] tid = null;
       if (g.hasId ())
       {
-	 Buf tidBuf = new ByteBuf (Vlc.Int64MaxSize);
-	 Vlc.writeU64 (g.getId (), tidBuf);
-	 tidBuf.flip ();
-	 tid = new byte [tidBuf.size ()];
-	 tidBuf.read (tid);
+         Buf tidBuf = new ByteBuf (Vlc.Int64MaxSize);
+         Vlc.writeU64 (g.getId (), tidBuf);
+         tidBuf.flip ();
+         tid = new byte [tidBuf.size ()];
+         tidBuf.read (tid);
       }
       
       CompactWriter.Encoder enc = createInstance (tid, dc, bnd);
@@ -294,16 +294,16 @@ public final class CompactWriterCompiler
       // Store this instance for future lookups
       
       encByName.put (g.getName (), enc);
-	 
+      
       return enc;
    }
 
    private static String getClassName (NsName nm)
    {
       if (nm.isQualified ())
-	 return nm.getNs () + "+" + nm.getName ();
+         return nm.getNs () + "+" + nm.getName ();
       else
-	 return nm.getName ();
+         return nm.getName ();
    }
    
    private static String getEncoderClassName (NsName nm)
@@ -314,32 +314,32 @@ public final class CompactWriterCompiler
    private static String getEncodeArraySignature (String src)
    {
       return "([L" + DynClass.toInternal (src) +
-	 ";Lcom/pantor/blink/ByteSink;" +
-	 "Lcom/pantor/blink/CompactWriter;)V";
+         ";Lcom/pantor/blink/ByteSink;" +
+         "Lcom/pantor/blink/CompactWriter;)V";
    }
 
    private static String getEncodeEnumSignature (ObjectModel.Binding bnd)
    {
       return "(L" + DynClass.toInternal (bnd.getTargetType ()) +
-	 ";Lcom/pantor/blink/ByteSink;)V";
+         ";Lcom/pantor/blink/ByteSink;)V";
    }
 
    private static String getInnerEncodeSignature (ObjectModel.Binding bnd)
    {
       return "(L" + DynClass.toInternal (bnd.getTargetType ()) +
-	 ";Lcom/pantor/blink/ByteSink;Lcom/pantor/blink/CompactWriter;)V";
+         ";Lcom/pantor/blink/ByteSink;Lcom/pantor/blink/CompactWriter;)V";
    }
 
    private static String getEncodeEnumArraySignature (ObjectModel.Binding bnd)
    {
       return "([L" + DynClass.toInternal (bnd.getTargetType ()) +
-	 ";Lcom/pantor/blink/ByteSink;)V";
+         ";Lcom/pantor/blink/ByteSink;)V";
    }
 
    private static void invokeWriter (DynClass dc, String m, String t)
    {
       dc.invokeStatic ("com/pantor/blink/CompactWriter", m,
-		       "(" + t + "Lcom/pantor/blink/ByteSink;)V");
+                       "(" + t + "Lcom/pantor/blink/ByteSink;)V");
    }
 
    private static void invokeWriter (DynClass dc, String m)
@@ -348,7 +348,7 @@ public final class CompactWriterCompiler
    }
 
    private void compile (ObjectModel.Binding bnd, ObjectModel.Field f,
-			 DynClass dc, SizeContext scx)
+                         DynClass dc, SizeContext scx)
       throws BlinkException
    {
       Schema.TypeInfo t = f.getFieldType ();
@@ -361,82 +361,82 @@ public final class CompactWriterCompiler
 
       if (getter != null)
       {
-	 if (sf.isOptional ())
-	 {
-	    dc.aload0 (); // src, #depth: 1
-	    Method pred = f.getPredicate ();
-	    if (pred != null)
-	       dc.invoke (pred);
-	    else
-	    {
-	       // FIXME: Handle:
-	       //    boxed types
-	       //    compound decimal getter
-	       throw new RuntimeException ("missing has" + sf.getName ());
-	    }
-	 
-	    dc.ifEq (putNull); // Jump if not present
-	 }
+         if (sf.isOptional ())
+         {
+            dc.aload0 (); // src, #depth: 1
+            Method pred = f.getPredicate ();
+            if (pred != null)
+               dc.invoke (pred);
+            else
+            {
+               // FIXME: Handle:
+               //    boxed types
+               //    compound decimal getter
+               throw new RuntimeException ("missing has" + sf.getName ());
+            }
+            
+            dc.ifEq (putNull); // Jump if not present
+         }
+         
+         dc.aload0 (); // src, #depth: 1
+         dc.invoke (getter);
 
-	 dc.aload0 (); // src, #depth: 1
-	 dc.invoke (getter);
+         if (! t.isSequence ())
+         {
+            if (t.isPrimitive ())
+               compilePrim (t, dc, scx);
+            else if (t.isEnum ())
+               compileEnum (t, f.getComponent ().toEnum (), dc, scx);
+            else // Object or Group
+               compileGroupField (f, dc, scx);
+         }
+         else
+         {
+            scx.addSize (Vlc.Int32MaxSize);
+            if (t.isPrimitive ())
+               compilePrimSeq (t, dc);
+            else if (t.isEnum ())
+               compileEnumSeq (t, f.getComponent ().toEnum (), dc);
+            else // Object or Group
+               compileGroupSeqField (f, dc);
+            scx.addGuard (dc);
+         }
 
-	 if (! t.isSequence ())
-	 {
-	    if (t.isPrimitive ())
-	       compilePrim (t, dc, scx);
-	    else if (t.isEnum ())
-	       compileEnum (t, f.getComponent ().toEnum (), dc, scx);
-	    else // Object or Group
-	       compileGroupField (f, dc, scx);
-	 }
-	 else
-	 {
-	    scx.addSize (Vlc.Int32MaxSize);
-	    if (t.isPrimitive ())
-	       compilePrimSeq (t, dc);
-	    else if (t.isEnum ())
-	       compileEnumSeq (t, f.getComponent ().toEnum (), dc);
-	    else // Object or Group
-	       compileGroupSeqField (f, dc);
-	    scx.addGuard (dc);
-	 }
-
-	 if (sf.isOptional ())
-	 {
-	    dc.goto_ (end);
-	    dc.label (putNull);
-	    dc.aload1 (); // sink, #depth 1
-	    invokeWriter (dc, "writeNull");
-	 }
+         if (sf.isOptional ())
+         {
+            dc.goto_ (end);
+            dc.label (putNull);
+            dc.aload1 (); // sink, #depth 1
+            invokeWriter (dc, "writeNull");
+         }
       
-	 dc.label (end);
+         dc.label (end);
       }
       else
-	 compileBlankField (sf, t, 1, dc, scx);
+         compileBlankField (sf, t, 1, dc, scx);
    }
 
    private static void compilePrim (Schema.TypeInfo t, DynClass dc,
-				    SizeContext scx)
+                                    SizeContext scx)
    {
       dc.aload1 (); // sink, #depth: 2
       Schema.TypeCode code = t.getType ().getCode ();
       invokeWriter (dc, "write" + code.toString (),
-		    CodegenUtil.mapTypeDescr (code));
+                    CodegenUtil.mapTypeDescr (code));
       if (code == Schema.TypeCode.String)
-	 scx.addGuard (dc);
+         scx.addGuard (dc);
       else
-	 scx.addSize (getMaxVlcSize (t.getType ().getCode ()));
+         scx.addSize (getMaxVlcSize (t.getType ().getCode ()));
    }
 
    private void compileEnum (Schema.TypeInfo t, ObjectModel.EnumBinding comp,
-			     DynClass dc, SizeContext scx)
+                             DynClass dc, SizeContext scx)
       throws BlinkException
    {
       primeEnum (comp);
       dc.aload1 (); // sink, #depth: 2
       dc.invokeStatic (getEncoderClassName (t.getEnum ().getName ()),
-		       "encode", getEncodeEnumSignature (comp));
+                       "encode", getEncodeEnumSignature (comp));
       scx.addSize (Vlc.Int32MaxSize);
    }
 
@@ -449,18 +449,18 @@ public final class CompactWriterCompiler
    }
 
    private void compileEnumSeq (Schema.TypeInfo t, ObjectModel.EnumBinding comp,
-				DynClass dc)
+                                DynClass dc)
       throws BlinkException
    {
       primeEnum (comp);
       dc.aload1 (); // sink, #depth: 2
       dc.invokeStatic (getEncoderClassName (t.getEnum ().getName ()),
-		       "encodeArray",
-		       getEncodeEnumArraySignature (comp));
+                       "encodeArray",
+                       getEncodeEnumArraySignature (comp));
    }
    
    private void compileGroupField (ObjectModel.Field f, DynClass dc,
-				   SizeContext scx)
+                                   SizeContext scx)
       throws BlinkException
    {
       Schema.TypeInfo t = f.getFieldType ();
@@ -468,27 +468,27 @@ public final class CompactWriterCompiler
       
       if (t.isDynamic () || t.isObject ())
       {
-	 dc.aload2 (); // Writer, #depth: 2
-	 dc.swap ();
-	 dc.invokeVirtual ("com.pantor.blink.CompactWriter", "writeObject",
-			   "(Ljava/lang/Object;)V");
-	 scx.addGuard (dc);
+         dc.aload2 (); // Writer, #depth: 2
+         dc.swap ();
+         dc.invokeVirtual ("com.pantor.blink.CompactWriter", "writeObject",
+                           "(Ljava/lang/Object;)V");
+         scx.addGuard (dc);
       }
       else
       {
-	 ObjectModel.GroupBinding comp = f.getComponent ().toGroup ();
-	 primeGroup (comp.getGroup ().getName ());
-	 if (sf.isOptional ())
-	 {
-	    scx.addSize (1);
-	    dc.aload1 (); // sink, #depth: 2
-	    invokeWriter (dc, "writeOne"); // Presence byte
-	 }
-	 dc.aload1 (); // sink, #depth: 2
-	 dc.aload2 (); // Writer, #depth: 3
-	 dc.invokeStatic (getEncoderClassName (comp.getGroup ().getName ()),
-			  "innerEncode", getInnerEncodeSignature (comp));
-	 scx.addGuard (dc);
+         ObjectModel.GroupBinding comp = f.getComponent ().toGroup ();
+         primeGroup (comp.getGroup ().getName ());
+         if (sf.isOptional ())
+         {
+            scx.addSize (1);
+            dc.aload1 (); // sink, #depth: 2
+            invokeWriter (dc, "writeOne"); // Presence byte
+         }
+         dc.aload1 (); // sink, #depth: 2
+         dc.aload2 (); // Writer, #depth: 3
+         dc.invokeStatic (getEncoderClassName (comp.getGroup ().getName ()),
+                          "innerEncode", getInnerEncodeSignature (comp));
+         scx.addGuard (dc);
       }
    }
 
@@ -500,26 +500,26 @@ public final class CompactWriterCompiler
       
       if (t.isObject () || t.isDynamic ())
       {
-	 dc.aload2 (); // Writer, #depth: 2
-	 dc.swap ();
-	 dc.invokeVirtual ("com.pantor.blink.CompactWriter", "writeObjectArray",
-			   "([Ljava/lang/Object;)V");
+         dc.aload2 (); // Writer, #depth: 2
+         dc.swap ();
+         dc.invokeVirtual ("com.pantor.blink.CompactWriter", "writeObjectArray",
+                           "([Ljava/lang/Object;)V");
       }
       else
       {
-	 ObjectModel.GroupBinding comp = f.getComponent ().toGroup ();
-	 primeGroup (comp.getGroup ().getName ());
-	 String sig =
-	    getEncodeArraySignature (comp.getTargetType ().getName ());
-	 dc.aload1 (); // sink, #depth: 2
-	 dc.aload2 (); // Writer, #depth: 3
-	 dc.invokeStatic (getEncoderClassName (comp.getGroup ().getName ()),
-			  "encodeArray", sig);
+         ObjectModel.GroupBinding comp = f.getComponent ().toGroup ();
+         primeGroup (comp.getGroup ().getName ());
+         String sig =
+            getEncodeArraySignature (comp.getTargetType ().getName ());
+         dc.aload1 (); // sink, #depth: 2
+         dc.aload2 (); // Writer, #depth: 3
+         dc.invokeStatic (getEncoderClassName (comp.getGroup ().getName ()),
+                          "encodeArray", sig);
       }
    }
 
    private void compileBlankField (Schema.Field sf, int sinkReg, DynClass dc,
-				   SizeContext scx)
+                                   SizeContext scx)
       throws BlinkException
    {
       Schema.TypeInfo t = om.getSchema ().resolve (sf.getType ());
@@ -527,7 +527,7 @@ public final class CompactWriterCompiler
    }
    
    private void compileBlankField (Schema.Field sf, Schema.TypeInfo t,
-				   int sinkReg, DynClass dc, SizeContext scx)
+                                   int sinkReg, DynClass dc, SizeContext scx)
       throws BlinkException
    {
       // If optional, write null, otherwise, write a blank value. All
@@ -543,32 +543,32 @@ public final class CompactWriterCompiler
       
       if (sf.isOptional ())
       {
-	 dc.aload (sinkReg); // sink, #depth 1
-	 invokeWriter (dc, "writeNull");
-	 scx.addSize (1);
+         dc.aload (sinkReg); // sink, #depth 1
+         invokeWriter (dc, "writeNull");
+         scx.addSize (1);
       }
       else if (t.isEnum ())
       {
-	 // Write the value of the first symbol
-	 Schema.Enum e = t.getEnum ().getType ().toEnum ();
-	 dc.ldc (e.getSymbols ().get (0).getValue ());
-	 dc.aload (sinkReg); // sink, #depth 2
-	 invokeWriter (dc, "writeI32", "I");
-	 scx.addSize (Vlc.Int32MaxSize);
+         // Write the value of the first symbol
+         Schema.Enum e = t.getEnum ().getType ().toEnum ();
+         dc.ldc (e.getSymbols ().get (0).getValue ());
+         dc.aload (sinkReg); // sink, #depth 2
+         invokeWriter (dc, "writeI32", "I");
+         scx.addSize (Vlc.Int32MaxSize);
       }
       else if (t.isGroup () && ! t.isSequence () && ! t.isDynamic ())
       {
-	 primeGroup (t.getGroup ().getName ());
-	 dc.aload (sinkReg); // sink, #depth: 2
-	 dc.invokeStatic (getEncoderClassName (t.getGroup ().getName ()),
-			  "encodeBlank", "(Lcom/pantor/blink/ByteSink;)V");
-	 scx.addGuard (dc);
+         primeGroup (t.getGroup ().getName ());
+         dc.aload (sinkReg); // sink, #depth: 2
+         dc.invokeStatic (getEncoderClassName (t.getGroup ().getName ()),
+                          "encodeBlank", "(Lcom/pantor/blink/ByteSink;)V");
+         scx.addGuard (dc);
       }
       else
       {
-	 dc.aload (sinkReg); // sink, #depth 1
-	 invokeWriter (dc, "writeZero");
-	 scx.addSize (1);
+         dc.aload (sinkReg); // sink, #depth 1
+         invokeWriter (dc, "writeZero");
+         scx.addSize (1);
       }
    }
 
@@ -639,19 +639,19 @@ public final class CompactWriterCompiler
       dc.setFlags (DynClass.ClassFlag.Final);
 
       dc.addField ("map", "Ljava/util/EnumMap;", DynClass.FieldFlag.Private,
-		   DynClass.FieldFlag.Final, DynClass.FieldFlag.Static);
+                   DynClass.FieldFlag.Final, DynClass.FieldFlag.Static);
 
       Class<?> enumType = bnd.getTargetType ();
 
       // static static void encode (sym, sink)
 
       dc.startPublicStaticMethod ("encode", getEncodeEnumSignature (bnd))
-	 .getStatic (encoderName, "map", "Ljava/util/EnumMap;")
-	 .aload0 () // sym
-	 .invokeVirtual ("java.util.EnumMap", "get",
-			 "(Ljava/lang/Object;)Ljava/lang/Object;")
-	 .checkCast ("java.lang.Integer")
-	 .aload1 (); // sink
+         .getStatic (encoderName, "map", "Ljava/util/EnumMap;")
+         .aload0 () // sym
+         .invokeVirtual ("java.util.EnumMap", "get",
+                         "(Ljava/lang/Object;)Ljava/lang/Object;")
+         .checkCast ("java.lang.Integer")
+         .aload1 (); // sink
       invokeWriter (dc, "writeEnumVal", "Ljava/lang/Integer;");
       dc.return_ ().setMaxStack (2).endMethod ();
       
@@ -661,7 +661,7 @@ public final class CompactWriterCompiler
       int loopEnd = dc.declareLabel ();
 
       dc.startPublicStaticMethod ("encodeArray",
-				  getEncodeEnumArraySignature (bnd));
+                                  getEncodeEnumArraySignature (bnd));
       dc.aload0 (); // syms
       dc.arrayLength ();
       dc.dup ();
@@ -669,22 +669,22 @@ public final class CompactWriterCompiler
       dc.aload1 (); // sink
       invokeWriter (dc, "writeU32", "I");
       dc.iconst0 ()
-	 .istore3 () // i = 0
-	 .label (loop)
-	 .iload3 () // i
-	 .iload2 () // size
-	 .ifIcmpGe (loopEnd) // jump if i >= size
-	 .aload0 () // syms
-	 .iload3 () // i
-	 .aaload () // syms [i]
-	 .aload1 () // sink
-	 .invokeStatic (encoderName, "encode", getEncodeEnumSignature (bnd))
-	 .iinc (3, 1) // ++ i
-	 .goto_ (loop)
-	 .label (loopEnd)
-	 .return_ ()
-	 .setMaxStack (2)
-	 .endMethod ();
+         .istore3 () // i = 0
+         .label (loop)
+         .iload3 () // i
+         .iload2 () // size
+         .ifIcmpGe (loopEnd) // jump if i >= size
+         .aload0 () // syms
+         .iload3 () // i
+         .aaload () // syms [i]
+         .aload1 () // sink
+         .invokeStatic (encoderName, "encode", getEncodeEnumSignature (bnd))
+         .iinc (3, 1) // ++ i
+         .goto_ (loop)
+         .label (loopEnd)
+         .return_ ()
+         .setMaxStack (2)
+         .endMethod ();
       
       // static init
       
@@ -699,20 +699,20 @@ public final class CompactWriterCompiler
       dc.astore0 ();
 
       for (ObjectModel.Symbol sym : bnd)
-	 if (sym.getTargetName () != null)
-	 {
-	    dc.aload0 ();
-	    dc.ldc (sym.getTargetName ());
-	    dc.invokeStatic (enumType, "valueOf", "(Ljava/lang/String;)L" +
-			     DynClass.toInternal (enumType) + ";");
-	    dc.ldc (sym.getSymbol ().getValue ());
-	    dc.invokeStatic ("java.lang.Integer", "valueOf",
-			     "(I)Ljava/lang/Integer;");
-	    dc.invokeVirtual ("java.util.EnumMap", "put",
-			      "(Ljava/lang/Object;Ljava/lang/Object;" +
-			      ")Ljava/lang/Object;");
-	    dc.pop ();
-	 }
+         if (sym.getTargetName () != null)
+         {
+            dc.aload0 ();
+            dc.ldc (sym.getTargetName ());
+            dc.invokeStatic (enumType, "valueOf", "(Ljava/lang/String;)L" +
+                             DynClass.toInternal (enumType) + ";");
+            dc.ldc (sym.getSymbol ().getValue ());
+            dc.invokeStatic ("java.lang.Integer", "valueOf",
+                             "(I)Ljava/lang/Integer;");
+            dc.invokeVirtual ("java.util.EnumMap", "put",
+                              "(Ljava/lang/Object;Ljava/lang/Object;" +
+                              ")Ljava/lang/Object;");
+            dc.pop ();
+         }
 
       dc.return_ ();
       dc.setMaxStack (3);
@@ -726,34 +726,34 @@ public final class CompactWriterCompiler
    }
 
    private CompactWriter.Encoder createInstance (byte [] tid, DynClass dc,
-						 ObjectModel.GroupBinding bnd)
+                                                 ObjectModel.GroupBinding bnd)
       throws BlinkException.Binding
    {
       try
       {
-	 Class<?> tgtType = bnd.getTargetType ();
-	 Class<?> encClass = dload.loadPrivileged (dc, tgtType);
-	 Constructor<?> ctor = encClass.getConstructor (
-	    byte [].class, Class.class, Schema.Group.class);
-	 
-	 return (CompactWriter.Encoder)ctor.newInstance (
-	    tid, tgtType, bnd.getGroup ());
+         Class<?> tgtType = bnd.getTargetType ();
+         Class<?> encClass = dload.loadPrivileged (dc, tgtType);
+         Constructor<?> ctor = encClass.getConstructor (
+            byte [].class, Class.class, Schema.Group.class);
+         
+         return (CompactWriter.Encoder)ctor.newInstance (
+            tid, tgtType, bnd.getGroup ());
       }
       catch (NoSuchMethodException e)
       {
-	 throw new BlinkException.Binding (e);
+         throw new BlinkException.Binding (e);
       }
       catch (InstantiationException e)
       {
-	 throw new BlinkException.Binding (e);
+         throw new BlinkException.Binding (e);
       }
       catch (IllegalAccessException e)
       {
-	 throw new BlinkException.Binding (e);
+         throw new BlinkException.Binding (e);
       }
       catch (InvocationTargetException e)
       {
-	 throw new BlinkException.Binding (e);
+         throw new BlinkException.Binding (e);
       }
    }
    
