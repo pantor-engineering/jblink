@@ -41,6 +41,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
 import java.lang.annotation.Annotation;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public final class DefaultObsRegistry implements ObserverRegistry 
 {
@@ -241,7 +242,7 @@ public final class DefaultObsRegistry implements ObserverRegistry
       throws BlinkException.Binding
    {
       Class c = obs.getClass ();
-      String obsName = c.getName () + "+" + m.getName () + "_obs";
+      String obsName = makeUnique (c.getName () + "+" + m.getName () + "_obs");
       String obsDescr = "L" + DynClass.toInternal (c) + ";";
       String onObjSig = "(Ljava/lang/Object;Lcom/pantor/blink/Schema$Group;)V";
       DynClass dc = new DynClass (obsName);
@@ -322,9 +323,15 @@ public final class DefaultObsRegistry implements ObserverRegistry
          return fallback;
    }
 
+   private static String makeUnique (String s)
+   {
+      return s + uniqueId.getAndIncrement ();
+   }
+   
    private final HashMap<NsName, Observer> obsByName =
       new HashMap <NsName, Observer> ();
    private final ObjectModel om;
    private final DynClassLoader dload;
    private Observer fallback;
+   private static AtomicInteger uniqueId = new AtomicInteger ();
 }

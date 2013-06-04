@@ -619,6 +619,23 @@ public class TestCases
       assertTrue (sink [0] instanceof Foo);
    }
 
+   private static class FooObs
+   {
+      public String result = "";
+      public void onFoo (Foo f) { result = "got Foo"; }
+   }
+   
+   @Test public void dynObsReset () throws BlinkException, IOException
+   {
+      ObjectModel om = toModel ("Foo/1 -> u32 Bar");
+      DefaultObsRegistry oreg = new DefaultObsRegistry (om);
+      FooObs obs = new FooObs ();
+      oreg.addObserver (obs);
+      oreg.addObserver (obs); // Overrides the previous observer
+      compactRoundtrip (om, new Foo (), oreg);
+      assertEquals ("got Foo", obs.result);
+   }
+
    public static class Price
    {
       public Price () { }
