@@ -1139,7 +1139,9 @@ public final class SchemaReader
          if (lastCommaLine > 0 &&
              line != lastCommaLine && (tokPos - lastCommaPos - 1) <= 2)
             details = String.format ("Hint: There could be a superfluous " +
-                                     "comma at line: %d", lastCommaLine);
+                                     "comma at line: %d, or '=' has " +
+                                     "accidentally been used instead of '->'",
+                                     lastCommaLine);
          else if (lastFieldNameLine != lastFieldTypeLine &&
                   pendTok.line == lastFieldNameLine)
             details = String.format ("Hint: There could be a missing field " +
@@ -1158,7 +1160,6 @@ public final class SchemaReader
 
          return error ("Expected " + what + " but got " +
                        getTokenDescr (curTok.type), details);
-
       }
    }
 
