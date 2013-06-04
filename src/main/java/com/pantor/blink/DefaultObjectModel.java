@@ -60,7 +60,7 @@ import java.io.Reader;
    as {@code <wrapper>}, {@code <package>} and {@code <package[ns]>} in
    the patterns below.</p>
    
-   <p>The mapping process tires to form a fully qualified class name
+   <p>The mapping process tries to form a fully qualified class name
    based on a list of patterns. Each pattern is tested in the order
    specified below until one results in a class that exists and should
    be <i>included</i>. A candidate class should be included if</p>
