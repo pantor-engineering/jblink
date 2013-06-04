@@ -248,6 +248,7 @@ public final class Client implements Runnable
          {
             if (! buf.fillFrom (is))
                break;
+            buf.flip ();
             rd.read (buf);
          }
 
