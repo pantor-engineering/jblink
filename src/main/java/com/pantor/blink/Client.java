@@ -36,13 +36,16 @@
 package com.pantor.blink;
 
 import java.net.Socket;
+import java.net.DatagramSocket;
+import java.net.DatagramPacket;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.ByteArrayOutputStream;
 import java.util.logging.Logger;
 
 /**
-   The {@code Client} class provides a basic Blink-capable TCP client.
+   The {@code Client} class provides a basic Blink-capable UDP or TCP client.
 
    <p>It sends and receives messages in the Blink compact binary format.</p>
 
@@ -143,6 +146,8 @@ public final class Client implements Runnable
       this.oreg = new DefaultObsRegistry (om);
       this.os = sock.getOutputStream ();
       this.wr = new CompactWriter (om, os);
+      this.udpsock = null;
+      this.bs = null;
    }
 
    /**
@@ -163,6 +168,30 @@ public final class Client implements Runnable
       this.oreg = new DefaultObsRegistry (om);
       this.os = sock.getOutputStream ();
       this.wr = new CompactWriter (om, os);
+      this.udpsock = null;
+      this.bs = null;
+   }
+
+   /**
+      Creates a client that communicate over the specified datagram socket. It
+      will map messages as defined by the specified object model.
+
+      @param sock a UDP socket
+      @param om an object model
+      @throws BlinkException if there is a schema or binding problem
+      @throws IOException if there is a socket problem
+    */
+   
+   public Client (DatagramSocket sock, ObjectModel om)
+      throws BlinkException, IOException
+   {
+      this.udpsock = sock;
+      this.om = om;
+      this.oreg = new DefaultObsRegistry (om);
+      this.bs = new ByteArrayOutputStream (1500);
+      this.os = bs;
+      this.wr = new CompactWriter (om, os);
+      this.sock = null;
    }
 
    /**
@@ -241,25 +270,41 @@ public final class Client implements Runnable
       InputStream is = null;
       try
       {
-         is = sock.getInputStream ();
          CompactReader rd = new CompactReader (om, oreg);
-         Buf buf = DirectBuf.newInstance (4096);
-         for (;;)
+         if (sock != null)
          {
-            if (! buf.fillFrom (is))
-               break;
-            buf.flip ();
-            rd.read (buf);
+            is = sock.getInputStream ();
+            Buf buf = DirectBuf.newInstance (4096);
+            for (;;)
+            {
+               if (! buf.fillFrom (is))
+                  break;
+               buf.flip ();
+               rd.read (buf);
+            }
+            
+            log.info (sock + ": closed");
          }
-
-         log.info (sock + ": closed");
+         else
+         {
+            byte [] buf = new byte [1500];
+            DatagramPacket p = new DatagramPacket (buf, buf.length);
+            for (;;)
+            {
+               udpsock.receive (p);
+               rd.read (buf, 0, p.getLength ());
+            }
+         }
       }
       finally
       {
          os.close ();
          if (is != null)
             is.close ();
-         sock.close ();
+         if (sock != null)
+            sock.close ();
+         if (udpsock != null)
+            udpsock.close ();
       }
    }
 
@@ -282,6 +327,16 @@ public final class Client implements Runnable
    {
       wr.write (obj);
       wr.flush ();
+
+      if (udpsock != null)
+      {
+	 byte [] data = bs.toByteArray ();
+	 bs.reset ();
+	 DatagramPacket p =
+	    new DatagramPacket (data, data.length,
+				udpsock.getRemoteSocketAddress ());
+	 udpsock.send (p);
+      }
    }
 
    /**
@@ -296,6 +351,16 @@ public final class Client implements Runnable
    {
       wr.write (objs);
       wr.flush ();
+
+      if (udpsock != null)
+      {
+	 byte [] data = bs.toByteArray ();
+	 bs.reset ();
+	 DatagramPacket p =
+	    new DatagramPacket (data, data.length,
+				udpsock.getRemoteSocketAddress ());
+	 udpsock.send (p);
+      }
    }
 
    /**
@@ -314,8 +379,17 @@ public final class Client implements Runnable
    {
       wr.write (objs, from, len);
       wr.flush ();
-   }
 
+      if (udpsock != null)
+      {
+	 byte [] data = bs.toByteArray ();
+	 bs.reset ();
+	 DatagramPacket p =
+	    new DatagramPacket (data, data.length,
+				udpsock.getRemoteSocketAddress ());
+	 udpsock.send (p);
+      }
+   }
    /**
       Closes this client by closing the output stream
 
@@ -328,10 +402,12 @@ public final class Client implements Runnable
    }
 
    private final Socket sock;
+   private final DatagramSocket udpsock;
    private final ObjectModel om;
    private final DefaultObsRegistry oreg;
    private final OutputStream os;
    private final CompactWriter wr;
+   private final ByteArrayOutputStream bs;
 
    private static final Logger log = Logger.getLogger (Client.class.getName ());
 }
