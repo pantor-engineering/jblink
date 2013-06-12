@@ -409,7 +409,10 @@ public final class CompactReaderCompiler
          NsName compName = comp.getGroup ().getName ();
          prime (compName);
          if (sf.isOptional ())
+         {
+            dc.aload0 (); // src, #depth: 2
             invokeReader (dc, "skipByte", "V"); // Skip presence byte
+         }
          String sig = getReadSignature (comp.getTargetType ().getName ());
          dc.aload0 (); // src, #depth: 2
          dc.aload2 (); // Reader, #depth: 3
