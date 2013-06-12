@@ -58,6 +58,8 @@ public final class CodegenUtil
        case Millitime:       return "J";
        case Bool:            return "Z";
        case String:          return "Ljava/lang/String;";
+       case Binary:          return "[B";
+       case Fixed:           return "[B";
        case Object:          return "Ljava/lang/Object;";
        case Ref:             return "I";
        case Enum:            return "I";

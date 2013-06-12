@@ -384,7 +384,12 @@ public final class CompactWriterCompiler
          if (! t.isSequence ())
          {
             if (t.isPrimitive ())
-               compilePrim (t, dc, scx);
+            {
+               if (t.getType ().getCode () == Schema.TypeCode.Fixed)
+                  compileFixed (f, dc, scx);
+               else
+                  compilePrim (t, dc, scx);
+            }
             else if (t.isEnum ())
                compileEnum (t, f.getComponent ().toEnum (), dc, scx);
             else // Object or Group
@@ -394,7 +399,12 @@ public final class CompactWriterCompiler
          {
             scx.addSize (Vlc.Int32MaxSize);
             if (t.isPrimitive ())
-               compilePrimSeq (t, dc);
+            {
+               if (t.getType ().getCode () == Schema.TypeCode.Fixed)
+                  compileFixedSeq (t, dc);
+               else
+                  compilePrimSeq (t, dc);
+            }
             else if (t.isEnum ())
                compileEnumSeq (t, f.getComponent ().toEnum (), dc);
             else // Object or Group
@@ -423,10 +433,48 @@ public final class CompactWriterCompiler
       Schema.TypeCode code = t.getType ().getCode ();
       invokeWriter (dc, "write" + code.toString (),
                     CodegenUtil.mapTypeDescr (code));
-      if (code == Schema.TypeCode.String)
+      if (code == Schema.TypeCode.String || code == Schema.TypeCode.Binary)
          scx.addGuard (dc);
       else
          scx.addSize (getMaxVlcSize (t.getType ().getCode ()));
+   }
+
+   private static void compileFixed (ObjectModel.Field f, DynClass dc,
+                                     SizeContext scx)
+   {
+      Schema.TypeInfo t = f.getFieldType ();
+      Schema.Field sf = f.getField ();
+      Schema.FixedType ft = (Schema.FixedType)t.getType ();
+
+      int fixedSize = ft.getSize ();
+      if (sf.isOptional ())
+      {
+         scx.addSize (1);
+         dc.aload1 (); // sink, #depth: 2
+         invokeWriter (dc, "writeOne"); // Presence byte
+      }
+
+      dc.ldc (fixedSize); // #depth: 2
+      dc.aload1 (); // sink, #depth: 3
+      Schema.TypeCode code = t.getType ().getCode ();
+
+      dc.invokeStatic ("com/pantor/blink/CompactWriter", "writeFixed",
+                       "(" + CodegenUtil.mapTypeDescr (code) +
+                       "ILcom/pantor/blink/ByteSink;)V");
+
+      scx.addSize (fixedSize);
+   }
+
+   private static void compileFixedSeq (Schema.TypeInfo t, DynClass dc)
+   {
+      Schema.FixedType ft = (Schema.FixedType)t.getType ();
+      Schema.TypeCode code = t.getType ().getCode ();
+      int fixedSize = ft.getSize ();
+      dc.ldc (fixedSize); // #depth: 2
+      dc.aload1 (); // sink, #depth: 3
+      dc.invokeStatic ("com/pantor/blink/CompactWriter", "writeFixedArray",
+                       "([" + CodegenUtil.mapTypeDescr (code) +
+                       "ILcom/pantor/blink/ByteSink;)V");
    }
 
    private void compileEnum (Schema.TypeInfo t, ObjectModel.EnumBinding comp,

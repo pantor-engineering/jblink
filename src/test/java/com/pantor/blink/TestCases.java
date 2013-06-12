@@ -500,7 +500,7 @@ public class TestCases
                                           "Color = Red | Green | Blue", car);
       assertEquals (Color.Blue, result.getColor ());
    }
-   
+
    public static interface Bar
    {
       String get ();
@@ -852,6 +852,73 @@ public class TestCases
       assertEquals ("", obsB.result);
    }
 
+   public static class Msg
+   {
+      public void setHost (byte [] host) { this.host = host; }
+      public byte [] getHost () { return host; }
+
+      public void setId (byte [] id) { this.id = id; }
+      public byte [] getId () { return id; }
+      public boolean hasId () { return id != null; }
+
+      public void setData (byte [] data) { this.data = data; }
+      public byte [] getData () { return data; }
+
+      private byte [] host;
+      private byte [] id;
+      private byte [] data;
+   }
+   
+   @Test public void binaryAndFixed () throws BlinkException, IOException
+   {
+      String host = "3e 6d 3c ea";
+      String data = "01 02 03";
+
+      Msg msg = new Msg ();
+      msg.setHost (hexToBytes (host));
+      msg.setData (hexToBytes (data));
+
+      Msg result = (Msg)compactRoundtrip (
+         "Msg/1 ->" +
+         "  fixed (4) Host," +
+         "  fixed (16) Id?," +
+         "  binary Data",
+         msg);
+
+      assertFalse (result.hasId ());
+      assertNotNull (result.getHost ());
+      assertNotNull (result.getData ());
+      assertEquals (host, bytesToHex (result.getHost ()));
+      assertEquals (data, bytesToHex (result.getData ()));
+   }
+
+   @Test public void binaryAndFixedWithId () throws BlinkException, IOException
+   {
+      String host = "3e 6d 3c ea";
+      String data = "01 02 03";
+      String id = "28 85 c0 3d 55 2c 48 75 a5 43 c4 7a 1c d1 64 9a";
+
+      Msg msg = new Msg ();
+      msg.setHost (hexToBytes (host));
+      msg.setId (hexToBytes (id));
+      msg.setData (hexToBytes (data));
+
+      Msg result = (Msg)compactRoundtrip (
+         "Msg/1 ->" +
+         "  fixed (4) Host," +
+         "  fixed (16) Id?," +
+         "  binary Data",
+         msg);
+
+      assertTrue (result.hasId ());
+      assertNotNull (result.getHost ());
+      assertNotNull (result.getId ());
+      assertNotNull (result.getData ());
+      assertEquals (host, bytesToHex (result.getHost ()));
+      assertEquals (id, bytesToHex (result.getId ()));
+      assertEquals (data, bytesToHex (result.getData ()));
+   }   
+
    //////////////////////////////////////////////////////////////////////
    
    private static void decodeCompact (String schema, String data, Block result)
@@ -950,6 +1017,19 @@ public class TestCases
       }
 
       return data;
+   }
+
+   public static String bytesToHex (byte [] val)
+   {
+      StringBuilder sb = new StringBuilder ();
+      int pos = 0;
+      for (byte b : val)
+      {
+         if (pos ++ > 0)
+            sb.append (' ');
+         sb.append (String.format ("%02x", b));
+      }
+      return sb.toString ();
    }
 
    private static void roundtrip (byte in) throws BlinkException

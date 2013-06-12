@@ -337,7 +337,29 @@ public final class CompactWriter implements Writer
       Vlc.writeU32 (size, sink);
       sink.setPos (save);
    }
-   
+
+   public static void writeBinary (byte [] val, ByteSink sink)
+      throws BlinkException.Encode
+   {
+      Vlc.writeU32 (val.length, sink);
+      sink.reserve (val.length);
+      sink.write (val);
+   }
+
+   public static void writeFixed (byte [] val, int fixedSize, ByteSink sink)
+      throws BlinkException.Encode
+   {
+      sink.reserve (fixedSize);
+      if (val.length >= fixedSize)
+         sink.write (val, 0, fixedSize);
+      else
+      {
+         sink.write (val);
+         for (int i = 0, pad = fixedSize - val.length; i < pad; ++ i)
+            sink.write (0);
+      }
+   }
+
    public static void writeU8Array (byte [] val, ByteSink sink)
       throws BlinkException.Encode
    {
@@ -488,6 +510,23 @@ public final class CompactWriter implements Writer
       Vlc.writeU32 (val.length, sink);
       for (int i = 0; i < val.length; ++ i)
          writeString (val [i], sink);
+   }
+
+   public static void writeBinaryArray (byte [][] val, ByteSink sink)
+      throws BlinkException.Encode
+   {
+      Vlc.writeU32 (val.length, sink);
+      for (int i = 0; i < val.length; ++ i)
+         writeBinary (val [i], sink);
+   }
+
+   public static void writeFixedArray (byte [][] val, int fixedSize,
+                                       ByteSink sink)
+      throws BlinkException.Encode
+   {
+      Vlc.writeU32 (val.length, sink);
+      for (int i = 0; i < val.length; ++ i)
+         writeFixed (val [i], fixedSize, sink);
    }
 
    public void writeObjectArray (Object [] val) throws BlinkException

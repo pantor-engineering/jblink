@@ -159,7 +159,7 @@ public final class CompactReaderCompiler
       dc.setFlags (DynClass.ClassFlag.Final);
 
       String ctorSig = "(Ljava/lang/Class;Lcom/pantor/blink/Schema$Group;" +
-                       "Lcom/pantor/blink/Observer;)V";
+         "Lcom/pantor/blink/Observer;)V";
       
       dc.setSuper ("com.pantor.blink.CompactReader$Decoder");
 
@@ -174,12 +174,13 @@ public final class CompactReaderCompiler
       // void decode (src, tgt, rd)
 
       String decSig = "(Lcom/pantor/blink/ByteSource;Ljava/lang/Object;" +
-                      "Lcom/pantor/blink/CompactReader;)V";
+         "Lcom/pantor/blink/CompactReader;)V";
 
       String tgtName = bnd.getTargetType ().getName ();
 
       String innerSig = "(Lcom/pantor/blink/ByteSource;L" +
-                        DynClass.toInternal (tgtName) + ";Lcom/pantor/blink/CompactReader;)V";
+         DynClass.toInternal (tgtName) +
+         ";Lcom/pantor/blink/CompactReader;)V";
       
       dc.startPublicMethod ("decode", decSig)
          .aload1 ().aload2 ().checkCast (tgtName).aload3 ()
@@ -334,10 +335,16 @@ public final class CompactReaderCompiler
       {
          if (t.isPrimitive ())
          {
-            dc.aload0 (); // src, #depth: 2
-            String decMtod = "read" + t.getType ().getCode ().toString ();
-            String retType = CodegenUtil.mapTypeDescr (t.getType ().getCode ());
-            invokeReader (dc, decMtod, retType);
+            if (t.getType ().getCode () == Schema.TypeCode.Fixed)
+               compileFixedField (f, dc);
+            else
+            {
+               dc.aload0 (); // src, #depth: 2
+               String decMtod = "read" + t.getType ().getCode ().toString ();
+               String retType =
+                  CodegenUtil.mapTypeDescr (t.getType ().getCode ());
+               invokeReader (dc, decMtod, retType);
+            }
          }
          else if (t.isEnum ())
          {
@@ -355,12 +362,17 @@ public final class CompactReaderCompiler
       {
          if (t.isPrimitive ())
          {
-            Schema.TypeCode c = t.getType ().getCode ();
-            String decMtod = "read" + c.toString () + "Array";
-            String retType = "[" + CodegenUtil.mapTypeDescr (c);
-            dc.aload0 (); // src, #depth: 2
-            dc.invokeStatic ("com/pantor/blink/CompactReader", decMtod,
-                             "(Lcom/pantor/blink/ByteSource;)" + retType);
+            if (t.getType ().getCode () == Schema.TypeCode.Fixed)
+               compileFixedArrayField (f, dc);
+            else
+            {
+               Schema.TypeCode c = t.getType ().getCode ();
+               String decMtod = "read" + c.toString () + "Array";
+               String retType = "[" + CodegenUtil.mapTypeDescr (c);
+               dc.aload0 (); // src, #depth: 2
+               dc.invokeStatic ("com/pantor/blink/CompactReader", decMtod,
+                                "(Lcom/pantor/blink/ByteSource;)" + retType);
+            }
          }
          else if (t.isEnum ())
          {
@@ -384,6 +396,38 @@ public final class CompactReaderCompiler
       dc.label (end);
    }
 
+   private void compileFixedField (ObjectModel.Field f, DynClass dc)
+      throws BlinkException
+   {
+      Schema.TypeInfo t = f.getFieldType ();
+      Schema.Field sf = f.getField ();
+      Schema.FixedType ft = (Schema.FixedType)t.getType ();
+
+      if (sf.isOptional ())
+      {
+         dc.aload0 (); // src, #depth: 2
+         invokeReader (dc, "skipByte", "V"); // Skip presence byte
+      }
+
+      dc.aload0 (); // src, #depth: 2
+      dc.ldc (ft.getSize ()); // #depth: 3
+      String retType = CodegenUtil.mapTypeDescr (t.getType ().getCode ());
+      dc.invokeStatic ("com/pantor/blink/CompactReader", "readFixed",
+                       "(Lcom/pantor/blink/ByteSource;I)" + retType);
+   }
+   
+   private void compileFixedArrayField (ObjectModel.Field f, DynClass dc)
+      throws BlinkException
+   {
+      Schema.TypeInfo t = f.getFieldType ();
+      Schema.FixedType ft = (Schema.FixedType)t.getType ();
+      String retType = "[" + CodegenUtil.mapTypeDescr (t.getType ().getCode ());
+      dc.aload0 (); // src, #depth: 2
+      dc.ldc (ft.getSize ()); // #depth: 3
+      dc.invokeStatic ("com/pantor/blink/CompactReader", "readFixedArray",
+                       "(Lcom/pantor/blink/ByteSource;I)" + retType);
+   }
+   
    private void compileGroupField (ObjectModel.Field f, DynClass dc)
       throws BlinkException
    {

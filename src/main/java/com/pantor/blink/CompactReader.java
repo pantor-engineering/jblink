@@ -364,6 +364,23 @@ public final class CompactReader implements Reader
       return src.readUtf8String (Vlc.readU32 (src));
    }
 
+   public static byte [] readBinary (ByteSource src)
+      throws BlinkException.Decode
+   {
+      int len = Vlc.readU32 (src);
+      byte [] val = new byte [len];
+      src.read (val);
+      return val;
+   }
+
+   public static byte [] readFixed (ByteSource src, int len)
+      throws BlinkException.Decode
+   {
+      byte [] val = new byte [len];
+      src.read (val);
+      return val;
+   }
+
    public static byte [] readU8Array (ByteSource src)
       throws BlinkException.Decode
    {
@@ -531,6 +548,26 @@ public final class CompactReader implements Reader
       String [] v = new String [size];
       for (int i = 0; i < size; ++ i)
          v [i] = readString (src);
+      return v;
+   }
+   
+   public static byte [][] readBinaryArray (ByteSource src)
+      throws BlinkException.Decode
+   {
+      int size = Vlc.readU32 (src);
+      byte [][] v = new byte [size][];
+      for (int i = 0; i < size; ++ i)
+         v [i] = readBinary (src);
+      return v;
+   }
+
+   public static byte [][] readFixedArray (ByteSource src, int fixedSize)
+      throws BlinkException.Decode
+   {
+      int size = Vlc.readU32 (src);
+      byte [][] v = new byte [size][];
+      for (int i = 0; i < size; ++ i)
+         v [i] = readFixed (src, fixedSize);
       return v;
    }
    

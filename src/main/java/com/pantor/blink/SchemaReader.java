@@ -86,11 +86,11 @@ public final class SchemaReader
    public static enum Tk
    {
       Undefined, End, Err, Comma, Dot, Eq, Slash, RArrow, LArrow, Int,
-      UInt, Str, Ct, LBrk, RBrk, Colon, QMark, Asterisk, Bar, Hex,
+      UInt, Str, LPar, RPar, LBrk, RBrk, Colon, QMark, Asterisk, Bar, Hex,
       QName, Name, At, KwI8, KwU8, KwI16, KwU16, KwI32, KwU32, KwI64,
       KwU64, KwF64, KwDecimal, KwDate, KwTimeOfDayMilli,
       KwTimeOfDayNano, KwNanotime, KwMillitime, KwBool, KwString,
-      KwObject, KwNamespace, KwType, KwSchema
+      KwBinary, KwFixed, KwObject, KwNamespace, KwType, KwSchema
    }
 
    public interface Observer
@@ -112,7 +112,11 @@ public final class SchemaReader
 
       void onPrimType (Schema.TypeCode t, Schema.Rank r, AnnotSet annots,
                        Location loc);
-      void onStringType (Schema.Rank r, String ct, AnnotSet annots,
+      void onStringType (Schema.Rank r, Integer maxSize, AnnotSet annots,
+                         Location loc) throws BlinkException.Schema;
+      void onBinaryType (Schema.Rank r, Integer maxSize, AnnotSet annots,
+                         Location loc) throws BlinkException.Schema;
+      void onFixedType (Schema.Rank r, int size, AnnotSet annots,
                          Location loc) throws BlinkException.Schema;
       void onTypeRef (String name, Schema.Layout layout, Schema.Rank r,
                       AnnotSet annots, Location loc)
@@ -201,6 +205,8 @@ public final class SchemaReader
       kwMap.put ("millitime", Tk.KwMillitime);
       kwMap.put ("bool", Tk.KwBool);
       kwMap.put ("string", Tk.KwString);
+      kwMap.put ("binary", Tk.KwBinary);
+      kwMap.put ("fixed", Tk.KwFixed);
       kwMap.put ("object", Tk.KwObject);
       kwMap.put ("namespace", Tk.KwNamespace);
       kwMap.put ("type", Tk.KwType);
@@ -409,6 +415,8 @@ public final class SchemaReader
        case '|': setToken (Tk.Bar); break;
        case '[': setToken (Tk.LBrk); break;
        case ']': setToken (Tk.RBrk); break;
+       case '(': setToken (Tk.LPar); break;
+       case ')': setToken (Tk.RPar); break;
        case '@': setToken (Tk.At); break;
 
        case '-':
@@ -435,13 +443,6 @@ public final class SchemaReader
              throw lexError ("Expected dash after '<'");
           break;
 
-       case '(':
-       {
-          setToken (Tk.Ct);
-          readStr (')');
-       }
-       break;
-            
        case '\\':
        {
           pendTok.clearText ();
@@ -809,6 +810,14 @@ public final class SchemaReader
           string ();
           break;
 
+       case KwBinary:
+          binary ();
+          break;
+
+       case KwFixed:
+          fixed ();
+          break;
+
        case KwI8: case KwU8: case KwI16: case KwU16: case KwI32: case KwU32:
        case KwI64: case KwU64: case KwF64: case KwDecimal: case KwDate:
        case KwTimeOfDayMilli: case KwTimeOfDayNano: case KwNanotime:
@@ -844,12 +853,50 @@ public final class SchemaReader
       clearAnnots ();
    }
 
+   private int size (String what) throws IOException, BlinkException.Schema
+   {
+      require (Tk.LPar);
+      String lit = require (Tk.UInt, what);
+      require (Tk.RPar);
+      
+      try
+      {
+         return Integer.parseInt (lit);
+      }
+      catch (NumberFormatException e)
+      {
+         throw error ("Bad " + what + " syntax: " + lit);
+      }
+   }
+   
    private void string () throws IOException, BlinkException.Schema
    {
       next ();
-      String ct = nextOf (Tk.Ct);
+      Integer maxSize = null;
+      if (match (Tk.LPar))
+         maxSize = size ("string max size");
       Schema.Rank r = rank ();
-      obs.onStringType (r, ct, annotations, lastLoc);
+      obs.onStringType (r, maxSize, annotations, lastLoc);
+      clearAnnots ();
+   }
+   
+   private void binary () throws IOException, BlinkException.Schema
+   {
+      next ();
+      Integer maxSize = null;
+      if (match (Tk.LPar))
+         maxSize = size ("binary max size");
+      Schema.Rank r = rank ();
+      obs.onBinaryType (r, maxSize, annotations, lastLoc);
+      clearAnnots ();
+   }
+   
+   private void fixed () throws IOException, BlinkException.Schema
+   {
+      next ();
+      int s = size ("fixed size");
+      Schema.Rank r = rank ();
+      obs.onFixedType (r, s, annotations, lastLoc);
       clearAnnots ();
    }
    
@@ -997,9 +1044,10 @@ public final class SchemaReader
        case Int: return "integer";
        case UInt: return "unsigned integer";
        case Str: return "string literal";
-       case Ct: return "content type";
        case LBrk: return "'['";
        case RBrk: return "']'";
+       case LPar: return "'('";
+       case RPar: return "')'";
        case Colon: return "':'";
        case QMark: return "'?'";
        case Asterisk: return "'*'";
@@ -1025,6 +1073,8 @@ public final class SchemaReader
        case KwMillitime: return "keyword 'millitime'";
        case KwBool: return "keyword 'bool'";
        case KwString: return "keyword 'string'";
+       case KwBinary: return "keyword 'binary'";
+       case KwFixed: return "keyword 'fixed'";
        case KwObject: return "keyword 'object'";
        case KwNamespace: return "keyword 'namespace'";
        case KwType: return "keyword 'type'";
@@ -1053,6 +1103,8 @@ public final class SchemaReader
        case KwMillitime: return Schema.TypeCode.Millitime;
        case KwBool: return Schema.TypeCode.Bool;
        case KwString: return Schema.TypeCode.String;
+       case KwBinary: return Schema.TypeCode.Binary;
+       case KwFixed: return Schema.TypeCode.Fixed;
        case KwObject: return Schema.TypeCode.Object;
        default:
           throw new RuntimeException ("cannot happen");

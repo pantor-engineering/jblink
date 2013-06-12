@@ -52,7 +52,8 @@ public final class Schema extends AnnotatedBase
    public static enum TypeCode
    {
       I8, U8, I16, U16, I32, U32, I64, U64, F64, Decimal, Date, TimeOfDayMilli,
-      TimeOfDayNano, Nanotime, Millitime, Bool, String, Object, Ref, Enum
+      TimeOfDayNano, Nanotime, Millitime, Bool, String, Binary, Fixed, Object,
+      Ref, Enum
    }
 
    public static class Group extends Component implements Iterable<Field>
@@ -277,24 +278,50 @@ public final class Schema extends AnnotatedBase
 
    public static class StrType extends Type
    {
-      public StrType (String ct, Rank rank, AnnotSet annots, Location loc)
+      public StrType (Integer maxSize, Rank rank, AnnotSet annots, Location loc)
       {
-         super (TypeCode.String, rank, annots, loc);
-         contentType = ct;
+         this (TypeCode.String, maxSize, rank, annots, loc);
+      }
+
+      public StrType (TypeCode code, Integer maxSize, Rank rank,
+                      AnnotSet annots, Location loc)
+      {
+         super (code, rank, annots, loc);
+         this.maxSize = maxSize;
       }
 
       @Override
       public String toString ()
       {
-         String ct = "";
-         if (Util.isSet (contentType))
-            ct = " (" + contentType + ")";
-         return getAnnotStr (" ") + "string" + ct +
-            (isSequence () ? " []" : "");
+         String mx = "";
+         if (maxSize != null)
+            mx = " (" + maxSize + ")";
+         return getAnnotStr (" ") + Util.decapitalize (getCode ().name ()) +
+            mx + (isSequence () ? " []" : "");
       }
 
-      public String getContentType () { return contentType; }
-      private final String contentType;
+      public Integer getMaxSize () { return maxSize; }
+      public boolean hasMaxSize () { return maxSize != null; }
+      private final Integer maxSize;
+   }
+
+   public static class FixedType extends Type
+   {
+      public FixedType (int size, Rank rank, AnnotSet annots, Location loc)
+      {
+         super (TypeCode.Fixed, rank, annots, loc);
+         this.size = size;
+      }
+
+      @Override
+      public String toString ()
+      {
+         return getAnnotStr (" ") + Util.decapitalize (getCode ().name ()) +
+            "(" + size + ")" + (isSequence () ? " []" : "");
+      }
+
+      public int getSize () { return size; }
+      private final int size;
    }
 
    public static class Ref extends Type
@@ -754,7 +781,8 @@ public final class Schema extends AnnotatedBase
             else
                log.warning (String.format (
                                "%s: warning: No such field in incremental " +
-                               "annotation: %s.%s", a.getLocation (), a.name, a.substep));
+                               "annotation: %s.%s", a.getLocation (), a.name,
+                               a.substep));
          }
          else
          {
@@ -769,8 +797,9 @@ public final class Schema extends AnnotatedBase
       }
       else
          log.warning (String.format (
-                         "%s: warning: No such group or define in incremental " +
-                         "annotation: %s", a.getLocation (), a.name));
+                         "%s: warning: No such group or define in " +
+                         "incremental annotation: %s", a.getLocation (),
+                         a.name));
    }
 
    private void checkAndResolve () throws BlinkException.Schema

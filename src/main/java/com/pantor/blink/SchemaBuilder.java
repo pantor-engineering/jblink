@@ -114,11 +114,25 @@ public class SchemaBuilder implements SchemaReader.Observer
       pendType = new Schema.Type (t, r, annots, loc);
    }
       
-   @Override public void onStringType (Schema.Rank r, String ct,
+   @Override public void onStringType (Schema.Rank r, Integer maxSize,
                                        AnnotSet annots,
                                        Location loc)
    {
-      pendType = new Schema.StrType (ct, r, annots, loc);
+      pendType = new Schema.StrType (maxSize, r, annots, loc);
+   }
+   
+   @Override public void onBinaryType (Schema.Rank r, Integer maxSize,
+                                       AnnotSet annots,
+                                       Location loc)
+   {
+      pendType = new Schema.StrType (Schema.TypeCode.Binary, maxSize, r,
+                                     annots, loc);
+   }
+
+   @Override public void onFixedType (Schema.Rank r, int size, AnnotSet annots,
+                                       Location loc)
+   {
+      pendType = new Schema.FixedType (size, r, annots, loc);
    }
    
    @Override public void onTypeRef (String name, Schema.Layout layout,
