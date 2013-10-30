@@ -42,7 +42,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.ByteArrayOutputStream;
-import java.util.logging.Logger;
 
 /**
    The {@code Client} class provides a basic Blink-capable UDP or TCP client.
@@ -252,7 +251,7 @@ public final class Client implements Runnable
       {
          while (e.getCause () != null)
             e = e.getCause ();
-         log.severe (String.format ("%s: %s", sock, e));
+         log.fatal (String.format ("%s: %s", sock, e), e);
       }
    }
 
@@ -390,6 +389,32 @@ public final class Client implements Runnable
 	 udpsock.send (p);
       }
    }
+
+   /**
+      Sends a collection of messages to the server
+
+      @param objs the messages to send
+      @throws BlinkException if there is a schema or binding problem
+      @throws IOException if there is a socket or communications problem
+   */
+
+   public void send (Iterable<?> objs) throws BlinkException, IOException
+   {
+      wr.write (objs);
+      wr.flush ();
+
+      if (udpsock != null)
+      {
+	 byte [] data = bs.toByteArray ();
+	 bs.reset ();
+	 DatagramPacket p =
+	    new DatagramPacket (data, data.length,
+				udpsock.getRemoteSocketAddress ());
+	 udpsock.send (p);
+      }
+   }
+
+   
    /**
       Closes this client by closing the output stream
 
@@ -408,6 +433,5 @@ public final class Client implements Runnable
    private final OutputStream os;
    private final CompactWriter wr;
    private final ByteArrayOutputStream bs;
-
-   private static final Logger log = Logger.getLogger (Client.class.getName ());
+   private final Logger log = Logger.Manager.getLogger (Client.class);
 }

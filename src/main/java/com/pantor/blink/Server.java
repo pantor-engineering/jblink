@@ -40,7 +40,6 @@ import java.net.Socket;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.logging.Logger;
 
 public final class Server
 {
@@ -153,7 +152,7 @@ public final class Server
          {
             while (e.getCause () != null)
                e = e.getCause ();
-            log.severe (String.format ("%s: %s", sock, e));
+            log.fatal (String.format ("%s: %s", sock, e), e);
          }
       }
 
@@ -196,12 +195,11 @@ public final class Server
       private final CompactWriter wr;
       private final DefaultObsRegistry oreg;
       private final OutputStream os;
+      private final Logger log = Logger.Manager.getLogger (Session.class);
    }
-   
 
    private final ObjectModel om;
    private final ConnectionObserver cobs;
    private final int port;
-
-   private static final Logger log = Logger.getLogger (Server.class.getName ());
+   private final Logger log = Logger.Manager.getLogger (Server.class);
 }

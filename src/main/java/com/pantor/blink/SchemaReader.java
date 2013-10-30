@@ -42,7 +42,6 @@ import java.io.IOException;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.logging.Logger;
 
 public final class SchemaReader
 {
@@ -1217,7 +1216,7 @@ public final class SchemaReader
 
    private void warning (String msg, int line)
    {
-      log.warning (String.format ("%s:%d: warning: %s%n", srcName, line, msg));
+      log.warn (String.format ("%s:%d: warning: %s%n", srcName, line, msg));
    }
    
    // State
@@ -1252,6 +1251,5 @@ public final class SchemaReader
    private int lastNameLine;
    private Location lastLoc;
 
-   private final static Logger log =
-      Logger.getLogger (SchemaReader.class.getName ());
+   private final Logger log = Logger.Manager.getLogger (SchemaReader.class);
 }

@@ -40,7 +40,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.logging.Logger;
 
 public final class Schema extends AnnotatedBase
 {
@@ -779,10 +778,10 @@ public final class Schema extends AnnotatedBase
                }
             }
             else
-               log.warning (String.format (
-                               "%s: warning: No such field in incremental " +
-                               "annotation: %s.%s", a.getLocation (), a.name,
-                               a.substep));
+               log.warn (String.format (
+                            "%s: warning: No such field in incremental " +
+                            "annotation: %s.%s", a.getLocation (), a.name,
+                            a.substep));
          }
          else
          {
@@ -796,10 +795,10 @@ public final class Schema extends AnnotatedBase
          }
       }
       else
-         log.warning (String.format (
-                         "%s: warning: No such group or define in " +
-                         "incremental annotation: %s", a.getLocation (),
-                         a.name));
+         log.warn (String.format (
+                      "%s: warning: No such group or define in " +
+                      "incremental annotation: %s", a.getLocation (),
+                      a.name));
    }
 
    private void checkAndResolve () throws BlinkException.Schema
@@ -1021,5 +1020,5 @@ public final class Schema extends AnnotatedBase
    private final ArrayList<IncrAnnot> pendIncrAnnots =
       new ArrayList<IncrAnnot> ();
 
-   private final static Logger log = Logger.getLogger (Schema.class.getName ());
+   private final Logger log = Logger.Manager.getLogger (Schema.class);
 }
