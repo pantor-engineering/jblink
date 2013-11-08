@@ -83,6 +83,12 @@ clnt.send (new Logon ("me", "abracadabra"));</pre></blockquote>
 
 public final class Client implements Runnable
 {
+   public static interface PacketObserver
+   {
+      void onPacketStart ();
+      void onPacketEnd ();
+   };
+   
    /**
       Creates a client that will connect to the specified address.
       It will map messages as defined by the specified object model.
@@ -208,6 +214,16 @@ public final class Client implements Runnable
    }
 
    /**
+      Sets a packet observer. If set, the packet observer will be
+      notified about packet boundaries.
+   */
+   
+   public void setPacketObserver (PacketObserver packetObs)
+   {
+      this.packetObs = packetObs;
+   }
+   
+   /**
       Adds an observer for received messages. The observer will be
       added to a {@link DefaultObsRegistry} managed by the client.
       The names of methods considered as observer methods must start
@@ -291,7 +307,14 @@ public final class Client implements Runnable
             for (;;)
             {
                udpsock.receive (p);
-               rd.read (buf, 0, p.getLength ());
+               if (packetObs != null)
+               {
+                  packetObs.onPacketStart ();
+                  rd.read (buf, 0, p.getLength ());
+                  packetObs.onPacketEnd ();
+               }
+               else
+                  rd.read (buf, 0, p.getLength ());
             }
          }
       }
@@ -434,4 +457,5 @@ public final class Client implements Runnable
    private final CompactWriter wr;
    private final ByteArrayOutputStream bs;
    private final Logger log = Logger.Manager.getLogger (Client.class);
+   private PacketObserver packetObs;
 }
