@@ -288,6 +288,10 @@ public final class CompactWriterCompiler
          tid = new byte [tidBuf.size ()];
          tidBuf.read (tid);
       }
+      else
+         throw new BlinkException ("No type identifier specified for " +
+                                   g.getName () +
+                                   " when encoding into compact binary");
       
       CompactWriter.Encoder enc = createInstance (tid, dc, bnd);
 
