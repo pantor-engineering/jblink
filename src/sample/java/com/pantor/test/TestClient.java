@@ -5,7 +5,6 @@ package com.pantor.test;
 
 import com.pantor.blink.DefaultObjectModel;
 import com.pantor.blink.Client;
-import com.pantor.blink.Schema;
 
 public class TestClient
 {
