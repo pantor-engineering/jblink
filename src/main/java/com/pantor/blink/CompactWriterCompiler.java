@@ -83,8 +83,6 @@ public final class CompactWriterCompiler
    {
       ObjectModel.GroupBinding bnd = om.getGroupBinding (cl);
       CompactWriter.Encoder e = getEncoder (bnd.getGroup ().getName ());
-      if (e == null)
-         e = compile (bnd);
       encByClass.put (cl, e);
       return e;
    }
@@ -288,10 +286,6 @@ public final class CompactWriterCompiler
          tid = new byte [tidBuf.size ()];
          tidBuf.read (tid);
       }
-      else
-         throw new BlinkException ("No type identifier specified for " +
-                                   g.getName () +
-                                   " when encoding into compact binary");
       
       CompactWriter.Encoder enc = createInstance (tid, dc, bnd);
 

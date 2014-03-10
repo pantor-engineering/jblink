@@ -563,6 +563,7 @@ public final class CompactWriter implements Writer
       try
       {
          enc = compiler.getEncoder (o.getClass ());
+         enc.requireTid ();
          sink.reserve (enc.getTidSize () + 2 /* Size preamble */);
          sink.step (2); // Reserve space for a two byte length preamble
          int start = sink.getPos ();
@@ -605,6 +606,14 @@ public final class CompactWriter implements Writer
          throws BlinkException.Encode, BlinkException.Binding;
       
       public int getTidSize () { return tid.length; }
+
+      public void requireTid () throws BlinkException
+      {
+         if (tid == null)
+            throw new BlinkException ("No type identifier specified for " +
+                                      grp.getName () +
+                                      " when encoding into compact binary");
+      }
       
       protected final byte [] tid;
       private final Class<?> type;
