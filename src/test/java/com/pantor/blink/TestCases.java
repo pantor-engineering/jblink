@@ -611,6 +611,8 @@ public class TestCases
    {
       ObjectModel om = toModel ("Foo/1 -> u32 Bar");
       DefaultObsRegistry oreg = new DefaultObsRegistry (om);
+      oreg.setLoadMode (DefaultObsRegistry.LoadMode.Privileged);
+         ;
       final Foo [] sink = new Foo [1];
       oreg.addObserver (
          new Object() { public void onFoo (Foo foo) { sink [0] = foo; } });
@@ -629,6 +631,7 @@ public class TestCases
    {
       ObjectModel om = toModel ("Foo/1 -> u32 Bar");
       DefaultObsRegistry oreg = new DefaultObsRegistry (om);
+      oreg.setLoadMode (DefaultObsRegistry.LoadMode.Privileged);
       FooObs obs = new FooObs ();
       oreg.addObserver (obs);
       oreg.addObserver (obs); // Overrides the previous observer

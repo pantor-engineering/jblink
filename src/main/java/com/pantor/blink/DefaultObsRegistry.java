@@ -45,9 +45,63 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public final class DefaultObsRegistry implements ObserverRegistry 
 {
-   public DefaultObsRegistry (ObjectModel om)
+   public enum LoadMode
+   {
+      Public, Privileged
+   }
+
+   /**
+      Creates an observer registry that allows type specific observers
+      to registered in number of ways.
+
+      <p>The most convenient way of register a set of type specific
+      observers is to use the {@code addObserver} method that takes a
+      POJO argument. The registry will autodetect methods on the
+      supplied object based on their signature and a prefix of the
+      method name.</p>
+
+      <p>In the following example the registry will recognize two type
+      specific observer methods: {@code onFoo} and {@code onBar} based
+      on the prefix "on" and their argument types. It will also
+      recognize the {@code onAny} method as a fallback observer that
+      will receive any object that was not matched by any more
+      specific observer.</p>
+      
+      <pre>{@code
+public class MyObserver
+{
+public void onFoo (Foo msg) { ... }
+public void onBar (Bar msg) { ... }
+public void onAny (Object msg) { ... }
+}
+}
+
+// ...
+
+reg.addObserver (new MyObserver ());</pre>
+
+      <p>By default the registry requires all methods of an POJO
+      observer to have public visibility. This also allows any
+      internally generated classes to be loaded by a private class
+      loader that can garbage collected when not needed
+      anymore. However, if you like to have more restricted visibility
+      on your observer methods, you must specify {@code
+      LoadMode.Privileged} when creating the registry. In this case
+      any generated classes will be loaded by the class loader of the
+      specified POJO observer. Since the class loader of the observer
+      typically is the main class loader of the whole application, the
+      generated classes will never be garbage collected, even when
+      they are not used anymore.</p>
+      
+      @param om the object model
+      @param loadMode specifies how to load dynamically generated
+      internal classes
+    */
+   
+   public DefaultObsRegistry (ObjectModel om, LoadMode loadMode)
    {
       this.om = om;
+      this.loadMode = loadMode;
       if (om != null)
          this.dload = new DynClassLoader ();
       else
@@ -56,7 +110,17 @@ public final class DefaultObsRegistry implements ObserverRegistry
 
    public DefaultObsRegistry ()
    {
-      this (null);
+      this (null, LoadMode.Public);
+   }
+
+   public DefaultObsRegistry (ObjectModel om)
+   {
+      this (om, LoadMode.Public);
+   }
+
+   public DefaultObsRegistry (LoadMode loadMode)
+   {
+      this (null, loadMode);
    }
 
    @Override
@@ -151,6 +215,11 @@ public final class DefaultObsRegistry implements ObserverRegistry
                                      "specified: " + obs.getClass ());
    }
 
+   public void setLoadMode (LoadMode loadMode)
+   {
+      this.loadMode = loadMode;
+   }
+   
    private boolean addObserver (Method m, Object obs) throws BlinkException
    {
       if (m.getReturnType () == void.class &&
@@ -283,8 +352,12 @@ public final class DefaultObsRegistry implements ObserverRegistry
    {
       try
       {
+         Class<?> obsClass;
          Class<?> pojoObsClass = obs.getClass ();
-         Class<?> obsClass = dload.loadPrivileged (dc, pojoObsClass);
+         if (loadMode == LoadMode.Privileged)
+            obsClass = dload.loadPrivileged (dc, pojoObsClass);
+         else
+            obsClass = dload.load (dc);
          Constructor<?> ctor = obsClass.getConstructor (pojoObsClass);
          return (Observer)ctor.newInstance (obs);
       }
@@ -327,7 +400,8 @@ public final class DefaultObsRegistry implements ObserverRegistry
    {
       return s + uniqueId.getAndIncrement ();
    }
-   
+
+   private LoadMode loadMode;
    private final HashMap<NsName, Observer> obsByName =
       new HashMap <NsName, Observer> ();
    private final ObjectModel om;
