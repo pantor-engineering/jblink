@@ -152,7 +152,7 @@ public final class Server
          {
             while (e.getCause () != null)
                e = e.getCause ();
-            log.fatal (String.format ("%s: %s", sock, e), e);
+            log.fatal (e, "%s: %s", sock, e);
          }
       }
 
