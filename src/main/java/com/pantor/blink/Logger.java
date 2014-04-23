@@ -37,23 +37,23 @@ package com.pantor.blink;
 
 public interface Logger
 {
-   void fatal (String msg);
-   void fatal (String msg, Throwable e);
+   void fatal (String msg, Object... args);
+   void fatal (Throwable e, String msg, Object... args);
 
-   void error (String msg);
-   void error (String msg, Throwable e);
+   void error (String msg, Object... args);
+   void error (Throwable e, String msg, Object... args);
 
-   void warn (String msg);
-   void warn (String msg, Throwable e);
+   void warn (String msg, Object... args);
+   void warn (Throwable e, String msg, Object... args);
 
-   void info (String msg);
-   void info (String msg, Throwable e);
+   void info (String msg, Object... args);
+   void info (Throwable e, String msg, Object... args);
 
-   void debug (String msg);
-   void debug (String msg, Throwable e);
+   void debug (String msg, Object... args);
+   void debug (Throwable e, String msg, Object... args);
 
-   void trace (String msg);
-   void trace (String msg, Throwable e);
+   void trace (String msg, Object... args);
+   void trace (Throwable e, String msg, Object... args);
 
    public enum Level
    {

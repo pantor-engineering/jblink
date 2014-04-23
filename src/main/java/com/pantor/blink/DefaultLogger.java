@@ -50,64 +50,64 @@ public class DefaultLogger implements Logger
       this (cl.getName ());
    }
 
-   @Override public void fatal (String msg)
+   @Override public void fatal (String msg, Object... args)
    {
-      log.severe (msg);
+      log.severe (String.format (msg, args));
    }
    
-   @Override public void fatal (String msg, Throwable e)
+   @Override public void fatal (Throwable e, String msg, Object... args)
    {
-      log.severe (format (msg, e));
+      log.severe (format (msg, args, e));
    }
 
-   @Override public void error (String msg)
+   @Override public void error (String msg, Object... args)
    {
-      log.severe (msg);
+      log.severe (String.format (msg, args));
    }
 
-   @Override public void error (String msg, Throwable e)
+   @Override public void error (Throwable e, String msg, Object... args)
    {
-      log.severe (format (msg, e));
+      log.severe (format (msg, args, e));
    }
 
-   @Override public void warn (String msg)
+   @Override public void warn (String msg, Object... args)
    {
-      log.warning (msg);
+      log.warning (String.format (msg, args));
    }
 
-   @Override public void warn (String msg, Throwable e)
+   @Override public void warn (Throwable e, String msg, Object... args)
    {
-      log.warning (format (msg, e));
+      log.warning (format (msg, args, e));
    }
 
-   @Override public void info (String msg)
+   @Override public void info (String msg, Object... args)
    {
-      log.info (msg);
+      log.info (String.format (msg, args));
    }
    
-   @Override public void info (String msg, Throwable e)
+   @Override public void info (Throwable e, String msg, Object... args)
    {
-      log.info (format (msg, e));
+      log.info (format (msg, args, e));
    }
 
-   @Override public void debug (String msg)
+   @Override public void debug (String msg, Object... args)
    {
-      log.fine (msg);
+      log.fine (String.format (msg, args));
    }
 
-   @Override public void debug (String msg, Throwable e)
+   @Override public void debug (Throwable e, String msg, Object... args)
    {
-      log.fine (format (msg, e));
+      log.fine (format (msg, args, e));
    }
 
-   @Override public void trace (String msg)
+   @Override public void trace (String msg, Object... args)
    {
-      log.finest (msg);
+      log.finest (String.format (msg, args));
    }
-   
-   @Override public void trace (String msg, Throwable e)
+
+   @Override public void trace (Throwable e, String msg, Object... args)
    {
-      log.finest (format (msg, e));
+      log.finest (format (msg, args, e));
    }
 
    @Override public boolean isActiveAtLevel (Logger.Level level)
@@ -129,12 +129,12 @@ public class DefaultLogger implements Logger
       }
    }
 
-   private static String format (String msg, Throwable e)
+   private static String format (String msg, Object [] args, Throwable e)
    {
       StringWriter sw = new StringWriter ();
       PrintWriter pw = new PrintWriter (sw);
       e.printStackTrace (pw);
-      return sw.toString ();
+      return String.format (msg, args) + ": " + sw.toString ();
    }
    
    private final java.util.logging.Logger log;
