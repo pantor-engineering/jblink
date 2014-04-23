@@ -265,6 +265,20 @@ public final class CompactReader implements Reader
             "more data to finish an incomplete trailing " +
             "message");
    }
+
+   /**
+      Resets this reader to an initial state, discarding any incompletely
+      read messages
+   */
+
+   @Override
+   public void reset ()
+   {
+      missingData = 0;
+      missingMsgSizeBytes = 0;
+      pendData.clear ();
+      pendMsgSizePreamble.clear ();
+   }
    
    // Primitive values
    //////////////////////////////////////////////////////////////////////
@@ -320,6 +334,12 @@ public final class CompactReader implements Reader
       byte exp = Vlc.readI8 (src);
       long mant = Vlc.readI64 (src);
       return Decimal.valueOf (mant, exp);
+   }
+
+   public static long readFixedDec (ByteSource src)
+      throws BlinkException.Decode
+   {
+      return readI64 (src);
    }
 
    public static int readDate (ByteSource src)
@@ -459,6 +479,12 @@ public final class CompactReader implements Reader
       for (int i = 0; i < size; ++ i)
          v [i] = Vlc.readI64 (src);
       return v;
+   }
+
+   public static long [] readFixedDecArray (ByteSource src)
+      throws BlinkException.Decode
+   {
+      return readI64Array (src);
    }
    
    public static double [] readF64Array (ByteSource src)
@@ -601,7 +627,7 @@ public final class CompactReader implements Reader
    {
       src.step ();
    }
-
+   
    //////////////////////////////////////////////////////////////////////
 
    public abstract static class Decoder implements Creator
@@ -866,7 +892,7 @@ public final class CompactReader implements Reader
       // FIXME
       return new BlinkException.Decode ("Premature end of message", context);
    }
-
+   
    private final CompactReaderCompiler compiler;
    private final Buf pendData = DirectBuf.newInstance ();
    private final Buf pendMsgSizePreamble = DirectBuf.newInstance (5);

@@ -50,9 +50,9 @@ public final class Schema extends AnnotatedBase
 
    public static enum TypeCode
    {
-      I8, U8, I16, U16, I32, U32, I64, U64, F64, Decimal, Date, TimeOfDayMilli,
-      TimeOfDayNano, Nanotime, Millitime, Bool, String, Binary, Fixed, Object,
-      Ref, Enum
+      I8, U8, I16, U16, I32, U32, I64, U64, F64, Decimal, FixedDec, Date,
+      TimeOfDayMilli, TimeOfDayNano, Nanotime, Millitime, Bool, String, Binary,
+      Fixed, Object, Ref, Enum
    }
 
    public static class Group extends Component implements Iterable<Field>
@@ -321,6 +321,25 @@ public final class Schema extends AnnotatedBase
 
       public int getSize () { return size; }
       private final int size;
+   }
+
+   public static class FixedDecType extends Type
+   {
+      public FixedDecType (int scale, Rank rank, AnnotSet annots, Location loc)
+      {
+         super (TypeCode.FixedDec, rank, annots, loc);
+         this.scale = scale;
+      }
+
+      @Override
+      public String toString ()
+      {
+         return getAnnotStr (" ") + Util.decapitalize (getCode ().name ()) +
+            "(" + scale + ")" + (isSequence () ? " []" : "");
+      }
+
+      public int getScale () { return scale; }
+      private final int scale;
    }
 
    public static class Ref extends Type
@@ -778,10 +797,9 @@ public final class Schema extends AnnotatedBase
                }
             }
             else
-               log.warn (String.format (
-                            "%s: warning: No such field in incremental " +
-                            "annotation: %s.%s", a.getLocation (), a.name,
-                            a.substep));
+               log.warn ("%s: warning: No such field in incremental " +
+                         "annotation: %s.%s", a.getLocation (), a.name,
+                         a.substep);
          }
          else
          {
@@ -795,10 +813,9 @@ public final class Schema extends AnnotatedBase
          }
       }
       else
-         log.warn (String.format (
-                      "%s: warning: No such group or define in " +
-                      "incremental annotation: %s", a.getLocation (),
-                      a.name));
+         log.warn ("%s: warning: No such group or define in " +
+                   "incremental annotation: %s", a.getLocation (),
+                   a.name);
    }
 
    private void checkAndResolve () throws BlinkException.Schema

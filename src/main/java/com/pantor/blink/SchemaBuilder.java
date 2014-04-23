@@ -134,6 +134,12 @@ public class SchemaBuilder implements SchemaReader.Observer
    {
       pendType = new Schema.FixedType (size, r, annots, loc);
    }
+
+   @Override public void onFixedDecType (Schema.Rank r, int scale,
+                                         AnnotSet annots, Location loc)
+   {
+      pendType = new Schema.FixedDecType (scale, r, annots, loc);
+   }
    
    @Override public void onTypeRef (String name, Schema.Layout layout,
                                     Schema.Rank r, AnnotSet annots,

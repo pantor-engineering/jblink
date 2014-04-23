@@ -228,6 +228,12 @@ public final class CompactWriter implements Writer
       Vlc.writeI64 (val, sink);
    }
 
+   public static void writeFixedDec (long val, ByteSink sink)
+      throws BlinkException.Encode
+   {
+      Vlc.writeI64 (val, sink);
+   }
+
    public static void writeF64 (double val, ByteSink sink)
       throws BlinkException.Encode
    {
@@ -430,6 +436,12 @@ public final class CompactWriter implements Writer
       sink.reserve (val.length * Vlc.Int64MaxSize);
       for (int i = 0; i < val.length; ++ i)
          Vlc.writeI64 (val [i], sink);
+   }
+
+   public static void writeFixedDecArray (long [] val, ByteSink sink)
+      throws BlinkException.Encode
+   {
+      writeI64Array (val, sink);
    }
 
    public static void writeF64Array (double [] val, ByteSink sink)

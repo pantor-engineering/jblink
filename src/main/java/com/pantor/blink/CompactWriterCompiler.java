@@ -628,6 +628,7 @@ public final class CompactWriterCompiler
        case I64: case U64:   return Vlc.Int64MaxSize;
        case F64:             return Vlc.Int64MaxSize;
        case Decimal:         return Vlc.Int8MaxSize + Vlc.Int64MaxSize;
+       case FixedDec:        return Vlc.Int64MaxSize;
        case Date:            return Vlc.Int32MaxSize;
        case TimeOfDayMilli:  return Vlc.Int32MaxSize;
        case TimeOfDayNano:   return Vlc.Int64MaxSize;

@@ -87,7 +87,7 @@ public final class SchemaReader
       Undefined, End, Err, Comma, Dot, Eq, Slash, RArrow, LArrow, Int,
       UInt, Str, LPar, RPar, LBrk, RBrk, Colon, QMark, Asterisk, Bar, Hex,
       QName, Name, At, KwI8, KwU8, KwI16, KwU16, KwI32, KwU32, KwI64,
-      KwU64, KwF64, KwDecimal, KwDate, KwTimeOfDayMilli,
+      KwU64, KwF64, KwDecimal, KwFixedDec, KwDate, KwTimeOfDayMilli,
       KwTimeOfDayNano, KwNanotime, KwMillitime, KwBool, KwString,
       KwBinary, KwFixed, KwObject, KwNamespace, KwType, KwSchema
    }
@@ -117,6 +117,8 @@ public final class SchemaReader
                          Location loc) throws BlinkException.Schema;
       void onFixedType (Schema.Rank r, int size, AnnotSet annots,
                          Location loc) throws BlinkException.Schema;
+      void onFixedDecType (Schema.Rank r, int scale, AnnotSet annots,
+                           Location loc) throws BlinkException.Schema;
       void onTypeRef (String name, Schema.Layout layout, Schema.Rank r,
                       AnnotSet annots, Location loc)
          throws BlinkException.Schema;
@@ -197,6 +199,7 @@ public final class SchemaReader
       kwMap.put ("u64", Tk.KwU64);
       kwMap.put ("f64", Tk.KwF64);
       kwMap.put ("decimal", Tk.KwDecimal);
+      kwMap.put ("fixedDec", Tk.KwFixedDec);
       kwMap.put ("date", Tk.KwDate);
       kwMap.put ("timeOfDayMilli", Tk.KwTimeOfDayMilli);
       kwMap.put ("timeOfDayNano", Tk.KwTimeOfDayNano);
@@ -817,6 +820,10 @@ public final class SchemaReader
           fixed ();
           break;
 
+       case KwFixedDec:
+          fixedDec ();
+          break;
+          
        case KwI8: case KwU8: case KwI16: case KwU16: case KwI32: case KwU32:
        case KwI64: case KwU64: case KwF64: case KwDecimal: case KwDate:
        case KwTimeOfDayMilli: case KwTimeOfDayNano: case KwNanotime:
@@ -896,6 +903,15 @@ public final class SchemaReader
       int s = size ("fixed size");
       Schema.Rank r = rank ();
       obs.onFixedType (r, s, annotations, lastLoc);
+      clearAnnots ();
+   }
+   
+   private void fixedDec () throws IOException, BlinkException.Schema
+   {
+      next ();
+      int s = size ("fixed decimal scale");
+      Schema.Rank r = rank ();
+      obs.onFixedDecType (r, s, annotations, lastLoc);
       clearAnnots ();
    }
    
@@ -1065,6 +1081,7 @@ public final class SchemaReader
        case KwU64: return "keyword 'u64'";
        case KwF64: return "keyword 'f64'";
        case KwDecimal: return "keyword 'decimal'";
+       case KwFixedDec: return "keyword 'fixedDec'";
        case KwDate: return "'keyword date'";
        case KwTimeOfDayMilli: return "keyword 'timeOfDayMilli'";
        case KwTimeOfDayNano: return "keyword 'timeOfDayNano'";
@@ -1095,6 +1112,7 @@ public final class SchemaReader
        case KwU64: return Schema.TypeCode.U64;
        case KwF64: return Schema.TypeCode.F64;
        case KwDecimal: return Schema.TypeCode.Decimal;
+       case KwFixedDec: return Schema.TypeCode.FixedDec;
        case KwDate: return Schema.TypeCode.Date;
        case KwTimeOfDayMilli: return Schema.TypeCode.TimeOfDayMilli;
        case KwTimeOfDayNano: return Schema.TypeCode.TimeOfDayNano;
@@ -1216,7 +1234,7 @@ public final class SchemaReader
 
    private void warning (String msg, int line)
    {
-      log.warn (String.format ("%s:%d: warning: %s%n", srcName, line, msg));
+      log.warn ("%s:%d: warning: %s%n", srcName, line, msg);
    }
    
    // State
