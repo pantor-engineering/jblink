@@ -148,6 +148,13 @@ public class DefaultBlock implements Block, Iterable<Object>
    */
 
    public Iterator<Object> iterator () { return objs.iterator (); }
+
+   /**
+      Returns the first object of this block
+      @throws IndexOutOfBoundsException if the block is empty
+   */
+   
+   public Object getFirstObject () { return objs.get (0); }
    
    private final ArrayList<Object> objs = new ArrayList<Object> ();
    private final int slabSize;
