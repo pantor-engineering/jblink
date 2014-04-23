@@ -155,6 +155,48 @@ public class BlinkException extends Exception
    }
 
    /**
+      A {@code NoBinding} exception is thrown when a requested binding
+      cannot be found
+   */
+   
+   public static class NoBinding extends Binding
+   {
+      /**
+         Creates a no-binding exception
+
+         @param msg a descriptive message
+         @param loc a location in the schema file releated to this exception
+      */
+      
+      public NoBinding (String msg, Location loc)
+      {
+         super (msg, loc);
+      }
+
+      /**
+         Creates a chained exception
+
+         @param cause the next exception in the chain
+      */
+   
+      public NoBinding (Throwable cause)
+      {
+         super (cause);
+      }
+
+      /**
+         Creates a no-binding exception
+
+         @param msg a descriptive message
+      */
+      
+      public NoBinding (String msg)
+      {
+         super (msg);
+      }
+   }
+
+   /**
       A {@code Decode} exception is thrown for any issues related
       to decoding blink data
    */

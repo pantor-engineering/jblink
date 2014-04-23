@@ -550,18 +550,18 @@ public final class DefaultObjectModel implements ObjectModel
    }
 
    @Override
-   public GroupBinding getGroupBinding (Class<?> name)
+   public GroupBinding getGroupBinding (Class<?> cl)
       throws BlinkException
    {
       synchronized (monitor)
       {
          // FIXME: use TLS
          init ();
-         GroupBinding b = grpBndByClass.get (name);
+         GroupBinding b = grpBndByClass.get (cl);
          if (b != null)
             return b;
          else
-            throw noBindingError (name);
+            throw noBindingError (cl);
       }
    }
 
@@ -617,13 +617,13 @@ public final class DefaultObjectModel implements ObjectModel
          for (Schema.Group candidate = g; candidate != null && bnd == null;
               candidate = candidate.getSuperGroup ())
             bnd = createGroupBinding (candidate);
-         
+
          if (bnd != null)
          {
             if (g.hasId ())
             {
                if (grpBndById.containsKey (g.getId ()))
-             throw ambiguousTypeIdError (g);
+                  throw ambiguousTypeIdError (g);
                else
                   grpBndById.put (g.getId (), bnd);
             }
@@ -1063,11 +1063,11 @@ public final class DefaultObjectModel implements ObjectModel
          getAllMethods (s, all);
    }
    
-   private BlinkException.Binding noBindingError (long tid)
+   private BlinkException.NoBinding noBindingError (long tid)
    {
       Schema.Group g = unboundById.get (tid);
       if (g == null)
-         return new BlinkException.Binding (
+         return new BlinkException.NoBinding (
             String.format ("Unknown type id in blink message: %d", tid));
       else
          return noBindingError (g);
@@ -1084,26 +1084,26 @@ public final class DefaultObjectModel implements ObjectModel
       return new BlinkException.Binding (msg);
    }
 
-   private BlinkException.Binding noBindingError (NsName name)
+   private BlinkException.NoBinding noBindingError (NsName name)
    {
       Schema.Group g = unboundByName.get (name);
       if (g == null)
-         return new BlinkException.Binding (
+         return new BlinkException.NoBinding (
             String.format ("No such blink type: %s", name));
       else
          return noBindingError (g);
    }
 
-   private BlinkException.Binding noBindingError (Schema.Group g)
+   private BlinkException.NoBinding noBindingError (Schema.Group g)
    {
-      return new BlinkException.Binding (
+      return new BlinkException.NoBinding (
          String.format ("No Java class found for Blink type %s", g.getName ()),
          g.getLocation ());
    }
 
-   private BlinkException.Binding noBindingError (Class<?> cl)
+   private BlinkException.NoBinding noBindingError (Class<?> cl)
    {
-      return new BlinkException.Binding (
+      return new BlinkException.NoBinding (
          String.format ("No matching blink group found when encoding object" +
                         " of Java class %s", cl.getName ()));
    }

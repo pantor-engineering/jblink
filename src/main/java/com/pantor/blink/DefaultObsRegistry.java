@@ -281,12 +281,13 @@ reg.addObserver (new MyObserver ());</pre>
    }
 
    private ObjectModel.GroupBinding findGroupBinding (Class<?> c)
+      throws BlinkException
    {
       try
       {
          return om.getGroupBinding (c);
       }
-      catch (BlinkException e)
+      catch (BlinkException.NoBinding e)
       {
          return null;
       }
