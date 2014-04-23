@@ -143,4 +143,11 @@ public interface Reader
    */
 
    void close () throws BlinkException;
+
+   /**
+      Resets this reader to an initial state, discarding any incompletely
+      read messages
+   */
+
+   void reset ();
 }
