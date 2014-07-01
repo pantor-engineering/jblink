@@ -310,11 +310,11 @@ public final class Client implements Runnable
                if (packetObs != null)
                {
                   packetObs.onPacketStart ();
-                  rd.read (buf, 0, p.getLength ());
+                  readPacket (buf, p.getLength (), rd);
                   packetObs.onPacketEnd ();
                }
                else
-                  rd.read (buf, 0, p.getLength ());
+                  readPacket (buf, p.getLength (), rd);
             }
          }
       }
@@ -449,6 +449,27 @@ public final class Client implements Runnable
       os.close ();
    }
 
+   private void checkPacketCompleteness (CompactReader rd)
+   {
+      if (! rd.isComplete ())
+         log.warn ("Trailing bytes in the datagram forms " +
+                   "an incomplete message");
+   }
+
+   private void readPacket (byte [] buf, int len, CompactReader rd)
+      throws BlinkException
+   {
+      if (log.isActiveAtLevel (Logger.Level.Trace))
+         tracePacket (buf, len);
+      rd.read (buf, 0, len);
+      checkPacketCompleteness (rd);
+   }
+
+   private void tracePacket (byte [] buf, int len)
+   {
+      log.trace ("Decoding datagram: %s", new ByteBuf (buf, 0, len));
+   }
+   
    private final Socket sock;
    private final DatagramSocket udpsock;
    private final ObjectModel om;
