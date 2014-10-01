@@ -212,6 +212,20 @@ public class TestCases
       assertEquals (((Foo)compactRoundtrip (om, foo)).getBaz (), foo.getBaz ());
    }
 
+   @Test public void largeMsgCompactRoundtrip ()
+      throws BlinkException, IOException
+   {
+      ObjectModel om = toModel ("Foo/1 -> string Baz");
+      Foo foo = new Foo ();
+
+      char [] chars = new char [0x100000];
+      java.util.Arrays.fill (chars, 'x');
+      String s = new String (chars);
+      
+      foo.setBaz (s);
+      assertEquals (((Foo)compactRoundtrip (om, foo)).getBaz (), foo.getBaz ());
+   }
+
    @Test public void compactDecode1 ()
       throws BlinkException, IOException
    {

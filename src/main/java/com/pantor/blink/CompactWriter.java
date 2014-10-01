@@ -590,8 +590,13 @@ public final class CompactWriter implements Writer
          }
          else
          {
-            // FIXME
-            throw new RuntimeException ("Not implemented yet: large messages");
+            int width = Vlc.getUintSize (size);
+            int toShift = width - 2;
+            sink.reserve (toShift);
+            sink.shift (start, toShift);
+            sink.setPos (start - 2);
+            Vlc.writeU32 (size, sink);
+            sink.setPos (end + toShift);
          }
       }
       catch (BlinkException.Encode e)
