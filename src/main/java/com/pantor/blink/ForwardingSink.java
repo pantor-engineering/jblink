@@ -161,7 +161,7 @@ public abstract class ForwardingSink implements ByteSink
    }
 
    @Override
-   public void reserve (int additionalCapacity)
+   public void reserve (int additionalCapacity) throws IOException
    {
       inner.reserve (additionalCapacity);
    }

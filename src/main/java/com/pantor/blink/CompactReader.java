@@ -35,6 +35,8 @@
 
 package com.pantor.blink;
 
+import java.io.IOException;
+
 /**
    The {@code CompactReader} implements a decoder for the Blink
    compact binary format. In its most basic form it reads bytes from
@@ -220,6 +222,10 @@ public final class CompactReader implements Reader
          for (;;)
             if (! readOrSuspendMsg (src, readMsgSize (src)))
                return;
+      }
+      catch (IOException e)
+      {
+         throw error (e.getMessage (), pendData);
       }
       catch (BlinkException.Decode e)
       {
@@ -814,13 +820,20 @@ public final class CompactReader implements Reader
                                      msgSize, maxMsgSize), src);
    }
 
-   private boolean fillPendData (ByteSource src)
+   private boolean fillPendData (ByteSource src) throws BlinkException.Decode
    {
-      int toMove = Math.min (missingData, src.available ());
-      pendData.reserve (toMove);
-      src.moveTo (pendData, toMove);
-      missingData -= toMove;
-      return missingData == 0;
+      try
+      {
+         int toMove = Math.min (missingData, src.available ());
+         pendData.reserve (toMove);
+         src.moveTo (pendData, toMove);
+         missingData -= toMove;
+         return missingData == 0;
+      }
+      catch (IOException e)
+      {
+         throw new BlinkException.Decode (e.getMessage (), src);
+      }
    }
 
    private long readMsgSize (ByteSource src) throws BlinkException.Decode

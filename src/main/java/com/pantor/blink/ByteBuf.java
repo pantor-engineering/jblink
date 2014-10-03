@@ -48,6 +48,11 @@ import java.io.UnsupportedEncodingException;
 
 public final class ByteBuf implements Buf
 {
+   public enum ResizeMode
+   {
+      Fixed, Expandable
+   }
+
    /**
       The default buffer capacity
     */
@@ -55,21 +60,39 @@ public final class ByteBuf implements Buf
    public static int DEFAULT_CAPACITY = 4096;
 
    /**
-      Creates a buffer with the {@code DEFAULT_CAPACITY}
+      Creates an expandable buffer with the {@code DEFAULT_CAPACITY}
     */
    
    public ByteBuf () { this (DEFAULT_CAPACITY); }
 
+   
    /**
-      Creates a buffer with the specified capacity
+      Creates an buffer with the specified capacity and the specified
+      resize mode
+
+      @param capacity the capacity
+      @param rmode {@code ResizeMode.Fixed} or {@code ResizeMode.Expandable}
+    */
+
+   public ByteBuf (int capacity, ResizeMode rmode)
+   {
+      data_ = new byte [capacity]; clear ();
+      isFixed = rmode == ResizeMode.Fixed;
+   }
+   
+   /**
+      Creates an expandable buffer with the specified initial capacity.
 
       @param capacity the capacity
     */
-   
-   public ByteBuf (int capacity) { data_ = new byte [capacity]; clear (); }
+
+   public ByteBuf (int capacity)
+   {
+      this (capacity, ResizeMode.Expandable);
+   }
 
    /**
-      Creates a buffer for reading bytes from a specified slice of a
+      Creates a fixed buffer for reading bytes from a specified slice of a
       byte array.
 
       @param underlying the byte array to read from
@@ -80,12 +103,13 @@ public final class ByteBuf implements Buf
    public ByteBuf (byte [] underlying, int takeFrom, int len)
    {
       data_ = underlying;
+      isFixed = true;
       pos = takeFrom;
       end = pos + len;
    }
 
    /**
-      Creates a buffer for reading bytes from a specified byte array.
+      Creates a fixed buffer for reading bytes from a specified byte array.
 
       @param underlying the byte array to read
     */
@@ -316,32 +340,44 @@ public final class ByteBuf implements Buf
    public void clearAndFillZero () { clear (); Arrays.fill (data_, (byte)0); }
    
    @Override
-   public void reserve (int additionalCapacity)
+   public void reserve (int additionalCapacity) throws IOException
    {
       int capacity = pos + additionalCapacity;
       if (capacity > data_.length)
       {
-         byte [] newData = new byte [(int)(capacity * 1.5)];
-         System.arraycopy (data_, 0, newData, 0, pos);
-         data_ = newData;
+         if (isFixed)
+            throw new IOException (
+               "Cannot resize fixed size buffer from " + data_.length +
+               " to " + capacity + " bytes");
+         else
+         {
+            byte [] newData = new byte [(int)(capacity * 1.5)];
+            System.arraycopy (data_, 0, newData, 0, pos);
+            data_ = newData;
+         }
       }
    }
    
    @Override
-   public void release (int limit)
+   public void release (int limit) throws IOException
    {
       if (data_.length > limit)
       {
-         data_ = emptyData;
-         pos = 0;
-         end = 0;
+         if (isFixed)
+            throw new IOException ("Cannot release a fixed size buffer");
+         else
+         {
+            data_ = emptyData;
+            pos = 0;
+            end = 0;
+         }
       }
       else
          clear ();
    }
 
    @Override
-   public void release ()
+   public void release () throws IOException
    {
       release (0);
    }
@@ -414,5 +450,6 @@ public final class ByteBuf implements Buf
    private int pos;
    private int end;
    private byte [] data_;
+   private final boolean isFixed;
    private final static byte [] emptyData = new byte [0];
 }

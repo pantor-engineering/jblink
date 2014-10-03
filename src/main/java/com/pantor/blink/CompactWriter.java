@@ -304,7 +304,7 @@ public final class CompactWriter implements Writer
       if (len < 128)
       {
          allocatedPreamble = 1;
-         sink.reserve (allocatedPreamble + len);
+         reserve (sink, allocatedPreamble + len);
          sink.step ();
          for (; i < len; ++ i)
          {
@@ -314,7 +314,7 @@ public final class CompactWriter implements Writer
             else
             {
                size = i;
-               sink.reserve (Utf8Util.getConservativeSize (len - i));
+               reserve (sink, Utf8Util.getConservativeSize (len - i));
                break LONG;
             }
          }
@@ -329,7 +329,7 @@ public final class CompactWriter implements Writer
       else
       {
          allocatedPreamble = 2;
-         sink.reserve (allocatedPreamble + Utf8Util.getConservativeSize (len));
+         reserve (sink, allocatedPreamble + Utf8Util.getConservativeSize (len));
          sink.step (allocatedPreamble);
       }
 
@@ -348,14 +348,14 @@ public final class CompactWriter implements Writer
       throws BlinkException.Encode
    {
       Vlc.writeU32 (val.length, sink);
-      sink.reserve (val.length);
+      reserve (sink, val.length);
       sink.write (val);
    }
 
    public static void writeFixed (byte [] val, int fixedSize, ByteSink sink)
       throws BlinkException.Encode
    {
-      sink.reserve (fixedSize);
+      reserve (sink, fixedSize);
       if (val.length >= fixedSize)
          sink.write (val, 0, fixedSize);
       else
@@ -370,7 +370,7 @@ public final class CompactWriter implements Writer
       throws BlinkException.Encode
    {
       Vlc.writeU32 (val.length, sink);
-      sink.reserve (val.length * Vlc.Int8MaxSize);
+      reserve (sink, val.length * Vlc.Int8MaxSize);
       for (int i = 0; i < val.length; ++ i)
          Vlc.writeU32 ((int)val [i], sink);
    }
@@ -379,7 +379,7 @@ public final class CompactWriter implements Writer
       throws BlinkException.Encode
    {
       Vlc.writeU32 (val.length, sink);
-      sink.reserve (val.length * Vlc.Int8MaxSize);
+      reserve (sink, val.length * Vlc.Int8MaxSize);
       for (int i = 0; i < val.length; ++ i)
          Vlc.writeI32 ((int)val [i], sink);
    }
@@ -388,7 +388,7 @@ public final class CompactWriter implements Writer
       throws BlinkException.Encode
    {
       Vlc.writeU32 (val.length, sink);
-      sink.reserve (val.length * Vlc.Int16MaxSize);
+      reserve (sink, val.length * Vlc.Int16MaxSize);
       for (int i = 0; i < val.length; ++ i)
          Vlc.writeU32 ((int)val [i], sink);
    }
@@ -397,7 +397,7 @@ public final class CompactWriter implements Writer
       throws BlinkException.Encode
    {
       Vlc.writeU32 (val.length, sink);
-      sink.reserve (val.length * Vlc.Int16MaxSize);
+      reserve (sink, val.length * Vlc.Int16MaxSize);
       for (int i = 0; i < val.length; ++ i)
          Vlc.writeI32 ((int)val [i], sink);
    }
@@ -406,7 +406,7 @@ public final class CompactWriter implements Writer
       throws BlinkException.Encode
    {
       Vlc.writeU32 (val.length, sink);
-      sink.reserve (val.length * Vlc.Int32MaxSize);
+      reserve (sink, val.length * Vlc.Int32MaxSize);
       for (int i = 0; i < val.length; ++ i)
          Vlc.writeU32 (val [i], sink);
    }
@@ -415,7 +415,7 @@ public final class CompactWriter implements Writer
       throws BlinkException.Encode
    {
       Vlc.writeU32 (val.length, sink);
-      sink.reserve (val.length * Vlc.Int32MaxSize);
+      reserve (sink, val.length * Vlc.Int32MaxSize);
       for (int i = 0; i < val.length; ++ i)
          Vlc.writeI32 (val [i], sink);
    }
@@ -424,7 +424,7 @@ public final class CompactWriter implements Writer
       throws BlinkException.Encode
    {
       Vlc.writeU32 (val.length, sink);
-      sink.reserve (val.length * Vlc.Int64MaxSize);
+      reserve (sink, val.length * Vlc.Int64MaxSize);
       for (int i = 0; i < val.length; ++ i)
          Vlc.writeU64 (val [i], sink);
    }
@@ -433,7 +433,7 @@ public final class CompactWriter implements Writer
       throws BlinkException.Encode
    {
       Vlc.writeU32 (val.length, sink);
-      sink.reserve (val.length * Vlc.Int64MaxSize);
+      reserve (sink, val.length * Vlc.Int64MaxSize);
       for (int i = 0; i < val.length; ++ i)
          Vlc.writeI64 (val [i], sink);
    }
@@ -448,7 +448,7 @@ public final class CompactWriter implements Writer
       throws BlinkException.Encode
    {
       Vlc.writeU32 (val.length, sink);
-      sink.reserve (val.length * Vlc.Int64MaxSize);
+      reserve (sink, val.length * Vlc.Int64MaxSize);
       for (int i = 0; i < val.length; ++ i)
          Vlc.writeI64 (Double.doubleToLongBits (val [i]), sink);
    }
@@ -457,7 +457,7 @@ public final class CompactWriter implements Writer
       throws BlinkException.Encode
    {
       Vlc.writeU32 (val.length, sink);
-      sink.reserve (val.length * (Vlc.Int8MaxSize + Vlc.Int64MaxSize));
+      reserve (sink, val.length * (Vlc.Int8MaxSize + Vlc.Int64MaxSize));
       for (int i = 0; i < val.length; ++ i)
          writeDecimal (val [i], sink);
    }
@@ -466,7 +466,7 @@ public final class CompactWriter implements Writer
       throws BlinkException.Encode
    {
       Vlc.writeU32 (val.length, sink);
-      sink.reserve (val.length * Vlc.Int32MaxSize);
+      reserve (sink, val.length * Vlc.Int32MaxSize);
       for (int i = 0; i < val.length; ++ i)
          Vlc.writeU32 (val [i], sink);
    }
@@ -475,7 +475,7 @@ public final class CompactWriter implements Writer
       throws BlinkException.Encode
    {
       Vlc.writeU32 (val.length, sink);
-      sink.reserve (val.length * Vlc.Int32MaxSize);
+      reserve (sink, val.length * Vlc.Int32MaxSize);
       for (int i = 0; i < val.length; ++ i)
          Vlc.writeU32 (val [i], sink);
    }
@@ -484,7 +484,7 @@ public final class CompactWriter implements Writer
       throws BlinkException.Encode
    {
       Vlc.writeU32 (val.length, sink);
-      sink.reserve (val.length * Vlc.Int64MaxSize);
+      reserve (sink, val.length * Vlc.Int64MaxSize);
       for (int i = 0; i < val.length; ++ i)
          Vlc.writeU64 (val [i], sink);
    }
@@ -493,7 +493,7 @@ public final class CompactWriter implements Writer
       throws BlinkException.Encode
    {
       Vlc.writeU32 (val.length, sink);
-      sink.reserve (val.length * Vlc.Int64MaxSize);
+      reserve (sink, val.length * Vlc.Int64MaxSize);
       for (int i = 0; i < val.length; ++ i)
          Vlc.writeI64 (val [i], sink);
    }
@@ -502,7 +502,7 @@ public final class CompactWriter implements Writer
       throws BlinkException.Encode
    {
       Vlc.writeU32 (val.length, sink);
-      sink.reserve (val.length * Vlc.Int64MaxSize);
+      reserve (sink, val.length * Vlc.Int64MaxSize);
       for (int i = 0; i < val.length; ++ i)
          Vlc.writeI64 (val [i], sink);
    }
@@ -511,7 +511,7 @@ public final class CompactWriter implements Writer
       throws BlinkException.Encode
    {
       Vlc.writeU32 (val.length, sink);
-      sink.reserve (val.length);
+      reserve (sink, val.length);
       for (int i = 0; i < val.length; ++ i)
          writeBool (val [i], sink);
    }
@@ -576,7 +576,7 @@ public final class CompactWriter implements Writer
       {
          enc = compiler.getEncoder (o.getClass ());
          enc.requireTid ();
-         sink.reserve (enc.getTidSize () + 2 /* Size preamble */);
+         reserve (sink, enc.getTidSize () + 2 /* Size preamble */);
          sink.step (2); // Reserve space for a two byte length preamble
          int start = sink.getPos ();
          enc.encode (o, sink, this);
@@ -592,7 +592,7 @@ public final class CompactWriter implements Writer
          {
             int width = Vlc.getUintSize (size);
             int toShift = width - 2;
-            sink.reserve (toShift);
+            reserve (sink, toShift);
             sink.shift (start, toShift);
             sink.setPos (start - 2);
             Vlc.writeU32 (size, sink);
@@ -637,6 +637,19 @@ public final class CompactWriter implements Writer
       private final Schema.Group grp;
    }
 
+   private static void reserve (ByteSink sink, int size)
+      throws BlinkException.Encode
+   {
+      try
+      {
+         sink.reserve (size);
+      }
+      catch (IOException e)
+      {
+         throw new BlinkException.Encode (e);
+      }
+   }
+   
    private final ByteSink sink;
    private final CompactWriterCompiler compiler;
 }

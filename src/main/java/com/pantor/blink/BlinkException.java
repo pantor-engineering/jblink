@@ -248,5 +248,13 @@ public class BlinkException extends Exception
       */
       
       public Encode (String msg) { super (msg); }
+
+      /**
+         Creates a chained exception
+         
+         @param cause the next exception in the chain
+      */
+   
+      public Encode (Throwable cause) { super (cause); }
    }
 }

@@ -93,16 +93,19 @@ public interface Buf extends ByteSource, ByteSink
       buffer again.
 
       @param limit the maximum number of bytes to retain after this call
+      @throws IOException if the buffer has fixed size
     */
    
-   void release (int limit);
+   void release (int limit) throws IOException;
 
    /**
       Unconditionally releases the underlying byte storage. It has the
       same effect as calling {@code release (0)}.
+
+      @throws IOException if the buffer has fixed size
     */
    
-   void release ();
+   void release () throws IOException;
 
    /**
       Returns a string representaion of this buffer where each byte is

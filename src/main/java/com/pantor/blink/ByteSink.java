@@ -283,10 +283,14 @@ public interface ByteSink
    /**
       Makes sure there is room for writing at least {@code
       additionalCapacity} bytes at the current position. If the sink
-      capacity is too small, it will grow accordingly.
+      capacity is too small, it will grow accordingly unless it
+      has fixed size, in which case an exception is thrown.
+
+      @param additionalCapacity the additional amount to reserve
+      @throws IOException if the buffer is exhausted and has fixed size
     */
    
-   void reserve (int additionalCapacity);
+   void reserve (int additionalCapacity) throws IOException;
 
    /**
       Flushes the contents of the sink to any underlying output
