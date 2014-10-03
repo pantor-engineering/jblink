@@ -100,7 +100,7 @@ public final class Broadcaster
    }
 
    /**
-      Creates a broadcaster that communicate over the specified
+      Creates a broadcaster that communicates over the specified
       datagram channel. It will map messages as defined by the
       specified object model.
 
