@@ -40,6 +40,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.nio.ByteBuffer;
 
 /**
    The {@code ByteBuf} provides an implementaion of the {@code Buf}
@@ -354,6 +355,7 @@ public final class ByteBuf implements Buf
             byte [] newData = new byte [(int)(capacity * 1.5)];
             System.arraycopy (data_, 0, newData, 0, pos);
             data_ = newData;
+            bbView = null;
          }
       }
    }
@@ -368,6 +370,7 @@ public final class ByteBuf implements Buf
          else
          {
             data_ = emptyData;
+            bbView = null;
             pos = 0;
             end = 0;
          }
@@ -446,10 +449,20 @@ public final class ByteBuf implements Buf
       }
       return s.toString ();
    }
+
+   public ByteBuffer getByteBuffer ()
+   {
+      if (bbView == null)
+         bbView = ByteBuffer.wrap (data_);
+      bbView.limit (size ());
+      bbView.position (0);
+      return bbView;
+   }
    
    private int pos;
    private int end;
    private byte [] data_;
+   private ByteBuffer bbView;
    private final boolean isFixed;
    private final static byte [] emptyData = new byte [0];
 }
