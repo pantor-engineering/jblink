@@ -132,7 +132,7 @@ public class TestCases
       assertNotNull (f);
       assertNotNull (f.getType ());
       assertEquals (Schema.TypeCode.String, f.getType ().getCode ());
-      assertEquals ("782f6f9db8677919", Long.toString (g.getTypeId (), 16));
+      assertEquals (0x782f6f9db8677919L, g.getTypeId ());
    }
 
    @Test public void schemaStrings ()
