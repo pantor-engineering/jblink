@@ -51,6 +51,7 @@ public final class CodegenUtil
        case U64:             return "J";
        case F64:             return "D";
        case Decimal:         return "Lcom/pantor/blink/Decimal;";
+       case FixedDec:        return "J";
        case Date:            return "I";
        case TimeOfDayMilli:  return "I";
        case TimeOfDayNano:   return "J";
