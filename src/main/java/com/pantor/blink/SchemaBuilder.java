@@ -61,7 +61,7 @@ public class SchemaBuilder implements SchemaReader.Observer
       curGrp = schema.addGroup (
          NsName.get (defaultNs, name), parseTypeId (id, loc),
          superName != null ? NsName.parse (superName) : null,
-         annots, loc);
+         defaultNs, annots, loc);
    }
 
    private final Long parseTypeId (String id, Location loc)

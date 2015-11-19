@@ -278,14 +278,15 @@ public final class CompactWriterCompiler
       // Create an instance of the generated encoder
       
       byte [] tid = null;
+
+      Buf tidBuf = new ByteBuf (Vlc.Int64MaxSize);
       if (g.hasId ())
-      {
-         Buf tidBuf = new ByteBuf (Vlc.Int64MaxSize);
          Vlc.writeU64 (g.getId (), tidBuf);
-         tidBuf.flip ();
-         tid = new byte [tidBuf.size ()];
-         tidBuf.read (tid);
-      }
+      else
+         Vlc.writeU64 (g.getTypeId (), tidBuf);
+      tidBuf.flip ();
+      tid = new byte [tidBuf.size ()];
+      tidBuf.read (tid);
       
       CompactWriter.Encoder enc = createInstance (tid, dc, bnd);
 

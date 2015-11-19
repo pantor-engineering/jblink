@@ -55,15 +55,34 @@ public final class Schema extends AnnotatedBase
       Fixed, Object, Ref, Enum
    }
 
-   public static class Group extends Component implements Iterable<Field>
+   abstract public static class DefBase extends Component
    {
-      public Group (NsName name, Long id, NsName super_, AnnotSet annots,
-                    Location loc)
+      protected DefBase (NsName name, AnnotSet annots, Location loc)
       {
          super (annots, loc);
          this.name = name;
+      }
+
+      public NsName getName () { return name; }
+      long getTypeId () { return tid; }
+
+      abstract long getOrCreateTypeId (Schema schema)
+         throws BlinkException.Schema;
+      
+      private final NsName name;
+      boolean hasTid;
+      long tid;
+   }
+   
+   public static class Group extends DefBase implements Iterable<Field>
+   {
+      public Group (NsName name, Long id, NsName super_, String defaultNs,
+                    AnnotSet annots, Location loc)
+      {
+         super (name, annots, loc);
          this.id = id;
          this.super_ = super_;
+         this.defaultNs = defaultNs;
       }
 
       public Iterator<Field> iterator () { return fields.iterator (); }
@@ -74,7 +93,7 @@ public final class Schema extends AnnotatedBase
          throws BlinkException.Schema
       {
          if (fieldMap.containsKey (name))
-            throw error ("Duplicate field name in " + this.name + ": " + name, 
+            throw error ("Duplicate field name in " + getName () + ": " + name, 
                          loc);
          Field f = new Field (name, id, type, pres, annots, loc);
          fields.add (f);
@@ -88,7 +107,7 @@ public final class Schema extends AnnotatedBase
       {
          StringBuilder sb = new StringBuilder ();
          sb.append (getAnnotStr ("\n"));
-         sb.append (name);
+         sb.append (getName ());
          if (id != null)
             sb.append ("/" + id);
          if (super_ != null)
@@ -110,7 +129,19 @@ public final class Schema extends AnnotatedBase
          return sb.toString ();
       }
 
-      public NsName getName () { return name; }
+      @Override long getOrCreateTypeId (Schema s)
+         throws BlinkException.Schema
+      {
+         if (! hasTid)
+         {
+            hasTid = true;
+            tid = TypeIdGenerator.getTypeId (this, s);
+         }
+         
+         return tid;
+      }
+
+      public String getDefaultNs () { return defaultNs; }
       public Long getId () { return id; }
       public boolean hasId () { return id != null; }
       public void setId (Long id) { this.id = id; }
@@ -121,9 +152,9 @@ public final class Schema extends AnnotatedBase
       public Group getSuperGroup () { return superGrp; }
       public void setSuperGroup (Group superGrp) { this.superGrp = superGrp; }
       
-      private final NsName name;
       private Long id;
       private final NsName super_;
+      private final String defaultNs;
       private final ArrayList<Field> fields = new ArrayList <Field> ();
       private final HashMap<String, Field> fieldMap =
          new HashMap<String, Field> ();
@@ -174,19 +205,16 @@ public final class Schema extends AnnotatedBase
       private Type type;
    }
 
-   public static class Define extends Component
+   public static class Define extends DefBase
    {
       public Define (NsName name, String id, Type type, AnnotSet annots,
                      Location loc)
       {
-         super (annots, loc);
-         this.name = name;
+         super (name, annots, loc);
          this.id = id;
          this.type = type;
       }
 
-      public NsName getName () { return name; }
-      
       public Type getType () { return type; }
       public void setType (Type type) { this.type = type; }
       public void setId (String id) { this.id = id; }
@@ -197,7 +225,7 @@ public final class Schema extends AnnotatedBase
       {
          StringBuilder sb = new StringBuilder ();
          sb.append (getAnnotStr (" "));
-         sb.append (name);
+         sb.append (getName ());
          if (Util.isSet (id))
             sb.append ("/" + id);
          sb.append (" = ");
@@ -205,7 +233,18 @@ public final class Schema extends AnnotatedBase
          return sb.toString ();
       }
 
-      private final NsName name;
+      @Override long getOrCreateTypeId (Schema s)
+         throws BlinkException.Schema
+      {
+         if (! hasTid)
+         {
+            hasTid = true;
+            tid = TypeIdGenerator.getTypeId (this, s);
+         }
+         
+         return tid;
+      }
+
       private String id;
       private Type type;
    }
@@ -344,25 +383,25 @@ public final class Schema extends AnnotatedBase
 
    public static class Ref extends Type
    {
-      public Ref (NsName name, String ns, Rank rank, Layout layout,
+      public Ref (NsName name, String defaultNs, Rank rank, Layout layout,
                   AnnotSet annots, Location loc)
       {
          super (TypeCode.Ref, rank, annots, loc);
          this.name = name;
-         this.ns = ns;
+         this.defaultNs = defaultNs;
          this.layout = layout;
       }
 
       public boolean isDynamic () { return layout == Layout.Dynamic; }
       public NsName getName () { return name; }
-      public String getNs () { return ns; }
+      public String getDefaultNs () { return defaultNs; }
 
       @Override
       public void resolve (Schema s, TypeInfo t)
       {
          t.setDynamic (isDynamic ());
          t.setSequence (isSequence ());
-         s.resolve (name, ns, t);
+         s.resolve (name, defaultNs, t);
       }
      
       @Override
@@ -376,7 +415,7 @@ public final class Schema extends AnnotatedBase
       public Ref toRef () { return this; }
       
       private final NsName name;
-      private final String ns;
+      private final String defaultNs;
       private final Layout layout;
    }
 
@@ -520,13 +559,13 @@ public final class Schema extends AnnotatedBase
       private Location loc;
    }
 
-   public Group addGroup (NsName name, Long id, NsName super_,
+   public Group addGroup (NsName name, Long id, NsName super_, String defaultNs,
                           AnnotSet annots, Location loc)
       throws BlinkException.Schema
    {
       if (isUniqueDef (name))
       {
-         Group g = new Group (name, id, super_, annots, loc);
+         Group g = new Group (name, id, super_, defaultNs, annots, loc);
          grpMap.put (name, g);
          groups.add (g);
          return g;
@@ -622,6 +661,7 @@ public final class Schema extends AnnotatedBase
          applyIncrAnnot (a);
       pendIncrAnnots.clear ();
       checkAndResolve ();
+      primeTypeIds ();
    }
 
    public void resolve (Type t, TypeInfo info)
@@ -830,6 +870,12 @@ public final class Schema extends AnnotatedBase
          resolveSuper (g);
    }
 
+   private void primeTypeIds () throws BlinkException.Schema
+   {
+      for (Group g : groups)
+         g.getOrCreateTypeId (this);
+   }
+
    private void resolveDefs (Define d) throws BlinkException.Schema
    {
       resolveDefs (d, d, false, new HashSet<NsName> ());
@@ -859,7 +905,7 @@ public final class Schema extends AnnotatedBase
       if (r != null)
       {
          if (! resolveDefsRef (r, isSequence || r.isSequence (), visited))
-            throw refError ("type", r.getName (), r.getNs (), r);
+            throw refError ("type", r.getName (), r.getDefaultNs (), r);
       }
    }
 
@@ -867,7 +913,7 @@ public final class Schema extends AnnotatedBase
                                    HashSet<NsName> visited)
       throws BlinkException.Schema
    {
-      Object d = find (r.getName (), r.getNs ());
+      Object d = find (r.getName (), r.getDefaultNs ());
       if (d != null)
       {
          if (d instanceof Define)
@@ -925,8 +971,9 @@ public final class Schema extends AnnotatedBase
          else
          {
             
-            if (! resolveGrpsRef (r.getName (), r.getNs (), r, f, visited))
-               throw refError ("type", r.getName (), r.getNs (), r);
+            if (! resolveGrpsRef (r.getName (), r.getDefaultNs (), r, f,
+                                  visited))
+               throw refError ("type", r.getName (), r.getDefaultNs (), r);
          }
       }
    }

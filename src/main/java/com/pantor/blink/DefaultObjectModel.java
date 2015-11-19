@@ -600,7 +600,7 @@ public final class DefaultObjectModel implements ObjectModel
          (ex == null || ! e.isAnnotationPresent (ex)) &&
          (inc == null || e.isAnnotationPresent (inc));
    }
-   
+
    private void init () throws BlinkException.Binding, BlinkException.Schema
    {
       if (initialized)
@@ -620,13 +620,11 @@ public final class DefaultObjectModel implements ObjectModel
 
          if (bnd != null)
          {
-            if (g.hasId ())
-            {
-               if (grpBndById.containsKey (g.getId ()))
-                  throw ambiguousTypeIdError (g);
-               else
-                  grpBndById.put (g.getId (), bnd);
-            }
+            long tid = g.hasId () ? g.getId () : g.getTypeId ();
+            if (grpBndById.containsKey (tid))
+               throw ambiguousTypeIdError (g, tid);
+            else
+               grpBndById.put (tid, bnd);
          }
          else
          {
@@ -1073,14 +1071,16 @@ public final class DefaultObjectModel implements ObjectModel
          return noBindingError (g);
    }
 
-   private BlinkException.Binding ambiguousTypeIdError (Schema.Group g)
+   private BlinkException.Binding ambiguousTypeIdError (Schema.Group g,
+                                                        long tid)
    {
-      Schema.Group other = grpBndById.get (g.getId ()).getGroup ();
-      String id = Util.toU64Str (g.getId ().longValue ());
+      Schema.Group other = grpBndById.get (tid).getGroup ();
+      String id = Long.toString (tid, 16);
       String msg =
-         String.format ("Ambiguous type identifier:%n  %s: %s/%s%n  %s: %s/%s",
-                        g.getLocation (), g.getName (), id,
-                        other.getLocation (), other.getName (), id);
+         String.format (
+            "Ambiguous type identifier:%n  %s: %s/0x%s%n  %s: %s/0x%s",
+            g.getLocation (), g.getName (), id,
+            other.getLocation (), other.getName (), id);
       return new BlinkException.Binding (msg);
    }
 

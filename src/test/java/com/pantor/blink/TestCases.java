@@ -132,6 +132,7 @@ public class TestCases
       assertNotNull (f);
       assertNotNull (f.getType ());
       assertEquals (Schema.TypeCode.String, f.getType ().getCode ());
+      assertEquals ("782f6f9db8677919", Long.toString (g.getTypeId (), 16));
    }
 
    @Test public void schemaStrings ()
@@ -186,6 +187,17 @@ public class TestCases
       foo.setBar (17);
       foo.setBaz ("Hello");
       Foo result = (Foo)compactRoundtrip ("Foo/1 -> u32 Bar, string Baz", foo);
+      assertEquals (17, result.getBar ());
+      assertEquals ("Hello", result.getBaz ());
+   }
+
+   @Test public void simpleCompactRoundtripDefaultTypeId ()
+      throws BlinkException, IOException
+   {
+      Foo foo = new Foo ();
+      foo.setBar (17);
+      foo.setBaz ("Hello");
+      Foo result = (Foo)compactRoundtrip ("Foo -> u32 Bar, string Baz", foo);
       assertEquals (17, result.getBar ());
       assertEquals ("Hello", result.getBaz ());
    }
