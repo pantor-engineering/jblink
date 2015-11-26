@@ -163,6 +163,17 @@ public final class Util
          return BigInteger.valueOf (val).add (Two64).toString ();
    }
 
+   public static String toU64HexStr (long val)
+   {
+      String s;
+      if (val > 0)
+         s = Long.toString (val, 16);
+      else
+         s = BigInteger.valueOf (val).add (Two64).toString (16);
+      int len = s.length ();
+      return len == 16 ? s : "0000000000000000".substring (len) + s;
+   }
+
    public static boolean isSet (String s)
    {
       return s != null && ! s.equals ("");

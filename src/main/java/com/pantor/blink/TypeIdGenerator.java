@@ -139,7 +139,7 @@ public final class TypeIdGenerator
    {
       Schema.DefBase d = (Schema.DefBase)schema.find (name, defaultNs);
       if (d != null)
-         sig.append (Long.toString (d.getOrCreateTypeId (schema), 16));
+         sig.append (Util.toU64HexStr (d.getOrCreateTypeId (schema)));
       else
          throw new BlinkException.Schema (
             "Cannot resolve reference " + name +
@@ -155,12 +155,6 @@ public final class TypeIdGenerator
             Schema.Ref ref = t.toRef ();
             if (ref.isDynamic ())
             {
-               sig.append ('R');
-               addRefSig (ref.getName (), ref.getDefaultNs (), ref);
-               sig.append (';');
-            }
-            else
-            {
                sig.append ('Y');
                Schema.DefBase d =
                   (Schema.DefBase)schema.find (ref.getName (),
@@ -169,6 +163,12 @@ public final class TypeIdGenerator
                   sig.append (d.getName ());
                else
                   sig.append (ref.getName ());
+               sig.append (';');
+            }
+            else
+            {
+               sig.append ('R');
+               addRefSig (ref.getName (), ref.getDefaultNs (), ref);
                sig.append (';');
             }
          }
