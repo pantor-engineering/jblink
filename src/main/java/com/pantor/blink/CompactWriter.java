@@ -60,6 +60,7 @@ public final class CompactWriter implements Writer
    {
       compiler = new CompactWriterCompiler (om);
       this.sink = sink;
+      this.useAutoFlush = true;
    }
 
    /**
@@ -91,7 +92,7 @@ public final class CompactWriter implements Writer
    @Override
    public void write (Object o) throws BlinkException, IOException
    {
-      if (sink.getPos () >= AutoFlushThreshold)
+      if (useAutoFlush && sink.getPos () >= AutoFlushThreshold)
          flush ();
       writeObject (o);
    }
@@ -160,11 +161,20 @@ public final class CompactWriter implements Writer
    */
    
    @Override
-   public void flush () throws IOException
+   public void flush () throws IOException, BlinkException
    {
+      softFlush ();
       sink.flush ();
    }
 
+   @Override
+   public void softFlush ()
+      throws BlinkException, IOException
+   {
+      if (schemaExEnc != null && schemaExEnc.hasPendingDefs ())
+         flushPendingDefs ();
+   }
+   
    /**
       Flushes any pending encoded messages and closes the underlying sink
 
@@ -172,11 +182,42 @@ public final class CompactWriter implements Writer
    */
    
    @Override
-   public void close () throws IOException
+   public void close () throws BlinkException, IOException
    {
+      softFlush ();
       sink.close ();
    }
 
+   /**
+      Enables or disables in-band schema exchange. Disabled by default
+
+      @param useSchemaExchange {@code true} enables and {@code false} disables
+   */
+
+   public void setUseSchemaExchange (boolean useSchemaExchange)
+      throws BlinkException, IOException
+   {
+      if (useSchemaExchange)
+      {
+         ObjectModel om = compiler.getObjectModel ();
+         om.loadBuiltinSchemas ();
+         schemaExEnc = new SchemaExchangeEncoder (om.getSchema ());
+      }
+      else
+         schemaExEnc = null;
+   }
+
+   /**
+      Enables or disables automatic flushing. Enabled by default
+
+      @param useAutoFlush {@code true} enables and {@code false} disables
+   */
+
+   public void setUseAutoFlush (boolean useAutoFlush)
+   {
+      this.useAutoFlush = useAutoFlush;
+   }
+   
    // Primitive values
    //////////////////////////////////////////////////////////////////////
    
@@ -574,7 +615,7 @@ public final class CompactWriter implements Writer
       
       try
       {
-         enc = compiler.getEncoder (o.getClass ());
+         enc = compiler.getEncoder (o.getClass (), schemaExEnc);
          enc.requireTid ();
          reserve (sink, enc.getTidSize () + 2 /* Size preamble */);
          sink.step (2); // Reserve space for a two byte length preamble
@@ -649,7 +690,32 @@ public final class CompactWriter implements Writer
          throw new BlinkException.Encode (e);
       }
    }
+
+   private void flushPendingDefs ()
+      throws BlinkException, IOException
+   {
+      boolean stashedUseAutoFlush = useAutoFlush;
+      useAutoFlush = false;
+      ByteSink stashedSink = sink;
+      if (defSink == null)
+         defSink = new ByteBuf ();
+      
+      sink = defSink;
+
+      write (schemaExEnc.flushPendingDefs ());
+      
+      sink = stashedSink;
+      useAutoFlush = stashedUseAutoFlush;
+      
+      defSink.flip ();
+      sink.reserve (defSink.size ());
+      defSink.prependTo (sink, defSink.size ());
+      defSink.clear ();
+   }
    
-   private final ByteSink sink;
+   private ByteSink sink;
+   private ByteBuf defSink;
    private final CompactWriterCompiler compiler;
+   private boolean useAutoFlush;
+   private SchemaExchangeEncoder schemaExEnc;
 }

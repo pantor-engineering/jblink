@@ -40,6 +40,7 @@ import org.junit.Test;
 
 import java.io.IOException;
 import java.io.ByteArrayOutputStream;
+import java.util.List;
 
 public class TestCases
 {
@@ -144,6 +145,14 @@ public class TestCases
                        "@rgb='00ff00' Green/1 | @rgb='0000ff' Blue/2");
    }
 
+   @Test public void builtinSchemas ()
+      throws BlinkException, IOException
+   {
+      DefaultObjectModel om = new DefaultObjectModel ();
+      om.loadBuiltinSchemas ();
+      assertTrue (om.getSchema ().toString ().contains ("Blink:GroupDef"));
+   }
+   
    public static class Foo
    {
       public int getBar () { return bar; }
@@ -236,6 +245,104 @@ public class TestCases
       
       foo.setBaz (s);
       assertEquals (((Foo)compactRoundtrip (om, foo)).getBaz (), foo.getBaz ());
+   }
+
+   @Test public void schemaMsgBuilder ()
+      throws BlinkException, IOException
+   {
+      Schema s = toSchema ("Bar -> string Val " +
+                           "Baz = Bar " +
+                           "Foo -> Baz Val " +
+                           "Unrelated -> u32 Val ");
+
+      List<Object> defs =
+         SchemaMsgBuilder.buildTransitive (NsName.get ("Foo"), s);
+      assertEquals (3, defs.size ());
+      assertTrue (defs.get (0) instanceof com.pantor.blink.msg.blink.Define);
+      assertTrue (defs.get (1) instanceof com.pantor.blink.msg.blink.GroupDef);
+      assertTrue (defs.get (2) instanceof com.pantor.blink.msg.blink.GroupDef);
+   }
+
+   @Test public void schemaExchangeObjects ()
+      throws BlinkException, IOException
+   {
+      Schema s1 = toSchema ("Bar -> string Val " +
+                            "Baz = Bar " +
+                            "Foo -> Baz Val " +
+                            "Unrelated -> u32 Val ");
+
+      List<Object> defs =
+         SchemaMsgBuilder.buildTransitive (NsName.get ("Foo"), s1);
+
+      ObjectModel om = new DefaultObjectModel ();
+      SchemaExchangeDecoder dec = new SchemaExchangeDecoder (om);
+
+      for (Object def : defs)
+         dec.decode (def);
+
+      Schema s = om.getSchema ();
+      
+      Schema.Group g1 = s.getGroup ("Bar");
+      assertNotNull (g1);
+      assertEquals ("Bar ->\n" +
+                    "  string Val",
+                    g1.toString ());
+
+      Schema.Group g2 = s.getGroup ("Foo");
+      assertNotNull (g2);
+      assertEquals ("Foo ->\n" +
+                    "  Baz Val",
+                    g2.toString ());
+
+      Schema.Define d1 = s.getDefine ("Baz");
+      assertNotNull (d1);
+      assertEquals ("Baz = Bar", d1.toString ());
+   }
+
+   @Test public void schemaExchangeEncoding ()
+      throws BlinkException, IOException
+   {
+      Foo foo = new Foo ();
+      foo.setBar (17);
+      foo.setBaz ("Hello");
+      assertEquals ("b9 00 c8 d5 c0 82 dd 9f 76 83 aa c0 c0 03 46 6f " +
+                    "6f 01 02 c0 03 42 61 72 c0 8a 00 c8 6a 18 96 a0 " +
+                    "45 b7 cc 7f c0 00 c0 03 42 61 7a c0 8b 00 c8 ed " +
+                    "b2 64 2e 12 35 78 c8 c0 c0 00 c0 88 00 01 11 05 " +
+                    "48 65 6c 6c 6f",
+                    encodeCompactWithSchemaExchange (
+                       "Foo/1 -> u32 Bar, string Baz", foo));
+   }
+
+   @Test public void schemaExchangeRoundtrip ()
+      throws BlinkException, IOException
+   {
+      Foo foo = new Foo ();
+      foo.setBar (17);
+      foo.setBaz ("Hello");
+
+      ObjectModel sendingOm = toModel ("Foo/1 -> u32 Bar, string Baz");
+
+      ByteArrayOutputStream os = new ByteArrayOutputStream ();
+      CompactWriter wr = new CompactWriter (sendingOm, os);
+      wr.setUseSchemaExchange (true);
+
+      wr.write (foo);
+      wr.close ();
+
+      DefaultBlock result = new DefaultBlock ();
+      DefaultObjectModel receivingOm = new DefaultObjectModel ();
+      receivingOm.setWrapper (TestCases.class);
+      CompactReader rd = new CompactReader (receivingOm);
+      rd.setUseSchemaExchange (true);
+      
+      rd.read (new ByteBuf (os.toByteArray ()), result);
+      assertEquals (1, result.size ());
+      Object o = result.getObjects ().get (0);
+      assertTrue (o instanceof Foo);
+      Foo received = (Foo)o;
+      assertEquals (17, received.getBar ());
+      assertEquals ("Hello", received.getBaz ());
    }
 
    @Test public void compactDecode1 ()
@@ -689,8 +796,8 @@ public class TestCases
       assertInvalid ("Foo = Bar " +
                      "Bar = Foo ",
                      
-                     "-:1:19: error: Illegal " +
-                     "recursive reference: the type definition Foo " +
+                     "-:1:9: error: Illegal " +
+                     "recursive reference: the type definition Bar " +
                      "directly or indirectly refers to itself");
 
       assertInvalid ("Foo -> Bar F1 " +
@@ -703,8 +810,8 @@ public class TestCases
       assertInvalid ("Foo -> Bar F1 " +
                      "Bar : Foo ",
 
-                     "-:1:23: error: Illegal " +
-                     "recursive reference: the group definition Foo " +
+                     "-:1:10: error: Illegal " +
+                     "recursive reference: the group definition Bar " +
                      "directly or indirectly refers to itself");
 
       assertInvalid ("Foo : Bar " +
@@ -791,9 +898,9 @@ public class TestCases
                    "Bar = Foo");
       
       assertInvalid ("Foo -> Bar F1? " + 
-                     "Bar : Foo ", "-:1:24: error: " + 
+                     "Bar : Foo ", "-:1:10: error: " + 
                      "Illegal recursive reference: the group definition " + 
-                     "Foo directly or indirectly refers to itself");
+                     "Bar directly or indirectly refers to itself");
 
       assertValid ("Foo -> Bar* F1 " + 
                    "Bar : Foo ");
@@ -993,6 +1100,19 @@ public class TestCases
    {
       ByteArrayOutputStream os = new ByteArrayOutputStream ();
       CompactWriter wr = new CompactWriter (toModel (schema), os);
+      wr.write (in);
+      wr.close ();
+      ByteBuf result = new ByteBuf (os.toByteArray ());
+      return result.toHexString ();
+   }
+
+   private static String encodeCompactWithSchemaExchange (String schema,
+                                                          Object in)
+      throws BlinkException, IOException
+   {
+      ByteArrayOutputStream os = new ByteArrayOutputStream ();
+      CompactWriter wr = new CompactWriter (toModel (schema), os);
+      wr.setUseSchemaExchange (true);
       wr.write (in);
       wr.close ();
       ByteBuf result = new ByteBuf (os.toByteArray ());

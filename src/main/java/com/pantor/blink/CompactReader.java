@@ -236,6 +236,8 @@ public final class CompactReader implements Reader
    /**
       Sets the maximum message size. This reader will throw an
       exception if the maxium message size is exceeded.
+
+      @param maxMsgSize maximum msg size in bytes
    */
 
    public void setMaxMessageSize (long maxMsgSize)
@@ -243,6 +245,18 @@ public final class CompactReader implements Reader
       this.maxMsgSize = maxMsgSize;
    }
 
+   /**
+      Enables or disables in-band schema exchange. Disabled by default
+
+      @param useSchemaExchange {@code true} enables and {@code false} disables
+   */
+
+   public void setUseSchemaExchange (boolean useSchemaExchange)
+      throws BlinkException
+   {
+      compiler.setUseSchemaExchange (useSchemaExchange);
+   }
+   
    /**
       Returns {@code true} if there is no partial message pending
 
@@ -638,38 +652,36 @@ public final class CompactReader implements Reader
 
    public abstract static class Decoder implements Creator
    {
-      protected Decoder (Class<?> type, Schema.Group grp, Observer obs)
+      Decoder (Class<?> type, Schema.Group grp)
       {
          this.type = type;
          this.grp = grp;
-         this.obs = obs;
       }
-      
-      public void decodeMsg (ByteSource src, CompactReader rd, Block block)
-         throws BlinkException.Decode, BlinkException.Binding
+
+      public final void decodeMsg (ByteSource src, CompactReader rd, Block block)
+         throws BlinkException
       {
          Object o = allocate (block);
          try
          {
             decode (src, o, rd);
-            block.append (o);
-            if (obs != null)
-               obs.onObj (o, grp);
+            consume (o, block);
          }
          catch (BlinkException.Decode e)
          {
-            free (o);
+            block.reclaim (o);
             throw e;
          }
          catch (RuntimeException e)
          {
-            free (o);
+            block.reclaim (o);
             throw e;
          }
       }
 
-      public Object decodeGrp (ByteSource src, CompactReader rd, Block block)
-         throws BlinkException.Decode, BlinkException.Binding
+      public final Object decodeGrp (ByteSource src, CompactReader rd,
+                                     Block block)
+         throws BlinkException
       {
          Object o = allocate (block);
          try
@@ -679,21 +691,21 @@ public final class CompactReader implements Reader
          }
          catch (BlinkException.Decode e)
          {
-            free (o);
+            block.reclaim (o);
             throw e;
          }
          catch (RuntimeException e)
          {
-            free (o);
+            block.reclaim (o);
             throw e;
          }
       }
 
-      @Override public Class<?> getType () { return type; }
-
-      protected abstract void decode (ByteSource src, Object o,
-                                      CompactReader rd)
-         throws BlinkException.Decode, BlinkException.Binding;
+      @Override
+      public Class<?> getType ()
+      {
+         return type;
+      }
 
       private Object allocate (Block block)
          throws BlinkException.Binding
@@ -703,22 +715,77 @@ public final class CompactReader implements Reader
             pool = block.refill (this, pool);
             take = 0;
          }
-         
-         return pool [take ++];
+
+         Object fresh = pool [take];
+         pool [take ++] = null;
+         return fresh;
       }
 
-      private void free (Object o)
-      {
-         assert pool != null;
-         -- take;
-         pool [take] = o;
-      }
+      abstract void consume (Object o, Block block) throws BlinkException;
+      protected abstract void decode (ByteSource src, Object o, CompactReader rd)
+         throws BlinkException;
       
       private final Class<?> type;
-      private final Schema.Group grp;
-      private final Observer obs;
+      final Schema.Group grp;
       private Object [] pool;
       private int take;
+   }
+
+   public abstract static class AppendingDecoder extends Decoder
+   {
+      protected AppendingDecoder (Class<?> type, Schema.Group grp)
+      {
+         super (type, grp);
+      }
+
+      @Override void consume (Object o, Block block)
+      {
+         block.append (o);
+      }
+   }
+
+   public abstract static class DispatchingDecoder extends Decoder
+   {
+      protected DispatchingDecoder (Class<?> type, Schema.Group grp,
+                                    Observer obs)
+      {
+         super (type, grp);
+         this.obs = obs;
+      }
+
+      @Override void consume (Object o, Block block)
+      {
+         block.append (o);
+         obs.onObj (o, grp);
+      }
+
+      private final Observer obs;
+   }
+
+   public abstract static class SchemaExchangeDecoder extends Decoder
+   {
+      protected SchemaExchangeDecoder (
+         Class<?> type, Schema.Group grp,
+         com.pantor.blink.SchemaExchangeDecoder dec)
+      {
+         super (type, grp);
+         this.dec = dec;
+      }
+
+      @Override void consume (Object o, Block block)
+         throws BlinkException
+      {
+         try
+         {
+            dec.decode (o);
+         }
+         finally
+         {
+            block.reclaim (o);
+         }
+      }
+
+      private final com.pantor.blink.SchemaExchangeDecoder dec;
    }
 
    private static final int MaxLingeringScratchArea = 1000000;

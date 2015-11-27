@@ -52,7 +52,7 @@ public final class SchemaReader
       pendTok = new Token ();
    }
 
-   public void read (Reader rd) throws IOException, BlinkException.Schema
+   public void read (Reader rd) throws IOException, BlinkException
    {
       read (rd, "-");
    }
@@ -94,49 +94,49 @@ public final class SchemaReader
 
    public interface Observer
    {
-      void onStartSchema () throws BlinkException.Schema;
-      void onEndSchema () throws BlinkException.Schema;
-      void onNsDecl (String ns, Location loc) throws BlinkException.Schema;
+      void onStartSchema () throws BlinkException;
+      void onEndSchema () throws BlinkException;
+      void onNsDecl (String ns, Location loc) throws BlinkException;
 
       void onStartDefine (String name, String id, AnnotSet annots,
-                          Location loc) throws BlinkException.Schema;;
-      void onEndDefine () throws BlinkException.Schema;
+                          Location loc) throws BlinkException;;
+      void onEndDefine () throws BlinkException;
       void onStartGroupDef (String name, String id, String superName,
                             AnnotSet annots, Location loc)
-         throws BlinkException.Schema;
-      void onEndGroupDef () throws BlinkException.Schema;
-      void onStartField (Location loc) throws BlinkException.Schema;
+         throws BlinkException;
+      void onEndGroupDef () throws BlinkException;
+      void onStartField (Location loc) throws BlinkException;
       void onEndField (String name, String id, Schema.Presence pres,
-                       AnnotSet annots) throws BlinkException.Schema;
+                       AnnotSet annots) throws BlinkException;
 
       void onPrimType (Schema.TypeCode t, Schema.Rank r, AnnotSet annots,
                        Location loc);
       void onStringType (Schema.Rank r, Integer maxSize, AnnotSet annots,
-                         Location loc) throws BlinkException.Schema;
+                         Location loc) throws BlinkException;
       void onBinaryType (Schema.Rank r, Integer maxSize, AnnotSet annots,
-                         Location loc) throws BlinkException.Schema;
+                         Location loc) throws BlinkException;
       void onFixedType (Schema.Rank r, int size, AnnotSet annots,
-                         Location loc) throws BlinkException.Schema;
+                         Location loc) throws BlinkException;
       void onFixedDecType (Schema.Rank r, int scale, AnnotSet annots,
-                           Location loc) throws BlinkException.Schema;
+                           Location loc) throws BlinkException;
       void onTypeRef (String name, Schema.Layout layout, Schema.Rank r,
                       AnnotSet annots, Location loc)
-         throws BlinkException.Schema;
+         throws BlinkException;
 
-      void onStartEnum (Location loc) throws BlinkException.Schema;
-      void onEndEnum () throws BlinkException.Schema;
+      void onStartEnum (Location loc) throws BlinkException;
+      void onEndEnum () throws BlinkException;
       void onEnumSym (String name, String val, AnnotSet annots, Location loc)
-         throws BlinkException.Schema;
+         throws BlinkException;
 
       void onSchemaAnnot (AnnotSet annots, Location loc)
-         throws BlinkException.Schema;
+         throws BlinkException;
       void onIncrAnnot (String name, String substep, Schema.PathType t,
                         String id, AnnotSet annots, Location loc)
-         throws BlinkException.Schema;
+         throws BlinkException;
    }
    
    public void read (Reader rd, String srcName)
-      throws IOException, BlinkException.Schema
+      throws IOException, BlinkException
    {
       reset (rd, srcName);
    
@@ -636,7 +636,7 @@ public final class SchemaReader
    // Grammar
    ////////////////////////////////////////////////////////////
 
-   private void def () throws IOException, BlinkException.Schema
+   private void def () throws IOException, BlinkException
    {
       annots ();
    
@@ -670,7 +670,7 @@ public final class SchemaReader
                (matchPend (Tk.Slash) || matchPend (Tk.Bar))));
    }
    
-   private void define () throws IOException, BlinkException.Schema
+   private void define () throws IOException, BlinkException
    {
       obs.onStartDefine (pendName, consumeId (), annotations, lastLoc);
 
@@ -685,7 +685,7 @@ public final class SchemaReader
       obs.onEndDefine ();
    }
 
-   private void groupDef () throws IOException, BlinkException.Schema
+   private void groupDef () throws IOException, BlinkException
    {
       if (lastEmptyGrpLine == lastNameLine && lastEmptyGrpLine != 0)
          warning ("Multiple empty groups on the same line. Maybe " +
@@ -719,7 +719,7 @@ public final class SchemaReader
       obs.onEndGroupDef ();
    }
 
-   private String superRef () throws IOException, BlinkException.Schema
+   private String superRef () throws IOException, BlinkException
    {
       String name = nextOf (Tk.Name, Tk.QName);
       if (name != null)
@@ -728,7 +728,7 @@ public final class SchemaReader
          throw expected ("supertype name");
    }
 
-   private void field () throws IOException, BlinkException.Schema
+   private void field () throws IOException, BlinkException
    {
       annots ();
       lastFieldTypeLine = curTok.line;
@@ -745,7 +745,7 @@ public final class SchemaReader
    }
 
    private void nameWithId (String what)
-      throws IOException, BlinkException.Schema
+      throws IOException, BlinkException
    {
       pendId = null;
       pendName = require (Tk.Name, what);
@@ -757,7 +757,7 @@ public final class SchemaReader
       }
    }
    
-   private void enumeration () throws IOException, BlinkException.Schema
+   private void enumeration () throws IOException, BlinkException
    {
       obs.onStartEnum (lastLoc);
    
@@ -774,7 +774,7 @@ public final class SchemaReader
       obs.onEndEnum ();
    }
 
-   private void sym () throws IOException, BlinkException.Schema
+   private void sym () throws IOException, BlinkException
    {
       annots ();
       String name = require (Tk.Name, "enum symbol name");
@@ -789,7 +789,7 @@ public final class SchemaReader
       clearAnnots ();
    }
 
-   private Schema.Rank rank () throws IOException, BlinkException.Schema
+   private Schema.Rank rank () throws IOException, BlinkException
    {
       if (next (Tk.LBrk))
       {
@@ -800,7 +800,7 @@ public final class SchemaReader
          return Schema.Rank.Single;
    }
 
-   private void type () throws IOException, BlinkException.Schema
+   private void type () throws IOException, BlinkException
    {
       switch (curTok.type)
       {
@@ -836,7 +836,7 @@ public final class SchemaReader
       }
    }
 
-   private void primType () throws IOException, BlinkException.Schema
+   private void primType () throws IOException, BlinkException
    {
       Tk t = curTok.type;
       next ();
@@ -845,7 +845,7 @@ public final class SchemaReader
       clearAnnots ();
    }
 
-   private void ref () throws IOException, BlinkException.Schema
+   private void ref () throws IOException, BlinkException
    {
       String name = curTok.getText ();
       next ();
@@ -859,7 +859,7 @@ public final class SchemaReader
       clearAnnots ();
    }
 
-   private int size (String what) throws IOException, BlinkException.Schema
+   private int size (String what) throws IOException, BlinkException
    {
       require (Tk.LPar);
       String lit = require (Tk.UInt, what);
@@ -875,7 +875,7 @@ public final class SchemaReader
       }
    }
    
-   private void string () throws IOException, BlinkException.Schema
+   private void string () throws IOException, BlinkException
    {
       next ();
       Integer maxSize = null;
@@ -886,7 +886,7 @@ public final class SchemaReader
       clearAnnots ();
    }
    
-   private void binary () throws IOException, BlinkException.Schema
+   private void binary () throws IOException, BlinkException
    {
       next ();
       Integer maxSize = null;
@@ -897,7 +897,7 @@ public final class SchemaReader
       clearAnnots ();
    }
    
-   private void fixed () throws IOException, BlinkException.Schema
+   private void fixed () throws IOException, BlinkException
    {
       next ();
       int s = size ("fixed size");
@@ -906,7 +906,7 @@ public final class SchemaReader
       clearAnnots ();
    }
    
-   private void fixedDec () throws IOException, BlinkException.Schema
+   private void fixedDec () throws IOException, BlinkException
    {
       next ();
       int s = size ("fixed decimal scale");
@@ -915,19 +915,19 @@ public final class SchemaReader
       clearAnnots ();
    }
    
-   private void nsDecl () throws IOException, BlinkException.Schema
+   private void nsDecl () throws IOException, BlinkException
    {
       String ns = require (Tk.Name, "namespace name");
       obs.onNsDecl (ns, lastLoc);
    }
 
-   private void annots () throws IOException, BlinkException.Schema
+   private void annots () throws IOException, BlinkException
    {
       while (next (Tk.At))
          annot ();
    }
 
-   private void annot () throws IOException, BlinkException.Schema
+   private void annot () throws IOException, BlinkException
    {
       String name = nextNameOrKeyword ();
       if (name != null)
@@ -948,7 +948,7 @@ public final class SchemaReader
          throw expected ("annotation name");
    }
 
-   private void incrAnnot () throws IOException, BlinkException.Schema
+   private void incrAnnot () throws IOException, BlinkException
    {
       Location loc = lastLoc;
    
@@ -994,7 +994,7 @@ public final class SchemaReader
       clearAnnots ();
    }
 
-   private void incrAnnotList () throws IOException, BlinkException.Schema
+   private void incrAnnotList () throws IOException, BlinkException
    {
       if (! match (Tk.LArrow))
          throw expected (getTokenDescr (Tk.LArrow));
@@ -1025,7 +1025,7 @@ public final class SchemaReader
    }
 
    private String require (Tk t, String what)
-      throws IOException, BlinkException.Schema
+      throws IOException, BlinkException
    {
       if (match (t))
       {
@@ -1037,7 +1037,7 @@ public final class SchemaReader
          throw expected (what != null ? what : getTokenDescr (t));
    }
 
-   private String require (Tk t) throws IOException, BlinkException.Schema
+   private String require (Tk t) throws IOException, BlinkException
    {
       return require (t, null);
    }

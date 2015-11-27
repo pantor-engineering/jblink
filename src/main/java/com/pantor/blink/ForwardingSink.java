@@ -57,6 +57,18 @@ public abstract class ForwardingSink implements ByteSink
    }
 
    @Override
+   public void prepend (byte [] a)
+   {
+      inner.prepend (a);
+   }
+   
+   @Override
+   public void prepend (byte [] a, int from, int len)
+   {
+      inner.prepend (a, from, len);
+   }
+
+   @Override
    public void write (int b)
    {
       inner.write (b);

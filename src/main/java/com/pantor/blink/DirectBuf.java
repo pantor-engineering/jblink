@@ -107,6 +107,19 @@ public final class DirectBuf implements Buf
    }
 
    @Override
+   public void prepend (byte [] a)
+   {
+      prepend (a, 0, a.length);
+   }
+
+   @Override
+   public void prepend (byte [] a, int from, int len)
+   {
+      shift (0, len);
+      unsafe.copyMemory (a, ByteArrayOff + from, null, 0, len);
+   }
+
+   @Override
    public void write (int b)
    {
       unsafe.putByte (pos ++, (byte)b);
@@ -333,6 +346,16 @@ public final class DirectBuf implements Buf
       step (len);
    }
 
+   @Override
+   public void prependTo (ByteSink sink, int len)
+   {
+      // FIXME: Check if other is DirectBuf too and do away with tmp
+      byte [] tmp = new byte [len];
+      unsafe.copyMemory (null, pos, tmp, ByteArrayOff, len);
+      sink.prepend (tmp);
+      step (len);
+   }
+   
    @Override
    public void flip ()
    {

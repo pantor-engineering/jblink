@@ -63,34 +63,34 @@ public final class TypeIdGenerator
    }
    
    public static long getTypeId (Schema.Group g, Schema s)
-      throws BlinkException.Schema
+      throws BlinkException
    {
       TypeIdGenerator gen = new TypeIdGenerator (s);
       return hashTid (gen.getSignature (g));
    }
 
    public static long getTypeId (Schema.Define d, Schema s)
-      throws BlinkException.Schema
+      throws BlinkException
    {
       TypeIdGenerator gen = new TypeIdGenerator (s);
       return hashTid (gen.getSignature (d));
    }
 
    public static String getSignature (Schema.Group g, Schema s)
-      throws BlinkException.Schema
+      throws BlinkException
    {
       TypeIdGenerator gen = new TypeIdGenerator (s);
       return gen.getSignature (g);
    }
 
    public static String getSignature (Schema.Define d, Schema s)
-      throws BlinkException.Schema
+      throws BlinkException
    {
       TypeIdGenerator gen = new TypeIdGenerator (s);
       return gen.getSignature (d);
    }
 
-   private void addField (Schema.Field f) throws BlinkException.Schema
+   private void addField (Schema.Field f) throws BlinkException
    {
       Schema.Type t = f.getType ();
       addType (t);
@@ -98,7 +98,7 @@ public final class TypeIdGenerator
       sig.append (f.isOptional () ? '?' : '!');
    }
 
-   private String getSignature (Schema.Group g) throws BlinkException.Schema
+   private String getSignature (Schema.Group g) throws BlinkException
    {
       sig.append (g.getName ());
       sig.append ('>');
@@ -110,7 +110,7 @@ public final class TypeIdGenerator
       return sig.toString ();
    }
 
-   private String getSignature (Schema.Define d) throws BlinkException.Schema
+   private String getSignature (Schema.Define d) throws BlinkException
    {
       sig.append (d.getName ());
       sig.append ('=');
@@ -135,7 +135,7 @@ public final class TypeIdGenerator
    }
 
    private void addRefSig (NsName name, String defaultNs, Schema.Component comp)
-      throws BlinkException.Schema
+      throws BlinkException
    {
       Schema.DefBase d = (Schema.DefBase)schema.find (name, defaultNs);
       if (d != null)
@@ -146,7 +146,7 @@ public final class TypeIdGenerator
             " when creating type signature", comp.getLocation ());
    }
 
-   private void addType (Schema.Type t) throws BlinkException.Schema
+   private void addType (Schema.Type t) throws BlinkException
    {
       switch (t.getCode ())
       {

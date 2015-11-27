@@ -48,9 +48,9 @@ public class PerfTest
       om.setWrapper (Class.forName (args [2]));
       
       CompactReader rd = new CompactReader (om);
-      String task = args [0].intern ();
+      String task = args [0];
 
-      if (task == "roundtrip")
+      if (task.equals ("roundtrip"))
       {
          DefaultBlock result = new DefaultBlock ();
          ByteArrayOutputStream os = new ByteArrayOutputStream ();

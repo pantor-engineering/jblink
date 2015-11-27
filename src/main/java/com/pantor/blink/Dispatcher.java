@@ -110,6 +110,9 @@ public final class Dispatcher
       if (cx == null)
       {
          Observer obs = oreg.findObserver (c);
+         // Fetch group outside of the if statement to make sure
+         // we get an exception when c is an unknown type, even
+         // when findObserver returns null
          Schema.Group grp = om.getGroupBinding (c).getGroup ();
          if (obs != null)
             cx = new Context (obs, grp);

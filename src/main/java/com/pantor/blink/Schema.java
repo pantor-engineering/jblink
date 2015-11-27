@@ -37,16 +37,19 @@ package com.pantor.blink;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.TreeSet;
+import java.util.TreeMap;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-public final class Schema extends AnnotatedBase
+public final class Schema extends AnnotatedBase implements Dependee
 {
-   public static enum Presence { Optional, Required };
-   public static enum Rank { Single, Sequence };
-   public static enum Layout { Static, Dynamic };
-   public static enum PathType { NameStep, TypeStep };
+   public static enum Presence { Optional, Required }
+   public static enum Rank { Single, Sequence }
+   public static enum Layout { Static, Dynamic }
+   public static enum PathType { NameStep, TypeStep }
+   public static enum UpdateMode { Add, Replace }
 
    public static enum TypeCode
    {
@@ -55,7 +58,9 @@ public final class Schema extends AnnotatedBase
       Fixed, Object, Ref, Enum
    }
 
-   abstract public static class DefBase extends Component
+   abstract public static class DefBase
+      extends Component
+      implements Dependee, Comparable<DefBase>
    {
       protected DefBase (NsName name, AnnotSet annots, Location loc)
       {
@@ -67,9 +72,66 @@ public final class Schema extends AnnotatedBase
       long getTypeId () { return tid; }
 
       abstract long getOrCreateTypeId (Schema schema)
-         throws BlinkException.Schema;
+         throws BlinkException;
+
+      abstract void makeIndependent (Schema schema)
+         throws BlinkException;
       
+      void addDependent (DefBase d)
+      {
+         if (! dependents.add (d))
+         {
+            // Do a replace
+            dependents.remove (d);
+            dependents.add (d);
+         }
+      }
+
+      void removeDependent (DefBase d)
+      {
+         dependents.remove (d);
+      }
+
+      @Override
+      public int compareTo (DefBase o)
+      {
+         return name.compareTo (o.name);
+      }
+
+      @Override
+      public int hashCode ()
+      {
+         return name.hashCode ();
+      }
+
+      @Override
+      public boolean equals (Object o)
+      {
+         return o instanceof DefBase && name.equals (((DefBase)o).name);
+      }
+      
+      @Override
+      public Dependee.Impl getDependeeImpl () { return dependee; }
+
+      void notifyAllDependents ()
+         throws BlinkException
+      {
+         TreeSet<DefBase> toNotify = new TreeSet<DefBase> ();
+         collectDependents (toNotify);
+         for (DefBase d : toNotify)
+            d.getDependeeImpl ().notifyAllDependents ();
+      }
+
+      void collectDependents (TreeSet<DefBase> collected)
+      {
+         if (collected.add (this))
+            for (DefBase d : dependents)
+               d.collectDependents (collected);
+      }
+
       private final NsName name;
+      private final HashSet<DefBase> dependents = new HashSet<DefBase> ();
+      private final Dependee.Impl dependee = new Dependee.Impl ();
       boolean hasTid;
       long tid;
    }
@@ -90,7 +152,7 @@ public final class Schema extends AnnotatedBase
       public Field getField (String name) { return fieldMap.get (name); }
       public Field addField (String name, String id, Type type, Presence pres,
                              AnnotSet annots, Location loc)
-         throws BlinkException.Schema
+         throws BlinkException
       {
          if (fieldMap.containsKey (name))
             throw error ("Duplicate field name in " + getName () + ": " + name, 
@@ -99,6 +161,12 @@ public final class Schema extends AnnotatedBase
          fields.add (f);
          fieldMap.put (name, f);
          return f;
+      }
+
+      public Field addField (String name, Type type, Presence pres)
+         throws BlinkException
+      {
+         return addField (name, null, type, pres, null, null);
       }
       
       public List<Field> getFields () { return fields; }
@@ -130,7 +198,7 @@ public final class Schema extends AnnotatedBase
       }
 
       @Override long getOrCreateTypeId (Schema s)
-         throws BlinkException.Schema
+         throws BlinkException
       {
          if (! hasTid)
          {
@@ -141,6 +209,16 @@ public final class Schema extends AnnotatedBase
          return tid;
       }
 
+      @Override
+      void makeIndependent (Schema schema)
+         throws BlinkException
+      {
+         if (super_ != null)
+            schema.makeIndependent (super_, defaultNs, this);
+         for (Field f : fields)
+            schema.makeIndependent (f.getType (), this);
+      }
+
       public String getDefaultNs () { return defaultNs; }
       public Long getId () { return id; }
       public boolean hasId () { return id != null; }
@@ -149,11 +227,12 @@ public final class Schema extends AnnotatedBase
       public boolean hasSuper () { return super_ != null; }
 
       public NsName getSuper () { return super_; }
+      public void setSuper (NsName super_) { this.super_ = super_; }
       public Group getSuperGroup () { return superGrp; }
       public void setSuperGroup (Group superGrp) { this.superGrp = superGrp; }
       
       private Long id;
-      private final NsName super_;
+      private NsName super_;
       private final String defaultNs;
       private final ArrayList<Field> fields = new ArrayList <Field> ();
       private final HashMap<String, Field> fieldMap =
@@ -234,7 +313,7 @@ public final class Schema extends AnnotatedBase
       }
 
       @Override long getOrCreateTypeId (Schema s)
-         throws BlinkException.Schema
+         throws BlinkException
       {
          if (! hasTid)
          {
@@ -243,6 +322,13 @@ public final class Schema extends AnnotatedBase
          }
          
          return tid;
+      }
+
+      @Override
+      void makeIndependent (Schema schema)
+         throws BlinkException
+      {
+         schema.makeIndependent (type, this);
       }
 
       private String id;
@@ -287,11 +373,18 @@ public final class Schema extends AnnotatedBase
          this.rank = rank;
       }
 
+      public Type (TypeCode code)
+      {
+         this (code, Rank.Single, null, null);
+      }
+
       public TypeCode getCode () { return code; }
       public Rank getRank () { return rank; }
+      public void setRank (Rank rank) { this.rank = rank; }
       public boolean isSequence () { return rank == Rank.Sequence; }
 
       public void resolve (Schema s, TypeInfo t)
+         throws BlinkException
       {
          t.setSequence (isSequence ());
          t.setType (this);
@@ -311,21 +404,31 @@ public final class Schema extends AnnotatedBase
       public boolean isRef () { return toRef () != null; }
       
       private final TypeCode code;
-      private final Rank rank;
+      private Rank rank;
    }
 
    public static class StrType extends Type
    {
-      public StrType (Integer maxSize, Rank rank, AnnotSet annots, Location loc)
-      {
-         this (TypeCode.String, maxSize, rank, annots, loc);
-      }
-
       public StrType (TypeCode code, Integer maxSize, Rank rank,
                       AnnotSet annots, Location loc)
       {
          super (code, rank, annots, loc);
          this.maxSize = maxSize;
+      }
+
+      public StrType (Integer maxSize, Rank rank, AnnotSet annots, Location loc)
+      {
+         this (TypeCode.String, maxSize, rank, annots, loc);
+      }
+
+      public StrType (TypeCode code)
+      {
+         this (code, null, Rank.Single, null, null);
+      }
+
+      public StrType ()
+      {
+         this (TypeCode.String);
       }
 
       @Override
@@ -340,7 +443,9 @@ public final class Schema extends AnnotatedBase
 
       public Integer getMaxSize () { return maxSize; }
       public boolean hasMaxSize () { return maxSize != null; }
-      private final Integer maxSize;
+      public void setMaxSize (int maxSize) { this.maxSize = maxSize; }
+      
+      private Integer maxSize;
    }
 
    public static class FixedType extends Type
@@ -351,6 +456,11 @@ public final class Schema extends AnnotatedBase
          this.size = size;
       }
 
+      public FixedType (int size)
+      {
+         this (size, Rank.Single, null, null);
+      }
+
       @Override
       public String toString ()
       {
@@ -359,7 +469,9 @@ public final class Schema extends AnnotatedBase
       }
 
       public int getSize () { return size; }
-      private final int size;
+      public void setSize (int size) { this.size = size; }
+      
+      private int size;
    }
 
    public static class FixedDecType extends Type
@@ -370,6 +482,11 @@ public final class Schema extends AnnotatedBase
          this.scale = scale;
       }
 
+      public FixedDecType (int scale)
+      {
+         this (scale, Rank.Single, null, null);
+      }
+
       @Override
       public String toString ()
       {
@@ -378,7 +495,9 @@ public final class Schema extends AnnotatedBase
       }
 
       public int getScale () { return scale; }
-      private final int scale;
+      public void setScale (int scale) { this.scale = scale; }
+      
+      private int scale;
    }
 
    public static class Ref extends Type
@@ -392,12 +511,18 @@ public final class Schema extends AnnotatedBase
          this.layout = layout;
       }
 
+      public Ref (NsName name, Layout layout)
+      {
+         this (name, "", Rank.Single, layout, null, null);
+      }
+
       public boolean isDynamic () { return layout == Layout.Dynamic; }
       public NsName getName () { return name; }
       public String getDefaultNs () { return defaultNs; }
 
       @Override
       public void resolve (Schema s, TypeInfo t)
+         throws BlinkException
       {
          t.setDynamic (isDynamic ());
          t.setSequence (isSequence ());
@@ -425,10 +550,15 @@ public final class Schema extends AnnotatedBase
       {
          super (TypeCode.Enum, Rank.Single, null /* No annots */, loc);
       }
+
+      Enum ()
+      {
+         this (null);
+      }
       
       public Symbol addSymbol (String name, int val, AnnotSet annots,
                                Location loc)
-         throws BlinkException.Schema
+         throws BlinkException
       {
          if (symMap.containsKey (name))
             throw error ("Duplicate symbol name in enum: " + name, loc);
@@ -444,8 +574,14 @@ public final class Schema extends AnnotatedBase
          return sym;
       }
 
+      public Symbol addSymbol (String name, int val)
+         throws BlinkException
+      {
+         return addSymbol (name, val, null, null);
+      }
+
       public void updateValue (Symbol sym, int val)
-         throws BlinkException.Schema
+         throws BlinkException
       {
          symByVal.remove (sym.getValue ());
          if (symByVal.containsKey (val))
@@ -482,7 +618,7 @@ public final class Schema extends AnnotatedBase
       }
 
       @Override
-      public Enum toEnum () { return this; }
+         public Enum toEnum () { return this; }
       
       private final ArrayList<Symbol> symbols = new ArrayList<Symbol> ();
       private final HashMap<String, Symbol> symMap =
@@ -498,6 +634,11 @@ public final class Schema extends AnnotatedBase
          super (annots, loc);
          this.name = name;
          this.value = value;
+      }
+
+      public Symbol (String name, int value)
+      {
+         this (name, value, null, null);
       }
 
       public String getName () { return name; }
@@ -518,7 +659,8 @@ public final class Schema extends AnnotatedBase
    {
       protected Component (AnnotSet annots, Location loc)
       {
-         super (annots);
+         if (annots != null && ! annots.empty ())
+            addAnnotations (annots);
          this.loc = loc;
       }
 
@@ -559,68 +701,141 @@ public final class Schema extends AnnotatedBase
       private Location loc;
    }
 
+   public void setDirty ()
+   {
+      dirtyState = DirtyState.Dirty;
+   }
+
+   private <T extends DefBase,
+            M extends TreeMap<NsName, T>,
+            C extends TreeMap<NsName, ?> >
+   T updateDef (T def, M map, C compMap, UpdateMode mode)
+      throws BlinkException
+   {
+      setDirty ();
+      NsName name = def.getName ();
+      if (compMap.containsKey (name) ||
+          (mode == UpdateMode.Add && map.containsKey (name)))
+         throw duplicateErr (def);
+
+      T old = map.get (name);
+      if (old != null)
+      {
+         old.notifyAllDependents ();
+         old.makeIndependent (this);
+      }
+      
+      map.put (name, def);
+      return def;
+   }
+   
+   public Group updateGroup (NsName name, Long id, NsName super_,
+                             String defaultNs,
+                             AnnotSet annots, Location loc, UpdateMode mode)
+      throws BlinkException
+   {
+      return updateDef (new Group (name, id, super_, defaultNs, annots, loc),
+                        grpMap, defMap, mode);
+   }
+
    public Group addGroup (NsName name, Long id, NsName super_, String defaultNs,
                           AnnotSet annots, Location loc)
-      throws BlinkException.Schema
+      throws BlinkException
    {
-      if (isUniqueDef (name))
-      {
-         Group g = new Group (name, id, super_, defaultNs, annots, loc);
-         grpMap.put (name, g);
-         groups.add (g);
-         return g;
-      }
-      else
-         throw duplicateErr ("group", name, loc);
+      return updateGroup (name, id, super_, defaultNs, annots, loc,
+                          UpdateMode.Add);
+   }
+   
+   public Group addGroup (NsName name)
+      throws BlinkException
+   {
+      return addGroup (name, null, null, "", null, null);
+   }
+
+   public Group replaceGroup (NsName name)
+      throws BlinkException
+   {
+      return updateGroup (name, null, null, "", null, null, UpdateMode.Replace);
+   }
+
+   public Define updateDefine (NsName name, String id, Type type,
+                               AnnotSet annots, Location loc, UpdateMode mode)
+      throws BlinkException
+   {
+      return updateDef (new Define (name, id, type, annots, loc), defMap,
+                        grpMap, mode);
    }
 
    public Define addDefine (NsName name, String id, Type type, AnnotSet annots,
                             Location loc)
-      throws BlinkException.Schema
+      throws BlinkException
+
    {
-      if (isUniqueDef (name))
-      {
-         Define d = new Define (name, id, type, annots, loc);
-         defMap.put (name, d);
-         defines.add (d);
-         return d;
-      }
-      else
-         throw this.duplicateErr ("type", name, loc);
+      return updateDefine (name, id, type, annots, loc, UpdateMode.Add);
+   }
+   
+   public Define addDefine (NsName name, Type type)
+      throws BlinkException
+   {
+      return addDefine (name, null, type, null, null);
+   }
+
+   public Define replaceDefine (NsName name, Type type)
+      throws BlinkException
+   {
+      return updateDefine (name, null, type, null, null, UpdateMode.Replace);
    }
 
    public Define addDefine (NsName name, String id, AnnotSet annots,
                             Location loc)
-      throws BlinkException.Schema
+      throws BlinkException
    {
       return addDefine (name, id, null, annots, loc);
    }
 
    public Group getGroup (String s)
+      throws BlinkException
    {
       return getGroup (NsName.get (s));
    }
    
    public Group getGroup (NsName n)
+      throws BlinkException
    {
+      flush ();
       return grpMap.get (n);
    }
    
    public Define getDefine (String s)
+      throws BlinkException
    {
       return getDefine (NsName.get (s));
    }
    
    public Define getDefine (NsName n)
+      throws BlinkException
    {
+      flush ();
       return defMap.get (n);
    }
 
-   public List<Define> getDefines () { return defines; }
-   public List<Group> getGroups () { return groups; }
+   public List<Define> getDefines ()
+      throws BlinkException
+   {
+      flush ();
+      return orderedDefs;
+   }
+   
+   public List<Group> getGroups ()
+      throws BlinkException
+   {
+      flush ();
+      return orderedGrps;
+   }
    
    public void addAnnotations (AnnotSet annots, String ns)
    {
+      setDirty ();
       AnnotSet domain = annotsPerNs.get (ns);
       if (domain == null)
          annotsPerNs.put (ns, new AnnotSet (annots));
@@ -630,18 +845,22 @@ public final class Schema extends AnnotatedBase
    }
 
    public String getAnnotation (NsName name, String ns)
+      throws BlinkException
    {
       AnnotSet annots = getAnnotations (ns);
       return annots != null ? annots.get (name) : null;
    }
 
    public String getAnnotation (NsName name)
+      throws BlinkException
    {
       return getAnnotation (name, null);
    }
 
    public AnnotSet getAnnotations (String ns)
+      throws BlinkException
    {
+      flush ();
       if (Util.isSet (ns))
          return annotsPerNs.get (ns);
       else
@@ -651,25 +870,47 @@ public final class Schema extends AnnotatedBase
    public void addIncrAnnot (NsName name, String ns, String substep, PathType t,
                              String id, AnnotSet annots, Location loc)
    {
+      setDirty ();
       pendIncrAnnots.add (
          new IncrAnnot (name, ns, substep, t, id, annots, loc));
    }
 
-   public void finalizeSchema () throws BlinkException.Schema
+   public void finalizeSchema ()
+      throws BlinkException
    {
+      dirtyState = DirtyState.Finalizing;
+      
+      orderedDefs.clear ();
+      orderedGrps.clear ();
+      orderedDefs.addAll (defMap.values ());
+      orderedGrps.addAll (grpMap.values ());
+      
       for (IncrAnnot a : pendIncrAnnots)
          applyIncrAnnot (a);
       pendIncrAnnots.clear ();
       checkAndResolve ();
       primeTypeIds ();
+      
+      dirtyState = DirtyState.Clean;
+
+      dependee.notifyAllDependents ();
+   }
+
+   public void flush ()
+      throws BlinkException
+   {
+      if (dirtyState == DirtyState.Dirty)
+         finalizeSchema ();
    }
 
    public void resolve (Type t, TypeInfo info)
+      throws BlinkException
    {
       t.resolve (this, info);
    }
 
    public TypeInfo resolve (Type t)
+      throws BlinkException
    {
       TypeInfo info = new TypeInfo ();
       t.resolve (this, info);
@@ -677,6 +918,7 @@ public final class Schema extends AnnotatedBase
    }
 
    public TypeInfo resolve (NsName name, String ns)
+      throws BlinkException
    {
       TypeInfo info = new TypeInfo ();
       resolve (name, ns, info);
@@ -684,8 +926,9 @@ public final class Schema extends AnnotatedBase
    }
    
    public void resolve (NsName name, String ns, TypeInfo t)
+      throws BlinkException
    {
-      Object d = find (name, ns);
+      DefBase d = find (name, ns);
       if (d instanceof Group)
          t.setGroup ((Group)d);
       else if (d instanceof Define)
@@ -698,9 +941,11 @@ public final class Schema extends AnnotatedBase
       }
    }
 
-   public Object find (NsName name, String defaultNs)
+   public DefBase find (NsName name, String defaultNs)
+      throws BlinkException
    {
-      Object d = defMap.get (name);
+      flush ();
+      DefBase d = defMap.get (name);
       if (d == null)
          d = grpMap.get (name);
       if (d == null && ! name.isQualified () && Util.isSet (defaultNs))
@@ -712,6 +957,31 @@ public final class Schema extends AnnotatedBase
       }
 
       return d;
+   }
+
+   public DefBase find (NsName name)
+      throws BlinkException
+   {
+      return find (name, null);
+   }
+
+   @Override
+   public Dependee.Impl getDependeeImpl () { return dependee; }
+   
+   void makeIndependent (NsName nm, String defaultNs, DefBase d)
+      throws BlinkException
+   {
+      DefBase target = find (nm, defaultNs);
+      if (target != null)
+         target.removeDependent (d);
+   }
+
+   void makeIndependent (Type t, DefBase d)
+      throws BlinkException
+   {
+      Ref ref = t.toRef ();
+      if (ref != null)
+         makeIndependent (ref.getName (), ref.getDefaultNs (), d);
    }
 
    private static BlinkException.Schema error (String s, Location loc)
@@ -742,38 +1012,53 @@ public final class Schema extends AnnotatedBase
       return error (msg, comp);
    }
 
-   private boolean isUniqueDef (NsName name)
+   private static String getKind (DefBase def)
    {
-      return ! (grpMap.containsKey (name) || defMap.containsKey (name));
+      return (def instanceof Group) ? "group" : "type";
    }
 
-   private BlinkException.Schema duplicateErr (String kind, NsName name,
-                                               Location loc)
+   private static Location getLoc (Located loc)
    {
-      Component prev = grpMap.get (name);
-      if (prev == null)
-         prev = defMap.get (name);
+      return loc.getLocation () != null ? loc.getLocation () : new Location ();
+   }
+   
+   private BlinkException.Schema duplicateErr (DefBase def)
+      throws BlinkException
+   {
+      NsName name = def.getName ();
+      DefBase prev = find (def.getName ());
+      assert prev != null;
 
-      String prevKind = (prev instanceof Group) ? "group" : "type";
       String msg = String.format ("Conflicting blink %s definition: %s" +
                                   "\n  Previously defined as %s here: %s",
-                                  kind, name, prevKind, prev.getLocation ());
-      return error (msg, loc);
+                                  getKind (def), name, getKind (prev),
+                                  getLoc (prev));
+      
+      return error (msg, def);
    }
 
    @Override public String toString ()
    {
-      StringBuilder sb = new StringBuilder ();
-      for (Define d : defines)
-         sb.append (d + "\n");
-      for (Group g : groups)
-         sb.append (g + "\n");
-      return sb.toString ();
+      try
+      {
+         flush ();
+         StringBuilder sb = new StringBuilder ();
+         for (Define d : orderedDefs)
+            sb.append (d + "\n");
+         for (Group g : orderedGrps)
+            sb.append (g + "\n");
+         return sb.toString ();
+      }
+      catch (BlinkException e)
+      {
+         throw new RuntimeException (e);
+      }
    }
 
-   private void applyIncrAnnot (IncrAnnot a) throws BlinkException.Schema
+   private void applyIncrAnnot (IncrAnnot a)
+      throws BlinkException
    {
-      Object d = find (a.name, a.ns);
+      DefBase d = find (a.name, a.ns);
       if (d instanceof Define)
       {
          Define def = (Define)d;
@@ -858,32 +1143,35 @@ public final class Schema extends AnnotatedBase
                    a.name);
    }
 
-   private void checkAndResolve () throws BlinkException.Schema
+   private void checkAndResolve ()
+      throws BlinkException
    {
-      for (Define d : defines)
+      for (Define d : orderedDefs)
          resolveDefs (d);
 
-      for (Group g : groups)
+      for (Group g : orderedGrps)
          resolveGrps (g);
 
-      for (Group g : groups)
+      for (Group g : orderedGrps)
          resolveSuper (g);
    }
 
-   private void primeTypeIds () throws BlinkException.Schema
+   private void primeTypeIds ()
+      throws BlinkException
    {
-      for (Group g : groups)
+      for (Group g : orderedGrps)
          g.getOrCreateTypeId (this);
    }
 
-   private void resolveDefs (Define d) throws BlinkException.Schema
+   private void resolveDefs (Define d)
+      throws BlinkException
    {
       resolveDefs (d, d, false, new HashSet<NsName> ());
    }
 
    private void resolveDefs (Define d, Component referrer, boolean isSequence,
                              HashSet<NsName> visited)
-      throws BlinkException.Schema
+      throws BlinkException
    {
       if (! visited.add (d.getName ()))
          throw recursionError ("type", d.getName (), referrer);
@@ -892,30 +1180,32 @@ public final class Schema extends AnnotatedBase
          throw error ("The sequence item type " + d.getName () +
                       " must not be a sequence in itself", referrer);
 
-      resolveDefsType (d.getType (), isSequence, visited);
+      resolveDefsType (d.getType (), d, isSequence, visited);
       
       visited.remove (d.getName ());
    }
 
-   private void resolveDefsType (Type t, boolean isSequence,
+   private void resolveDefsType (Type t, DefBase dependent, boolean isSequence, 
                                  HashSet<NsName> visited)
-      throws BlinkException.Schema
+      throws BlinkException
    {
       Ref r = t.toRef ();
       if (r != null)
       {
-         if (! resolveDefsRef (r, isSequence || r.isSequence (), visited))
+         if (! resolveDefsRef (r, dependent, isSequence || r.isSequence (),
+                               visited))
             throw refError ("type", r.getName (), r.getDefaultNs (), r);
       }
    }
 
-   private boolean resolveDefsRef (Ref r, boolean isSequence,
+   private boolean resolveDefsRef (Ref r, DefBase dependent, boolean isSequence,
                                    HashSet<NsName> visited)
-      throws BlinkException.Schema
+      throws BlinkException
    {
-      Object d = find (r.getName (), r.getDefaultNs ());
+      DefBase d = find (r.getName (), r.getDefaultNs ());
       if (d != null)
       {
+         d.addDependent (dependent);
          if (d instanceof Define)
             resolveDefs ((Define)d, r, isSequence, visited);
          return true;
@@ -924,14 +1214,15 @@ public final class Schema extends AnnotatedBase
          return false;
    }
 
-   private void resolveGrps (Group g) throws BlinkException.Schema
+   private void resolveGrps (Group g)
+      throws BlinkException
    {
       resolveGrps (g, g, new HashSet<NsName> ());
    }
 
    private void resolveGrps (Group g, Component referrer,
                              HashSet<NsName> visited)
-      throws BlinkException.Schema
+      throws BlinkException
    {
       NsName name = g.getName ();
 
@@ -939,19 +1230,21 @@ public final class Schema extends AnnotatedBase
          throw recursionError ("group", name, referrer);
 
       for (Field f : g)
-         resolveGrpsType (f.getType (), f, visited);
+         resolveGrpsType (f.getType (), f, g, visited);
 
       if (g.hasSuper ())
       {
-         if (! resolveGrpsRef (g.getSuper (), name.getNs (), g, null, visited))
+         if (! resolveGrpsRef (g.getSuper (), name.getNs (), g, null, g,
+                               visited))
             throw refError ("super", g.getSuper (), name.getNs (), g);
       }
 
       visited.remove (g.getName ());
    }
 
-   private void resolveGrpsType (Type t, Field f, HashSet<NsName> visited)
-      throws BlinkException.Schema
+   private void resolveGrpsType (Type t, Field f, DefBase dependent,
+                                 HashSet<NsName> visited)
+      throws BlinkException
    {
       if (f != null && t != f.getType () && t.isSequence () &&
           f.getType ().isSequence ())
@@ -964,31 +1257,34 @@ public final class Schema extends AnnotatedBase
          if (r.isDynamic ())
          {
             TypeInfo ti = resolve (r);
-            if (! ti.isGroup ())
+            if (ti.isGroup ())
+               find (r.getName (), r.getDefaultNs ()).addDependent (dependent);
+            else
                throw error ("Dynamic reference to " + r.getName () +
                             " does not refer to a group definition", r);
          }
          else
          {
-            
             if (! resolveGrpsRef (r.getName (), r.getDefaultNs (), r, f,
-                                  visited))
+                                  dependent, visited))
                throw refError ("type", r.getName (), r.getDefaultNs (), r);
          }
       }
    }
 
    private boolean resolveGrpsRef (NsName name, String ns, Component r, Field f,
-                                   HashSet<NsName> visited)
-      throws BlinkException.Schema
+                                   DefBase dependent, HashSet<NsName> visited)
+      throws BlinkException
    {
-      Object d = find (name, ns);
+      DefBase d = find (name, ns);
       if (d != null)
       {
+         d.addDependent (dependent);
          if (d instanceof Group)
             resolveGrps ((Group)d, r, visited);
          else
             resolveGrpsDef ((Define)d, r, f, visited);
+
          return true;
       }
       else
@@ -997,11 +1293,11 @@ public final class Schema extends AnnotatedBase
 
    private void resolveGrpsDef (Define d, Component referrer, Field f,
                                 HashSet<NsName> visited)
-      throws BlinkException.Schema
+      throws BlinkException
    {
       if (! visited.add (d.getName ()))
          throw recursionError ("type", d.getName (), referrer);
-      resolveGrpsType (d.getType (), f, visited);
+      resolveGrpsType (d.getType (), f, d, visited);
       visited.remove (d.getName ());
    }
 
@@ -1012,14 +1308,15 @@ public final class Schema extends AnnotatedBase
       final Field f;
    }
    
-   private void resolveSuper (Group g) throws BlinkException.Schema
+   private void resolveSuper (Group g)
+      throws BlinkException
    {
       if (g.hasSuper ())
          resolveSuper (g, new HashMap<String, FieldInfo> ());
    }
 
    private void resolveSuper (Group g, HashMap<String, FieldInfo> unique)
-      throws BlinkException.Schema
+      throws BlinkException
    {
       if (g.hasSuper ())
       {
@@ -1072,12 +1369,16 @@ public final class Schema extends AnnotatedBase
       final String id;
    };
 
-   private final HashMap<NsName, Define> defMap =
-      new HashMap<NsName, Define> ();
-   private final HashMap<NsName, Group> grpMap =
-      new HashMap<NsName, Group> ();
-   private final ArrayList<Define> defines = new ArrayList<Define> ();
-   private final ArrayList<Group> groups = new ArrayList<Group> ();
+   private static enum DirtyState { Dirty, Finalizing, Clean }
+
+   private DirtyState dirtyState = DirtyState.Dirty;
+   
+   private final TreeMap<NsName, Define> defMap =
+      new TreeMap<NsName, Define> ();
+   private final TreeMap<NsName, Group> grpMap =
+      new TreeMap<NsName, Group> ();
+   private final ArrayList<Define> orderedDefs = new ArrayList<Define> ();
+   private final ArrayList<Group> orderedGrps = new ArrayList<Group> ();
    
    private final HashMap<String, AnnotSet> annotsPerNs =
       new HashMap<String, AnnotSet> ();
@@ -1085,4 +1386,5 @@ public final class Schema extends AnnotatedBase
       new ArrayList<IncrAnnot> ();
 
    private final Logger log = Logger.Manager.getLogger (Schema.class);
+   private final Dependee.Impl dependee = new Dependee.Impl ();
 }

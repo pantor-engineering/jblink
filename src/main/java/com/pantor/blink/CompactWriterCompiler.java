@@ -51,20 +51,32 @@ public final class CompactWriterCompiler
 
    public CompactWriter.Encoder getEncoder (Class<?> cl) throws BlinkException
    {
+      return getEncoder (cl, null);
+   }
+   
+   public CompactWriter.Encoder getEncoder (
+      Class<?> cl, SchemaExchangeEncoder schemaExEnc) throws BlinkException
+   {
       CompactWriter.Encoder e = encByClass.get (cl);
       if (e != null)
          return e;
       else
-         return compile (cl);
+         return compile (cl, schemaExEnc);
    }
 
    public CompactWriter.Encoder getEncoder (NsName name) throws BlinkException
+   {
+      return getEncoder (name, null);
+   }
+   
+   public CompactWriter.Encoder getEncoder (
+      NsName name, SchemaExchangeEncoder schemaExEnc) throws BlinkException
    {
       CompactWriter.Encoder d = encByName.get (name);
       if (d != null)
          return d;
       else
-         return compile (om.getGroupBinding (name));
+         return compile (om.getGroupBinding (name), schemaExEnc);
    }
 
    public void primeGroup (NsName name) throws BlinkException
@@ -79,10 +91,17 @@ public final class CompactWriterCompiler
          compileEnum (bnd);
    }
 
-   private CompactWriter.Encoder compile (Class<?> cl) throws BlinkException
+   public ObjectModel getObjectModel ()
+   {
+      return om;
+   }
+   
+   private CompactWriter.Encoder compile (
+      Class<?> cl, SchemaExchangeEncoder schemaExEnc) throws BlinkException
    {
       ObjectModel.GroupBinding bnd = om.getGroupBinding (cl);
-      CompactWriter.Encoder e = getEncoder (bnd.getGroup ().getName ());
+      CompactWriter.Encoder e = getEncoder (bnd.getGroup ().getName (),
+                                            schemaExEnc);
       encByClass.put (cl, e);
       return e;
    }
@@ -166,10 +185,14 @@ public final class CompactWriterCompiler
       private int size;
    }
    
-   private CompactWriter.Encoder compile (ObjectModel.GroupBinding bnd)
+   private CompactWriter.Encoder compile (ObjectModel.GroupBinding bnd,
+                                          SchemaExchangeEncoder schemaExEnc)
       throws BlinkException
    {
       Schema.Group g = bnd.getGroup ();
+
+      if (schemaExEnc != null)
+         schemaExEnc.declare (g);
 
       String encoderName = getEncoderClassName (g.getName ());
 
@@ -280,10 +303,7 @@ public final class CompactWriterCompiler
       byte [] tid = null;
 
       Buf tidBuf = new ByteBuf (Vlc.Int64MaxSize);
-      if (g.hasId ())
-         Vlc.writeU64 (g.getId (), tidBuf);
-      else
-         Vlc.writeU64 (g.getTypeId (), tidBuf);
+      Vlc.writeU64 (bnd.getCompactTypeId (), tidBuf);
       tidBuf.flip ();
       tid = new byte [tidBuf.size ()];
       tidBuf.read (tid);

@@ -114,6 +114,15 @@ public class DefaultBlock implements Block, Iterable<Object>
    }
 
    /**
+      Just ignores the specified object since no pooling is used here
+   */
+   
+   @Override
+   public void reclaim (Object o)
+   {
+   }
+
+   /**
       Clears the collected list of object
    */
 

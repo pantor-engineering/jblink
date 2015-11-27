@@ -36,7 +36,7 @@
 package com.pantor.blink;
 
 import java.util.Iterator;
-import java.util.HashMap;
+import java.util.TreeMap;
 
 /**
    This class represents a set of annotations
@@ -218,6 +218,7 @@ public final class AnnotSet implements Iterable<Annotation>
       @return an annotation iterator
     */
    
+   @Override
    public Iterator<Annotation> iterator ()
    {
       return map.values ().iterator ();
@@ -240,7 +241,14 @@ public final class AnnotSet implements Iterable<Annotation>
    {
       map.clear ();
    }
+
+   /** Returns the number of annotations in this set */
+
+   public int size ()
+   {
+      return map.size ();
+   }
    
-   private final HashMap<NsName, Annotation> map =
-      new HashMap<NsName, Annotation> ();
+   private final TreeMap<NsName, Annotation> map =
+      new TreeMap<NsName, Annotation> ();
 }

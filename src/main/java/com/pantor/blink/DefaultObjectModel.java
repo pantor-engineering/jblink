@@ -43,6 +43,8 @@ import java.lang.reflect.Method;
 import java.lang.reflect.AnnotatedElement;
 import java.io.IOException;
 import java.io.Reader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 
 /**
    The {@code DefaultObjectModel} class implements the {@code
@@ -220,7 +222,8 @@ import java.io.Reader;
    {@code @NoBlink}.</p>
 */
 
-public final class DefaultObjectModel implements ObjectModel
+public final class DefaultObjectModel extends Dependee.Impl
+   implements ObjectModel
 {
    /**
       Creates an object model containing an empty schema.
@@ -272,6 +275,15 @@ public final class DefaultObjectModel implements ObjectModel
    public DefaultObjectModel (Schema schema)
    {
       this.schema = schema;
+      this.schemaDep = new Dependent (schema) {
+            @Override public void onDependeeChanged () throws BlinkException
+            {
+               dirty = true;
+               DefaultObjectModel.this.notifyAllDependents ();
+            }
+         };
+      
+      setNamespacePackage ("Blink", "com.pantor.blink.msg.blink");
    }
 
    /**
@@ -312,11 +324,7 @@ public final class DefaultObjectModel implements ObjectModel
    @Override
    public Schema getSchema () throws BlinkException
    {
-      synchronized (monitor)
-      {
-         init ();
-         return schema;
-      }
+      return schema;
    }
 
    /**
@@ -372,6 +380,40 @@ public final class DefaultObjectModel implements ObjectModel
       {
          for (String lit : literals)
             SchemaReader.readFromString (lit, schema);
+      }
+   }
+
+   /**
+      Loads schemas from one or more resources.
+
+      @param resources a list of resource paths
+      @throws IOException if an input error occured
+      @throws BlinkException if there was a schema problem
+   */
+   
+   public void loadSchemaFromResource (String... resources)
+      throws IOException, BlinkException
+   {
+      synchronized (monitor)
+      {
+         for (String r : resources)
+         {
+            InputStream is = getClass ().getResourceAsStream (r);
+            SchemaReader.read (new InputStreamReader (is), r, schema);
+         }
+      }
+   }
+
+   @Override
+   public void loadBuiltinSchemas () throws IOException, BlinkException
+   {
+      synchronized (monitor)
+      {
+         if (! loadedBuiltinSchemas)
+         {
+            loadedBuiltinSchemas = true;
+            loadSchemaFromResource ("/Blink.blink");
+         }
       }
    }
 
@@ -524,12 +566,11 @@ public final class DefaultObjectModel implements ObjectModel
       // FIXME: use TLS
       synchronized (monitor)
       {
-         init ();
-         GroupBinding b = grpBndById.get (tid);
+         GroupBinding b = grpBndByTid.get (tid);
          if (b != null)
             return b;
          else
-            throw noBindingError (tid);
+            return compileByTid (tid);
       }
    }
    
@@ -540,12 +581,11 @@ public final class DefaultObjectModel implements ObjectModel
       synchronized (monitor)
       {
          // FIXME: use TLS
-         init ();
          GroupBinding b = grpBndByName.get (name);
          if (b != null)
             return b;
          else
-            throw noBindingError (name);
+            return compileByName (name);
       }
    }
 
@@ -556,12 +596,11 @@ public final class DefaultObjectModel implements ObjectModel
       synchronized (monitor)
       {
          // FIXME: use TLS
-         init ();
          GroupBinding b = grpBndByClass.get (cl);
          if (b != null)
             return b;
          else
-            throw noBindingError (cl);
+            return compileByClass (cl);
       }
    }
 
@@ -572,12 +611,11 @@ public final class DefaultObjectModel implements ObjectModel
       synchronized (monitor)
       {
          // FIXME: use TLS
-         init ();
          EnumBinding b = enumBndByName.get (name);
          if (b != null)
             return b;
          else
-            throw noBindingError (name);
+            return compileEnum (name);
       }
    }
 
@@ -601,41 +639,141 @@ public final class DefaultObjectModel implements ObjectModel
          (inc == null || e.isAnnotationPresent (inc));
    }
 
-   private void init () throws BlinkException.Binding, BlinkException.Schema
+   private void refreshBindings () throws BlinkException
    {
-      if (initialized)
-         return;
-      initialized = true;
-      
-      schema.finalizeSchema ();
-
-      for (Schema.Group g : schema.getGroups ())
+      schema.flush ();
+      if (dirty)
       {
-         // Look for a matching binding to the group or one of its ancestor
-         
-         GroupBinding bnd = null;
-         for (Schema.Group candidate = g; candidate != null && bnd == null;
-              candidate = candidate.getSuperGroup ())
-            bnd = createGroupBinding (candidate);
+         dirty = false;
 
-         if (bnd != null)
-         {
-            long tid = g.hasId () ? g.getId () : g.getTypeId ();
-            if (grpBndById.containsKey (tid))
-               throw ambiguousTypeIdError (g, tid);
-            else
-               grpBndById.put (tid, bnd);
-         }
-         else
-         {
-            unboundByName.put (g.getName (), g);
-            if (g.hasId ())
-               unboundById.put (g.getId (), g);
-         }
+         grpBndByTid.clear ();
+         grpBndByName.clear ();
+         grpBndByClass.clear ();
+         enumBndByName.clear ();
+         unboundByName.clear ();
+         unboundByTid.clear ();
+         conflictByTid.clear ();
+
+         for (Schema.Group g : schema.getGroups ())
+            compile (g);
       }
    }
 
-   private static class GroupBindingImpl implements GroupBinding
+   private GroupBinding compile (Schema.Group origin)
+      throws BlinkException
+   {
+      // Look for a matching binding to the group or one of its ancestors
+      
+      for (Schema.Group g = origin; g != null; g = g.getSuperGroup ())
+      {
+         GroupBinding b = createGroupBinding (g, origin);
+         if (b != null)
+            return b;
+      }
+
+      unboundByName.put (origin.getName (), origin);
+      unboundByTid.put (getCompactTid (origin), origin);
+
+      return null;
+   }
+
+   private GroupBinding compileByTid (long tid)
+      throws BlinkException
+   {
+      refreshBindings ();
+      GroupBinding b = grpBndByTid.get (tid);
+      if (b != null)
+         return b;
+      else
+         throw noBindingError (tid);
+   }
+
+   private GroupBinding compileByClass (Class<?> cl)
+      throws BlinkException
+   {
+      refreshBindings ();
+      for (Class<?> c = cl; c != null; c = c.getSuperclass ())
+      {
+         GroupBinding b = grpBndByClass.get (c);
+         if (b != null)
+         {
+            if (c != cl)
+               grpBndByClass.put (c, b);
+            return b;
+         }
+      }
+      
+      throw noBindingError (cl);
+   }
+
+   private GroupBinding compileByName (NsName name)
+      throws BlinkException
+   {
+      Schema.Group g = schema.getGroup (name);
+      if (g != null)
+      {
+         GroupBinding b = compile (g);
+         if (b != null)
+            return b;
+         else
+            throw noBindingError (g);
+      }
+      else
+         throw noBindingError (name);
+   }
+
+   private EnumBinding compileEnum (NsName name)
+      throws BlinkException
+   {
+      Schema.Define d = schema.getDefine (name);
+      if (d != null)
+      {
+         EnumBinding b = createEnumBinding (d);
+         if (b != null)
+            return b;
+         else
+            throw noEnumBindingError (d);
+      }
+      else
+         throw noBindingError (name);
+   }
+
+   static long getCompactTid (Schema.Group g)
+   {
+      return g.hasId () ? g.getId () : g.getTypeId ();
+   }
+   
+   private void invalidate (GroupBindingImpl grp)
+      throws BlinkException
+   {
+      dirty = true;
+      if (grpBndByTid.get (grp.getCompactTypeId ()) == grp)
+         grpBndByTid.remove (grp.getCompactTypeId ());
+      grpBndByName.remove (grp.getGroup ().getName ());
+      removeAllSubclasses (grp.getTargetType ());
+      grp.notifyAllDependents ();
+   }
+
+   private void invalidate (EnumBindingImpl enm)
+      throws BlinkException
+   {
+      dirty = true;
+      enumBndByName.remove (enm.getEnum ().getName ());
+      enm.notifyAllDependents ();
+   }
+
+   private void removeAllSubclasses (Class<?> tgtType)
+   {
+      ArrayList<Class<?>> toRemove = new ArrayList<Class<?>> ();
+      for (Class<?> c : grpBndByClass.keySet ())
+         if (tgtType.isAssignableFrom (c))
+            toRemove.add (c);
+
+      for (Class<?> c : toRemove)
+         grpBndByClass.remove (c);
+   }
+   
+   private class GroupBindingImpl extends Dependee.Impl implements GroupBinding
    {
       public GroupBindingImpl (Schema.Group grp, Class<?> tgtType,
                                ArrayList<Field> fields)
@@ -643,6 +781,13 @@ public final class DefaultObjectModel implements ObjectModel
          this.grp = grp;
          this.tgtType = tgtType;
          this.fields = fields;
+         this.tid = getCompactTid (grp);
+         this.grpDep = new Dependent (grp) {
+            @Override public void onDependeeChanged () throws BlinkException
+            {
+               invalidate (GroupBindingImpl.this);
+            }
+         };
       }
 
       @Override public EnumBinding toEnum () { return null; }
@@ -650,19 +795,22 @@ public final class DefaultObjectModel implements ObjectModel
       @Override public Schema.Group getGroup () { return grp; }
       @Override public Class<?> getTargetType () { return tgtType; }
       @Override public List<Field> getFields () { return fields; }
-      
+      @Override public long getCompactTypeId () { return tid; }
+
       @Override
       public Iterator<Field> iterator ()
       {
          return fields.iterator ();
       }
-      
+
       private final Schema.Group grp;
       private final Class<?> tgtType;
       private final ArrayList<Field> fields;
+      private final Dependent grpDep;
+      private final long tid;
    }
 
-   private static class EnumBindingImpl implements EnumBinding
+   private class EnumBindingImpl extends Dependee.Impl implements EnumBinding
    {
       public EnumBindingImpl (Schema.Define def, Class<?> tgtType,
                               ArrayList<Symbol> syms)
@@ -670,6 +818,12 @@ public final class DefaultObjectModel implements ObjectModel
          this.def = def;
          this.tgtType = tgtType;
          this.syms = syms;
+         this.defDep = new Dependent (def) {
+            @Override public void onDependeeChanged () throws BlinkException
+            {
+               invalidate (EnumBindingImpl.this);
+            }
+         };
       }
       
       @Override public GroupBinding toGroup () { return null; }
@@ -685,6 +839,7 @@ public final class DefaultObjectModel implements ObjectModel
       }
       
       private final Schema.Define def;
+      private final Dependent defDep;
       private final Class<?> tgtType;
       private final ArrayList<Symbol> syms;
    }
@@ -733,8 +888,8 @@ public final class DefaultObjectModel implements ObjectModel
       private final String tgtName;
    }
    
-   private GroupBinding createGroupBinding (Schema.Group g)
-      throws BlinkException.Binding
+   private GroupBinding createGroupBinding (Schema.Group g, Schema.Group origin)
+      throws BlinkException
    {
       NsName name = g.getName ();
       
@@ -742,10 +897,10 @@ public final class DefaultObjectModel implements ObjectModel
       if (b != null)
          return b;
 
-      Class<?> tgtType = findMatchingClass (g.getName (), g);
+      Class<?> tgtType = findMatchingClass (name, g);
       
       if (tgtType != null)
-         return createGroupBinding (g, tgtType);
+         return createGroupBinding (g, tgtType, origin);
       else
          return null;
    }
@@ -915,15 +1070,28 @@ public final class DefaultObjectModel implements ObjectModel
          return null;
    }
 
-   private GroupBinding createGroupBinding (Schema.Group g, Class<?> tgtType)
-      throws BlinkException.Binding
+   private GroupBinding createGroupBinding (Schema.Group g, Class<?> tgtType,
+                                            Schema.Group origin)
+      throws BlinkException
    {
       // Must add binding to map early to allow circular references
       ArrayList<Field> bindingFields = new ArrayList<Field> ();
-      GroupBinding b = new GroupBindingImpl (g, tgtType, bindingFields);
-      grpBndByName.put (g.getName (), b);
+      GroupBinding b = new GroupBindingImpl (origin, tgtType, bindingFields);
+      grpBndByName.put (origin.getName (), b);
       grpBndByClass.put (tgtType, b);
-      
+
+      long tid = b.getCompactTypeId ();
+      if (grpBndByTid.containsKey (tid))
+      {
+         addAmbiguousTypeIdError (origin, tid);
+         grpBndByTid.remove (tid);
+      }
+      else
+      {
+         if (! conflictByTid.containsKey (tid))
+            grpBndByTid.put (tid, b);
+      }
+
       HashMap<String, Method> allMethods = new HashMap<String, Method> ();
       getAllMethods (tgtType, allMethods);
       mapFields (g, allMethods, bindingFields);
@@ -999,7 +1167,7 @@ public final class DefaultObjectModel implements ObjectModel
 
    private void mapFields (Schema.Group g, HashMap<String, Method> allMethods,
                            ArrayList<Field> bindingFields)
-      throws BlinkException.Binding
+      throws BlinkException
    {
       if (g.hasSuper ())
          mapFields (g.getSuperGroup (), allMethods, bindingFields);
@@ -1032,7 +1200,7 @@ public final class DefaultObjectModel implements ObjectModel
          
          Binding comp = null;
          if (t.isGroup ())
-            comp = createGroupBinding (t.getGroup ());
+            comp = createGroupBinding (t.getGroup (), t.getGroup ());
          else
          {
             if (t.isEnum ())
@@ -1063,25 +1231,32 @@ public final class DefaultObjectModel implements ObjectModel
    
    private BlinkException.NoBinding noBindingError (long tid)
    {
-      Schema.Group g = unboundById.get (tid);
+      Schema.Group g = unboundByTid.get (tid);
       if (g == null)
-         return new BlinkException.NoBinding (
-            String.format ("Unknown type id in blink message: %d", tid));
+      {
+         String conflict = conflictByTid.get (tid);
+         if (conflict != null)
+            return new BlinkException.NoBinding (conflict);
+         else
+            return new BlinkException.NoBinding (
+               String.format ("Unknown type id in blink message: 0x%s",
+                              Util.toU64HexStr (tid)));
+      }
       else
          return noBindingError (g);
    }
 
-   private BlinkException.Binding ambiguousTypeIdError (Schema.Group g,
-                                                        long tid)
+   private void addAmbiguousTypeIdError (Schema.Group g, long tid)
    {
-      Schema.Group other = grpBndById.get (tid).getGroup ();
+      Schema.Group other = grpBndByTid.get (tid).getGroup ();
       String id = Long.toString (tid, 16);
       String msg =
          String.format (
             "Ambiguous type identifier:%n  %s: %s/0x%s%n  %s: %s/0x%s",
             g.getLocation (), g.getName (), id,
             other.getLocation (), other.getName (), id);
-      return new BlinkException.Binding (msg);
+
+      conflictByTid.put (tid, msg);
    }
 
    private BlinkException.NoBinding noBindingError (NsName name)
@@ -1101,6 +1276,13 @@ public final class DefaultObjectModel implements ObjectModel
          g.getLocation ());
    }
 
+   private BlinkException.NoBinding noEnumBindingError (Schema.Define d)
+   {
+      return new BlinkException.NoBinding (
+         String.format ("No Java enum found for Blink type %s", d.getName ()),
+         d.getLocation ());
+   }
+
    private BlinkException.NoBinding noBindingError (Class<?> cl)
    {
       return new BlinkException.NoBinding (
@@ -1109,7 +1291,7 @@ public final class DefaultObjectModel implements ObjectModel
    }
 
    private final Object monitor = new Object ();
-   private final HashMap<Long, GroupBinding> grpBndById =
+   private final HashMap<Long, GroupBinding> grpBndByTid =
       new HashMap<Long, GroupBinding> ();
    private final HashMap<NsName, GroupBinding> grpBndByName =
       new HashMap<NsName, GroupBinding> ();
@@ -1117,16 +1299,18 @@ public final class DefaultObjectModel implements ObjectModel
       new HashMap<NsName, EnumBinding> ();
    private final HashMap<Class<?>, GroupBinding> grpBndByClass =
       new HashMap<Class<?>, GroupBinding> ();
-   private final HashMap<Long, Schema.Group> unboundById =
+   private final HashMap<Long, Schema.Group> unboundByTid =
       new HashMap<Long, Schema.Group> ();
    private final HashMap<NsName, Schema.Group> unboundByName =
       new HashMap<NsName, Schema.Group> ();
    private final HashMap<String, String> pkgByNs =
       new HashMap<String, String> ();
+   private final HashMap<Long, String> conflictByTid =
+      new HashMap<Long, String> ();
    private final Schema schema;
+   private final Dependent schemaDep;
    private String pkg;
    private Class<?> wrapper;
-   private boolean initialized;
    private Class<? extends java.lang.annotation.Annotation> inclusiveClassAnnot;
    private Class<? extends java.lang.annotation.Annotation>
                    exclusiveClassAnnot = NoBlink.class;
@@ -1134,4 +1318,7 @@ public final class DefaultObjectModel implements ObjectModel
                    inclusiveMethodAnnot;
    private Class<? extends java.lang.annotation.Annotation>
                    exclusiveMethodAnnot = NoBlink.class;
+
+   private boolean dirty = true;
+   private boolean loadedBuiltinSchemas;
 }

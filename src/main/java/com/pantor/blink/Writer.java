@@ -36,7 +36,6 @@
 package com.pantor.blink;
 
 import java.io.IOException;
-import java.io.OutputStream;
 
 /**
    The {@code Writer} interface is implemented by format specific
@@ -90,11 +89,19 @@ public interface Writer
    void write (Iterable<?> objs) throws BlinkException, IOException;
 
    /**
-      Flushes any pending encoded messages and any underlying output stream
+      Flushes any pending encoded messages and the underlying sink
       @throws IOException if there was an output error
    */
    
-   void flush () throws IOException;
+   void flush () throws BlinkException, IOException;
+
+   /**
+      Flushes any pending encoded message to the sink, but does not
+      flush the sink iteself
+      @throws IOException if there was an output error
+   */
+   
+   void softFlush () throws BlinkException, IOException;
 
    /**
       Flushes any pending encoded messages and closes any underlying
@@ -103,5 +110,5 @@ public interface Writer
       @throws IOException if there was an output error
    */
    
-   void close () throws IOException;
+   void close () throws BlinkException, IOException;
 }

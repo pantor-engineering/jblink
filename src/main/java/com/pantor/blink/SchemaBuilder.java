@@ -56,7 +56,7 @@ public class SchemaBuilder implements SchemaReader.Observer
                                           String superName,
                                           AnnotSet annots,
                                           Location loc)
-       throws BlinkException.Schema
+       throws BlinkException
    {
       curGrp = schema.addGroup (
          NsName.get (defaultNs, name), parseTypeId (id, loc),
@@ -65,7 +65,7 @@ public class SchemaBuilder implements SchemaReader.Observer
    }
 
    private final Long parseTypeId (String id, Location loc)
-      throws BlinkException.Schema
+      throws BlinkException
    {
       Long id_ = null;
       if (id != null && ! id.equals (""))
@@ -85,7 +85,7 @@ public class SchemaBuilder implements SchemaReader.Observer
    @Override public void onStartDefine (String name, String id,
                                         AnnotSet annots,
                                         Location loc)
-       throws BlinkException.Schema
+       throws BlinkException
    {
       curDef = schema.addDefine (NsName.get (defaultNs, name), id, annots, loc);
    }
@@ -103,7 +103,7 @@ public class SchemaBuilder implements SchemaReader.Observer
    @Override public void onEndField (String name, String id,
                                      Schema.Presence pres,
                                      AnnotSet annots)
-       throws BlinkException.Schema
+       throws BlinkException
    {
       curGrp.addField (name, id, pendType, pres, annots, pendLoc);
    }
@@ -160,7 +160,7 @@ public class SchemaBuilder implements SchemaReader.Observer
    
    @Override public void onEnumSym (String name, String val,
                                     AnnotSet annots, Location loc)
-       throws BlinkException.Schema
+       throws BlinkException
    {
       int intVal;
       if (val == null || val.equals (""))

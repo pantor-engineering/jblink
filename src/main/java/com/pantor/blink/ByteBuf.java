@@ -134,6 +134,19 @@ public final class ByteBuf implements Buf
    }
    
    @Override
+   public void prepend (byte [] a)
+   {
+      prepend (a, 0, a.length);
+   }
+   
+   @Override
+   public void prepend (byte [] a, int from, int len)
+   {
+      shift (0, len);
+      System.arraycopy (a, from, data_, 0, len);
+   }
+   
+   @Override
    public void write (int b) { data_ [pos ++] = (byte)b; }
 
    @Override
@@ -324,6 +337,13 @@ public final class ByteBuf implements Buf
    public void moveTo (ByteSink sink, int len)
    {
       sink.write (data_, pos, len);
+      step (len);
+   }
+
+   @Override
+   public void prependTo (ByteSink sink, int len)
+   {
+      sink.prepend (data_, pos, len);
       step (len);
    }
 

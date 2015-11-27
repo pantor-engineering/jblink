@@ -107,6 +107,15 @@ public class BlankBlock implements Block
          o [i] = null;
    }
 
+   /**
+      Just ignores the specified object since no pooling is used here
+   */
+   
+   @Override
+   public void reclaim (Object o)
+   {
+   }
+
    public void reset ()
    {
       count = 0;

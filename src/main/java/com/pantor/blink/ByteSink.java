@@ -228,6 +228,30 @@ public interface ByteSink
    void put (int off, byte b);
 
    /**
+      Writes a byte array to the start of the sink by first moving any
+      existing bytes, and then advances the current position with the
+      length of the array. The sink must have room for at least {@code
+      a.length} bytes.
+
+      @param a the array to write
+    */
+   
+   void prepend (byte [] a);
+
+   /**
+      Writes a slice of a byte array to the start of the sink by first
+      moving any existing bytes, and then advances the current
+      position with the size of the slice. The sink must have room for
+      at least {@code len} bytes.
+
+      @param a the array to write
+      @param from the index of the first byte of the slice
+      @param len the size of the slice
+    */
+   
+   void prepend (byte [] a, int from, int len);
+   
+   /**
       Advances the current position by one
    */
    

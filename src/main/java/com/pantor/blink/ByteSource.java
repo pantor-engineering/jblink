@@ -174,4 +174,14 @@ public interface ByteSource
     */
    
    void moveTo (ByteSink sink, int len);
+
+   /**
+      Reads {@code len} bytes from this source and writes them to
+      the specified sink.
+
+      @param sink the sink to prepend to
+      @param len the number of bytes to move
+    */
+   
+   void prependTo (ByteSink sink, int len);
 }

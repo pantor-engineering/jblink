@@ -36,6 +36,7 @@
 package com.pantor.blink;
 
 import java.util.HashMap;
+import java.util.ArrayList;
 import java.lang.reflect.Method;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -102,10 +103,23 @@ reg.addObserver (new MyObserver ());</pre>
    {
       this.om = om;
       this.loadMode = loadMode;
+
       if (om != null)
+      {
          this.dload = new DynClassLoader ();
+         this.omDep = new Dependent (om) {
+               @Override
+               public void onDependeeChanged () throws BlinkException
+               {
+                  dirty = true;
+               }
+            };
+      }
       else
+      {
          this.dload = null;
+         this.omDep = null;
+      }
    }
 
    public DefaultObsRegistry ()
@@ -140,6 +154,17 @@ reg.addObserver (new MyObserver ());</pre>
    public Observer findObserver (Schema.Group g) throws BlinkException
 
    {
+      Observer obs = innerFindObserver (g);
+      if (obs == null)
+      {
+         flush ();
+         obs = innerFindObserver (g);
+      }
+      return obs;
+   }
+
+   private Observer innerFindObserver (Schema.Group g) throws BlinkException
+   {
       Observer obs = obsByName.get (g.getName ());
       if (obs != null)
          return obs;
@@ -164,9 +189,59 @@ reg.addObserver (new MyObserver ());</pre>
    public Observer findDirectObserver (Schema.Group g) throws BlinkException
 
    {
+      Observer obs = innerFindDirectObserver (g);
+      if (obs == null)
+      {
+         flush ();
+         obs = innerFindDirectObserver (g);
+      }
+      return obs;
+   }
+
+   private Observer innerFindDirectObserver (Schema.Group g)
+      throws BlinkException
+
+   {
       return obsByName.get (g.getName ());
    }
 
+   private static class PendObs
+   {
+      PendObs (Method method, Object obs)
+      {
+         this.method = method;
+         this.obs = obs;
+      }
+      
+      final Method method;
+      final Object obs;
+   }
+   
+   private void flush () throws BlinkException
+   {
+      if (dirty)
+      {
+         dirty = false;
+         if (! pendObservers.isEmpty ())
+         {
+            ArrayList<PendObs> putbacks = null;
+
+            for (PendObs pend : pendObservers)
+               if (! addObserver (pend.method, pend.obs))
+               {
+                  if (putbacks == null)
+                     putbacks = new ArrayList<PendObs> ();
+                  putbacks.add (pend);
+               }
+
+            pendObservers.clear ();
+
+            if (putbacks != null)
+               pendObservers.addAll (putbacks);
+         }
+      }
+   }
+   
    @Override
    public Observer getFallbackObserver ()
    {
@@ -189,7 +264,7 @@ reg.addObserver (new MyObserver ());</pre>
       {
          for (Method m : obs.getClass ().getMethods ())
             if (m.getName ().startsWith (prefix))
-               addObserver (m, obs);
+               pendObservers.add (new PendObs (m, obs));
       }
       else
          throw new RuntimeException ("DefaultObsRegistry: Cannot add " +
@@ -204,10 +279,7 @@ reg.addObserver (new MyObserver ());</pre>
       {
          for (Method m : obs.getClass ().getMethods ())
             if (m.isAnnotationPresent (annot))
-               if (! addObserver (m, obs))
-                  throw new BlinkException.Binding (
-                     "Observer method signature does not match any known " +
-                     "blink type: " + m);
+               pendObservers.add (new PendObs (m, obs));
       }
       else
          throw new RuntimeException ("DefaultObsRegistry: Cannot add " +
@@ -407,6 +479,9 @@ reg.addObserver (new MyObserver ());</pre>
       new HashMap <NsName, Observer> ();
    private final ObjectModel om;
    private final DynClassLoader dload;
+   private final Dependent omDep;
+   private final ArrayList<PendObs> pendObservers = new ArrayList<PendObs> ();
    private Observer fallback;
    private static AtomicInteger uniqueId = new AtomicInteger ();
+   private boolean dirty = true;
 }

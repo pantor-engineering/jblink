@@ -38,6 +38,7 @@ package com.pantor.blink;
 import java.util.Iterator;
 import java.util.List;
 import java.lang.reflect.Method;
+import java.io.IOException;
 
 /**
    The {@code ObjectModel} interface provides methods for mapping a
@@ -46,7 +47,7 @@ import java.lang.reflect.Method;
    in a numerical type identifier.
 */
 
-public interface ObjectModel
+public interface ObjectModel extends Dependee
 {
    /**
       Returns a binding for the specified type identifier
@@ -93,6 +94,12 @@ public interface ObjectModel
    EnumBinding getEnumBinding (NsName name) throws BlinkException;
 
    /**
+      Loads builtin schemas for schema exchange
+    */
+   
+   void loadBuiltinSchemas () throws IOException, BlinkException;
+
+   /**
       Returns the schema used by this object model
 
       @return the schema used by this object model
@@ -101,7 +108,7 @@ public interface ObjectModel
    
    Schema getSchema () throws BlinkException;
    
-   public static interface Binding
+   public static interface Binding extends Dependee
    {
       GroupBinding toGroup ();
       EnumBinding toEnum ();
@@ -111,6 +118,7 @@ public interface ObjectModel
    public static interface GroupBinding extends Binding, Iterable<Field>
    {
       Schema.Group getGroup ();
+      long getCompactTypeId ();
       List<Field> getFields ();
       Iterator<Field> iterator ();
    }

@@ -87,6 +87,15 @@ public final class CompactReaderCompiler
          compileEnum (bnd);
    }
 
+   public void setUseSchemaExchange (boolean useSchemaExchange)
+      throws BlinkException
+   {
+      if (useSchemaExchange)
+         schemaExDec = new SchemaExchangeDecoder (om);
+      else
+         schemaExDec = null;
+   }
+   
    private CompactReader.Decoder compile (long tid)
       throws BlinkException
    {
@@ -103,7 +112,7 @@ public final class CompactReaderCompiler
 
    //   package com.pantor.blink.dyn.compact;
    //
-   //   public final class <Ns>+<Name>_dec extends CompactReader.Decoder
+   //   public final class <Ns>+<Name>_dec extends CompactReader.<Decoder>
    //   {
    //      public <Ns>+<Name>_dec (Class type, Schema.Group grp, Observer obs)
    //      {
@@ -144,13 +153,49 @@ public final class CompactReaderCompiler
    //         ... decode src and populate tgt ...
    //      }
    //   }
+
+   // <Decoder> is one of AppendingDecoder, DispatchingDecoder and
+   // SchemaExchangeDecoder depending on the message type and if an
+   // observer is available
    
    private CompactReader.Decoder compile (ObjectModel.GroupBinding bnd)
       throws BlinkException
    {
       Schema.Group g = bnd.getGroup ();
-      Observer obs = oreg != null ? oreg.findObserver (g) : null;
+      Observer obs = null;
 
+      boolean isSchemaExchangeType = schemaExDec != null &&
+         SchemaExchangeDecoder.isSchemaExchangeTypeId (g.getTypeId ());
+
+      String decBase;
+      String ctorSig;
+      int ctorArgCount;
+      
+      if (isSchemaExchangeType)
+      {
+         decBase = "com.pantor.blink.CompactReader$SchemaExchangeDecoder";
+         ctorSig = "(Ljava/lang/Class;Lcom/pantor/blink/Schema$Group;" +
+            "Lcom/pantor/blink/SchemaExchangeDecoder;)V";
+         ctorArgCount = 3;
+      }
+      else
+      {
+         obs = oreg != null ? oreg.findObserver (g) : null;
+         if (obs != null)
+         {
+            decBase = "com.pantor.blink.CompactReader$DispatchingDecoder";
+            ctorSig = "(Ljava/lang/Class;Lcom/pantor/blink/Schema$Group;" +
+               "Lcom/pantor/blink/Observer;)V";
+            ctorArgCount = 3;
+         }
+         else
+         {
+            decBase = "com.pantor.blink.CompactReader$AppendingDecoder";
+            ctorSig = "(Ljava/lang/Class;Lcom/pantor/blink/Schema$Group;)V";
+            ctorArgCount = 2;
+         }
+      }
+      
       String decoderName = getDecoderClassName (g.getName ());
 
       // Generate decoder class
@@ -158,18 +203,17 @@ public final class CompactReaderCompiler
       DynClass dc = new DynClass (decoderName);
       dc.setFlags (DynClass.ClassFlag.Final);
 
-      String ctorSig = "(Ljava/lang/Class;Lcom/pantor/blink/Schema$Group;" +
-         "Lcom/pantor/blink/Observer;)V";
-      
-      dc.setSuper ("com.pantor.blink.CompactReader$Decoder");
+      dc.setSuper (decBase);
 
       // Constructor
-      
-      dc.startPublicMethod ("<init>", ctorSig)
-         .aload0 ().aload1 ().aload2 ().aload3 ()
-         .invokeSpecial ("com/pantor/blink/CompactReader$Decoder",
-                         "<init>", ctorSig)
-         .return_ ().setMaxStack (4).endMethod ();
+
+      dc.startPublicMethod ("<init>", ctorSig);
+
+      for (int i = 0; i <= ctorArgCount; ++ i)
+         dc.aload (i);
+
+      dc.invokeSpecial (decBase, "<init>", ctorSig)
+         .return_ ().setMaxStack (ctorArgCount + 1).endMethod ();
 
       // void decode (src, tgt, rd)
 
@@ -256,9 +300,15 @@ public final class CompactReaderCompiler
       dc.endMethod ();
 
       // Create an instance of the generated decoder
-      
-      CompactReader.Decoder d = createInstance (dc, bnd, obs);
 
+      CompactReader.Decoder d;
+      if (isSchemaExchangeType)
+         d = createInstance (dc, bnd, schemaExDec);
+      else if (obs != null)
+         d = createInstance (dc, bnd, obs);
+      else
+         d = createInstance (dc, bnd, null);
+         
       // Store this instance for future lookups
       
       decByName.put (g.getName (), d);
@@ -648,18 +698,38 @@ public final class CompactReaderCompiler
    }
    
    private CompactReader.Decoder createInstance (
-      DynClass dc, ObjectModel.GroupBinding bnd, Observer obs)
+      DynClass dc, ObjectModel.GroupBinding bnd, Object obsOrExDec)
       throws BlinkException
    {
       try
       {
          Class<?> tgtType = bnd.getTargetType ();
          Class<?> decClass = dload.loadPrivileged (dc, tgtType);
-         Constructor<?> ctor = decClass.getConstructor (
-            Class.class, Schema.Group.class, Observer.class);
+         if (obsOrExDec != null)
+         {
+            Constructor<?> ctor;
+            if (obsOrExDec instanceof SchemaExchangeDecoder)
+            {
+               ctor = decClass.getConstructor (
+                  Class.class, Schema.Group.class, SchemaExchangeDecoder.class);
+            }
+            else
+            {
+               ctor = decClass.getConstructor (
+                  Class.class, Schema.Group.class, Observer.class);
+            }
 
-         return (CompactReader.Decoder)ctor.newInstance (
-            tgtType, bnd.getGroup (), obs);
+            return (CompactReader.Decoder)ctor.newInstance (
+               tgtType, bnd.getGroup (), obsOrExDec);
+         }
+         else
+         {
+            Constructor<?> ctor = decClass.getConstructor (
+               Class.class, Schema.Group.class);
+
+            return (CompactReader.Decoder)ctor.newInstance (
+               tgtType, bnd.getGroup ());
+         }
       }
       catch (NoSuchMethodException e)
       {
@@ -678,7 +748,7 @@ public final class CompactReaderCompiler
          throw new BlinkException.Binding (e);
       }
    }
-   
+
    private final HashMap<Long, CompactReader.Decoder> decByTid =
       new HashMap<Long, CompactReader.Decoder> ();
    private final HashMap<NsName, CompactReader.Decoder> decByName =
@@ -687,4 +757,5 @@ public final class CompactReaderCompiler
    private final ObjectModel om;
    private final DynClassLoader dload = new DynClassLoader ();
    private final HashSet<NsName> enumDecs = new HashSet <NsName> ();
+   private SchemaExchangeDecoder schemaExDec;
 }

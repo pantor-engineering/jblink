@@ -63,15 +63,25 @@ public interface Block
       @param o an array to be reused or null
       @return an array filled with objects created by the specified creator
     */
-   
+
    Object [] refill (Creator ctor, Object [] o) throws BlinkException.Binding;
 
    /**
       Reclaims superfluous objects. This will typically happen when a
       decoder will not be used anymore and there are still unused
-      object. This makes it possible to not leak objects when using an object
-      pooling strategy.
+      objects. Use this method to avoid leaking objects when using an
+      object pooling strategy.
     */
    
    void reclaim (Object [] o, int from, int len);
+
+   /**
+      Reclaims an object that has previously been allocated through
+      the {@code refill} method, but is no longer used
+
+      @param o the object to be reclaimed
+    */
+
+   void reclaim (Object o);
+   
 }

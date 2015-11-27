@@ -37,7 +37,7 @@ package com.pantor.blink;
 
 import java.util.HashMap;
 
-public final class NsName
+public final class NsName implements Comparable<NsName>
 {
    public String getNs () { return ns; }
    public String getName () { return name; }
@@ -48,6 +48,16 @@ public final class NsName
       return this == o;
    }
 
+   @Override
+   public int compareTo (NsName o)
+   {
+      int cmpNs = ns.compareTo (o.ns);
+      if (cmpNs == 0)
+         return name.compareTo (o.name);
+      else
+         return cmpNs;
+   }
+   
    @Override
    public int hashCode ()
    {

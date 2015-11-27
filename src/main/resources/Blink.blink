@@ -1,0 +1,113 @@
+# Copyright (c) 2013, Pantor Engineering AB
+#
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
+#
+#  * Redistributions of source code must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+#
+#  * Redistributions in binary form must reproduce the above
+#    copyright notice, this list of conditions and the following
+#    disclaimer in the documentation and/or other materials provided
+#    with the distribution.
+#
+#  * Neither the name of Pantor Engineering AB nor the names of its
+#    contributors may be used to endorse or promote products derived
+#    from this software without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+# FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+#
+# IN NO EVENT SHALL THE COPYRIGHT HOLDERS OR CONTRIBUTORS BE LIABLE
+# FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+# CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT
+# OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
+# BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+# LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
+# USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
+# DAMAGE.
+
+# A schema for encoding a blink schema in blink 
+
+namespace Blink
+
+GroupDecl : Annotated ->
+  NsName Name, u64 Id
+
+GroupDef : Annotated ->
+  NsName Name, u64 Id?, FieldDef [] Fields, NsName Super?
+
+FieldDef : Annotated ->
+  string Name, u32 Id?, TypeDef* Type, bool Optional
+
+Define : Annotated ->
+  NsName Name, u32 Id?, TypeDef* Type
+
+TypeDef : Annotated
+
+Ref : TypeDef ->
+  NsName Type
+
+DynRef : TypeDef -> 
+  NsName Type
+
+Sequence : TypeDef ->
+  TypeDef* Type
+
+String : TypeDef ->
+  u8 MaxSize?
+
+Binary : TypeDef ->
+  u8 MaxSize?
+
+Fixed : TypeDef ->
+  u32 Size
+
+FixedDec : TypeDef ->
+  u8 Scale
+
+Number : TypeDef ->
+  u32 MaxPrecision?
+
+Enum : TypeDef ->
+  Symbol [] Symbols
+
+Symbol : Annotated ->
+  string Name, i32 Value
+
+U8             : TypeDef 
+I8             : TypeDef
+U16            : TypeDef
+I16            : TypeDef
+U32            : TypeDef
+I32            : TypeDef
+U64            : TypeDef
+I64            : TypeDef
+F64            : TypeDef
+Bool           : TypeDef
+Decimal        : TypeDef
+NanoTime       : TypeDef
+MilliTime      : TypeDef
+Date           : TypeDef
+TimeOfDayMilli : TypeDef
+TimeOfDayNano  : TypeDef
+Object         : TypeDef
+
+SchemaAnnotation ->
+  Annotation [] Annotations,
+  string Ns?
+
+Annotated ->
+  Annotation [] Annotations?
+
+Annotation ->
+  NsName Name, string Value
+
+NsName ->
+  string Ns?, string Name
