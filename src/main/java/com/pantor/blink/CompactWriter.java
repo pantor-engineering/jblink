@@ -208,6 +208,19 @@ public final class CompactWriter implements Writer
    }
 
    /**
+      Sets an observer for flushes of schema exchange definitions.
+      The observer will override the default behavior which is to
+      prepend the encoded definitions to the output byte sink.
+
+      @param schemaExObs the observer
+   */
+
+   public void setSchemaExchangeObserver (SchemaExchangeObserver schemaExObs)
+   {
+      this.schemaExObs = schemaExObs;
+   }
+   
+   /**
       Enables or disables automatic flushing. Enabled by default
 
       @param useAutoFlush {@code true} enables and {@code false} disables
@@ -697,25 +710,33 @@ public final class CompactWriter implements Writer
       boolean stashedUseAutoFlush = useAutoFlush;
       useAutoFlush = false;
       ByteSink stashedSink = sink;
-      if (defSink == null)
-         defSink = new ByteBuf ();
+      if (defBuf == null)
+         defBuf = new ByteBuf ();
       
-      sink = defSink;
+      sink = defBuf;
 
       write (schemaExEnc.flushPendingDefs ());
       
       sink = stashedSink;
       useAutoFlush = stashedUseAutoFlush;
       
-      defSink.flip ();
-      sink.reserve (defSink.size ());
-      defSink.prependTo (sink, defSink.size ());
-      defSink.clear ();
+      defBuf.flip ();
+      schemaExObs.onFlushDefinitions (defBuf, sink);
+      defBuf.clear ();
    }
    
    private ByteSink sink;
-   private ByteBuf defSink;
+   private ByteBuf defBuf;
    private final CompactWriterCompiler compiler;
    private boolean useAutoFlush;
    private SchemaExchangeEncoder schemaExEnc;
+   private SchemaExchangeObserver schemaExObs =
+      new SchemaExchangeObserver () {
+         public void onFlushDefinitions (ByteSource defs, ByteSink main)
+            throws IOException
+         {
+            sink.reserve (defs.size ());
+            defs.prependTo (sink, defs.size ());
+         }
+      };
 }
