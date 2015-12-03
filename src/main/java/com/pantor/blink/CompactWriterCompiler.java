@@ -406,6 +406,8 @@ public final class CompactWriterCompiler
             {
                if (t.getType ().getCode () == Schema.TypeCode.Fixed)
                   compileFixed (f, dc, scx);
+               else if (t.getType ().getCode () == Schema.TypeCode.FixedDec)
+                  compileFixedDec (f, dc, scx);
                else
                   compilePrim (t, dc, scx);
             }
@@ -421,6 +423,8 @@ public final class CompactWriterCompiler
             {
                if (t.getType ().getCode () == Schema.TypeCode.Fixed)
                   compileFixedSeq (t, dc);
+               else if (t.getType ().getCode () == Schema.TypeCode.FixedDec)
+                  compileFixedDecSeq (f, dc);
                else
                   compilePrimSeq (t, dc);
             }
@@ -458,6 +462,26 @@ public final class CompactWriterCompiler
          scx.addSize (getMaxVlcSize (t.getType ().getCode ()));
    }
 
+   private static void compileFixedDec (ObjectModel.Field f, DynClass dc,
+                                        SizeContext scx)
+   {
+      Schema.TypeInfo t = f.getFieldType ();
+      if (FixedDec.class.isAssignableFrom (f.getGetter ().getReturnType ()))
+      {
+         Schema.FixedDecType ft = (Schema.FixedDecType)t.getType ();
+         dc.ldc (ft.getScale ()); // #depth: 2
+         dc.aload1 (); // sink, #depth: 3
+
+         dc.invokeStatic ("com/pantor/blink/CompactWriter", "writeBoxedFixedDec",
+                          "(Lcom/pantor/blink/FixedDec;" +
+                          "ILcom/pantor/blink/ByteSink;)V");
+         
+         scx.addSize (getMaxVlcSize (Schema.TypeCode.I64));
+      }
+      else
+         compilePrim (t, dc, scx);
+   }
+   
    private static void compileFixed (ObjectModel.Field f, DynClass dc,
                                      SizeContext scx)
    {
@@ -496,6 +520,24 @@ public final class CompactWriterCompiler
                        "ILcom/pantor/blink/ByteSink;)V");
    }
 
+   private static void compileFixedDecSeq (ObjectModel.Field f, DynClass dc)
+   {
+      Schema.TypeInfo t = f.getFieldType ();
+      if (FixedDec [].class.isAssignableFrom (f.getGetter ().getReturnType ()))
+      {
+         Schema.FixedDecType ft = (Schema.FixedDecType)t.getType ();
+         dc.ldc (ft.getScale ()); // #depth: 2
+         dc.aload1 (); // sink, #depth: 3
+
+         dc.invokeStatic ("com/pantor/blink/CompactWriter",
+                          "writeBoxedFixedDecArray",
+                          "([Lcom/pantor/blink/FixedDec;" +
+                          "ILcom/pantor/blink/ByteSink;)V");
+      }
+      else
+         compilePrimSeq (t, dc);
+   }
+   
    private void compileEnum (Schema.TypeInfo t, ObjectModel.EnumBinding comp,
                              DynClass dc, SizeContext scx)
       throws BlinkException

@@ -288,6 +288,14 @@ public final class CompactWriter implements Writer
       Vlc.writeI64 (val, sink);
    }
 
+   public static void writeBoxedFixedDec (FixedDec val, int scale, ByteSink sink)
+      throws BlinkException.Encode
+   {
+      long sig =
+         FixedDec.rescale (val.getSignificand (), val.getScale (), scale);
+      Vlc.writeI64 (sig, sink);
+   }
+
    public static void writeF64 (double val, ByteSink sink)
       throws BlinkException.Encode
    {
@@ -304,7 +312,7 @@ public final class CompactWriter implements Writer
       throws BlinkException.Encode
    {
       Vlc.writeI32 ((int)val.getExponent (), sink);
-      Vlc.writeI64 (val.getMantissa (), sink);
+      Vlc.writeI64 (val.getSignificand (), sink);
    }
 
    public static void writeDate (int val, ByteSink sink)
@@ -496,6 +504,20 @@ public final class CompactWriter implements Writer
       throws BlinkException.Encode
    {
       writeI64Array (val, sink);
+   }
+
+   public static void writeBoxedFixedDecArray (FixedDec [] val, int scale,
+                                               ByteSink sink)
+      throws BlinkException.Encode
+   {
+      Vlc.writeU32 (val.length, sink);
+      reserve (sink, val.length * Vlc.Int64MaxSize);
+      for (int i = 0; i < val.length; ++ i)
+      {
+         FixedDec d = val [i];
+         long sig = FixedDec.rescale (d.getSignificand (), d.getScale (), scale);
+         Vlc.writeI64 (sig, sink);
+      }
    }
 
    public static void writeF64Array (double [] val, ByteSink sink)

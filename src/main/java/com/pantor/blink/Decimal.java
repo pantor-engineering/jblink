@@ -35,10 +35,12 @@
 
 package com.pantor.blink;
 
+import java.math.BigDecimal;
+
 /**
    The {@code Decimal} represents a Blink decimal value. It has an
-   64-bit mantisssa and logically it has an 8-bit exponent even though
-   an {@code int} is used for the representation here.
+   64-bit significand and logically it has an 8-bit exponent even
+   though an {@code int} is used for the representation here.
 
    <p>Instances of {@code Decimal} are immutable.</p>
 */
@@ -52,24 +54,24 @@ public final class Decimal
    public Decimal () { this (0); }
 
    /**
-      Creates a decimal with the value {@code mantissa} * 10^0
+      Creates a decimal with the value {@code significand} * 10^0
 
-      @param mantissa a mantissa
+      @param significand a significand
    */
 
-   public Decimal (long mantissa) { this (mantissa, 0); }
+   public Decimal (long significand) { this (significand, 0); }
 
    /**
-      Creates a decimal with the value {@code}mantissa * 10^{@code exponent}
+      Creates a decimal with the value {@code}significand * 10^{@code exponent}
 
-      @param mantissa a mantissa
+      @param significand a significand
       @param exponent an exponent
    */
 
-   public Decimal (long mantissa, int exponent)
+   public Decimal (long significand, int exponent)
    {
       this.exponent = exponent;
-      this.mantissa = mantissa;
+      this.significand = significand;
    }
    
    /**
@@ -84,20 +86,38 @@ public final class Decimal
    }
    
    /**
-      Returns the mantissa
+      Returns the significand
 
-      @return the mantissa
+      @return the significand
    */
 
-   public long getMantissa ()
+   public long getSignificand ()
    {
-      return mantissa;
+      return significand;
    }
 
    @Override
+   public boolean equals (Object other)
+   {
+      if (other instanceof Decimal)
+      {
+         Decimal o = (Decimal)other;
+         return significand == o.significand && exponent == o.exponent;
+      }
+      else
+         return false;
+   }
+
+   @Override
+   public int hashCode ()
+   {
+      return (int)significand * 31 + exponent;
+   }
+   
+   @Override
    public String toString ()
    {
-      return String.valueOf (mantissa) + "*10^" + String.valueOf (exponent);
+      return String.valueOf (significand) + "E" + String.valueOf (exponent);
    }
 
    /**
@@ -106,37 +126,52 @@ public final class Decimal
       @return the double value of this decimal
    */
 
-   public double toDouble ()
+   public double doubleValue ()
    {
-      return (double)mantissa * Math.pow (10, exponent); 
+      return (double)significand * Math.pow (10, exponent); 
    }
 
    /**
-      Creates a decimal instance for the value {@code mantissa} * 10^0
+      Creates a decimal instance for the value {@code significand} * 10^0
 
-      @param mantissa a mantissa
+      @param significand a significand
       @return a decimal value
    */
 
-   public static Decimal valueOf (long mantissa)
+   public static Decimal valueOf (long significand)
    {
-      return valueOf (mantissa, 0);
+      return valueOf (significand, 0);
    }
 
    /**
-      Creates a decimal instance for the value {@code mantissa} *
+      Creates a decimal instance for the value {@code significand} *
       10^{@code exponent}
 
-      @param mantissa a mantissa
+      @param significand a significand
       @param exponent an exponent
       @return a decimal value
    */
 
-   public static Decimal valueOf (long mantissa, int exponent)
+   public static Decimal valueOf (long significand, int exponent)
    {
-      return new Decimal (mantissa, exponent);
+      return new Decimal (significand, exponent);
+   }
+
+
+   /**
+      Creates a decimal instance by parsing the specified string.
+
+      @param s a string on the same format accepted by {@link
+      java.math.BigDecimal}
+      @return a decimal value
+   */
+   
+   public static Decimal valueOf (String s)
+   {
+      BigDecimal bd = new BigDecimal (s);
+      return valueOf (bd.unscaledValue ().longValue (), - bd.scale ());
    }
    
    private final int exponent;
-   private final long mantissa;
+   private final long significand;
 }

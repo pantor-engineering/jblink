@@ -36,6 +36,7 @@
 package com.pantor.blink;
 
 import static org.junit.Assert.*;
+import static org.hamcrest.CoreMatchers.*;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -1069,6 +1070,66 @@ public class TestCases
       TestCases_ result = (TestCases_)compactRoundtrip (
          "TestCases -> string Foo", msg);
       assertEquals (msg.getFoo (), result.getFoo ());
+   }
+
+   @Test public void fixedDecimals ()
+   {
+      Decimal hundred2 = Decimal.valueOf ("100.00");
+      FixedDec d1 = FixedDec.valueOf (hundred2);
+      FixedDec d2 = FixedDec.valueOf (hundred2, 7);
+      assertEquals (2, d1.getScale ());
+      assertEquals (7, d2.getScale ());
+      assertEquals (0, d1.compareTo (d2));
+      assertEquals (10000, d1.getSignificand ());
+      assertEquals (1000000000, d2.getSignificand ());
+      assertEquals (100, d1.longValue ());
+      assertEquals (100, d2.longValue ());
+      assertEquals ("10000E-2", d1.toString ());
+      assertEquals ("1000000000E-7", d2.toString ());
+      assertThat (d1, not (equalTo (d2)));
+      assertThat (d1.decimalValue (), not (equalTo (d2.decimalValue ())));
+      assertEquals (d1.toString (), d1.decimalValue ().toString ());
+      assertEquals (d2.toString (), d2.decimalValue ().toString ());
+      assertEquals (1000000000, FixedDec.rescale (10000, 2, 7));
+      assertEquals (10000, FixedDec.rescale (1000000000, 7, 2));
+      assertEquals (100, FixedDec.valueOf (d1, 7).longValue ());
+      assertEquals (100, FixedDec.valueOf (d2, 2).longValue ());
+      assertEquals ("123E0", FixedDec.valueOf ("123").toString ());
+      assertEquals ("1234E-1", FixedDec.valueOf ("123.4").toString ());
+      assertEquals ("12345E-2", FixedDec.valueOf ("123.45").toString ());
+      assertEquals ("123456789012E-11",
+                    FixedDec.valueOf ("1.23456789012").toString ());
+   }
+
+   public static class Order
+   {
+      public void setPrice (FixedDec px) { this.px = px; }
+      public void setQuantity (FixedDec qty) { this.qty = qty; }
+      public FixedDec getPrice () { return px; }
+      public FixedDec getQuantity () { return qty; }
+      private FixedDec px;
+      private FixedDec qty;
+   }
+   
+   @Test public void boxedFixedDecimalRoundtrip ()
+      throws BlinkException, IOException
+   {
+      Order o = new Order ();
+      o.setPrice (FixedDec.valueOf (100));
+      o.setQuantity (FixedDec.valueOf (1000));
+
+      assertEquals (100, o.getPrice ().longValue ());
+      assertEquals (1000, o.getQuantity ().longValue ());
+      assertEquals (0, o.getPrice ().getScale ());
+      assertEquals (0, o.getQuantity ().getScale ());
+      
+      Order result = (Order)compactRoundtrip (
+         "Order -> fixedDec(7) Price, fixedDec(2) Quantity", o);
+
+      assertEquals (100, result.getPrice ().longValue ());
+      assertEquals (1000, result.getQuantity ().longValue ());
+      assertEquals (7, result.getPrice ().getScale ());
+      assertEquals (2, result.getQuantity ().getScale ());
    }
    
    //////////////////////////////////////////////////////////////////////
