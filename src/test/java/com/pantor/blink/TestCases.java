@@ -649,8 +649,8 @@ public class TestCases
       DynClassLoader loader = new DynClassLoader ();
       Bar bar = (Bar)loader.load (c).newInstance ();
       assertEquals ("Hello", bar.get ());
-   }
-
+   }   
+   
    public static class A
    {
       public String getValue () { return value; }
@@ -1055,6 +1055,22 @@ public class TestCases
       assertEquals (data, bytesToHex (result.getData ()));
    }   
 
+   public static class TestCases_
+   {
+      public String getFoo () { return foo; }
+      public void setFoo (String foo) { this.foo = foo; }
+      private String foo;
+   };
+
+   @Test public void wrapperNameClash () throws BlinkException, IOException
+   {
+      TestCases_ msg = new TestCases_ ();
+      msg.setFoo ("Bar");
+      TestCases_ result = (TestCases_)compactRoundtrip (
+         "TestCases -> string Foo", msg);
+      assertEquals (msg.getFoo (), result.getFoo ());
+   }
+   
    //////////////////////////////////////////////////////////////////////
    
    private static void decodeCompact (String schema, String data, Block result)

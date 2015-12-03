@@ -94,6 +94,7 @@ import java.io.InputStreamReader;
 
    <ol>
    <li>{@code <wrapper>$<name>}</li>
+   <li>{@code <wrapper>$<name>_}</li>
    <li>{@code <wrapper>$<alias>}</li>
    <li>{@code <package[ns]>.<ns>$<name>}</li>
    <li>{@code <package[ns]>.<ns>$<alias>}</li>
@@ -108,6 +109,7 @@ import java.io.InputStreamReader;
    <li>{@code <camelbackToUnderscoreLower(ns)>.<name>}</li>
    <li>{@code <camelbackToUnderscoreLower(ns)>.<alias>}</li>
    <li>{@code <ns>$<name>}</li>
+   <li>{@code <ns>$<name>_}</li>
    <li>{@code <ns>$<alias>}</li>
    <li>{@code <name>}</li>
    <li>{@code <alias>}</li>
@@ -973,13 +975,19 @@ public final class DefaultObjectModel extends Dependee.Impl
    private Class<?> getIncludedClass (String stem, NsName name,
                                       Schema.Component comp)
    {
-      Class<?> c = getIncludedClass (stem + Util.escName (name.getName ()));
+      String nm = Util.escName (name.getName ());
+
+      Class<?> c = getIncludedClass (stem + nm);
+      if (c == null && stem.endsWith ("$"))
+         c = getIncludedClass (stem + nm + "_");
+      
       if (c == null)
       {
          String alias = comp.getAnnot (BlinkAlias);
          if (alias != null)
             c = getIncludedClass (stem + Util.escName (alias));
       }
+      
       return c;
    }
 
