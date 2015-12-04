@@ -1651,6 +1651,12 @@ public final class DynClass
       return this;
    }
 
+   public DynClass new_ (Class<?> c)
+   {
+      curMtod.addInsClassOp (0xbb, c.getName ());
+      return this;
+   }
+
    public DynClass newArray (Type t)
    {
       curMtod.addIns (0xbc, t.getVal ());

@@ -193,19 +193,6 @@ public abstract class FixedDec implements Comparable<FixedDec>
    }
 
    /**
-      Creates a fixedDec({@code scale}) instance from an integer
-
-      @param value an long integer
-      @param scale a scale, the scale must be >= 0
-      @return a fixed decimal value
-   */
-
-   public static FixedDec valueOf (long value, int scale)
-   {
-      return valueOf (value, 0, scale);
-   }
-
-   /**
       Creates a fixedDec({@code scale}) instance from a scaled integer
 
       @param value an long integer
@@ -217,26 +204,39 @@ public abstract class FixedDec implements Comparable<FixedDec>
 
    public static FixedDec valueOf (long value, int fromScale, int toScale)
    {
-      switch (toScale)
+      return getInstance (rescale (value, fromScale, toScale), toScale);
+   }
+
+   /**
+      Creates a fixedDec({@code scale}) instance from significand and
+      a scale
+
+      @param significand a significand
+      @param scale the scale which must be >= 0
+      @return a fixed decimal value
+   */
+   
+   public static FixedDec getInstance (long significand, int scale)
+   {
+      switch (scale)
       {
-       case 0: return new _0 (rescale (value, fromScale, 0));
-       case 1: return new _1 (rescale (value, fromScale, 1));
-       case 2: return new _2 (rescale (value, fromScale, 2));
-       case 3: return new _3 (rescale (value, fromScale, 3));
-       case 4: return new _4 (rescale (value, fromScale, 4));
-       case 5: return new _5 (rescale (value, fromScale, 5));
-       case 6: return new _6 (rescale (value, fromScale, 6));
-       case 7: return new _7 (rescale (value, fromScale, 7));
-       case 8: return new _8 (rescale (value, fromScale, 8));
-       case 9: return new _9 (rescale (value, fromScale, 9));
-       case 10: return new _10 (rescale (value, fromScale, 10));
+       case 0: return new _0 (significand);
+       case 1: return new _1 (significand);
+       case 2: return new _2 (significand);
+       case 3: return new _3 (significand);
+       case 4: return new _4 (significand);
+       case 5: return new _5 (significand);
+       case 6: return new _6 (significand);
+       case 7: return new _7 (significand);
+       case 8: return new _8 (significand);
+       case 9: return new _9 (significand);
+       case 10: return new _10 (significand);
        default:
-         if (toScale >= 0)
-            return new _N (rescale (value, fromScale, toScale), toScale);
+         if (scale >= 0)
+            return new _N (significand, scale);
          else
             throw new IllegalArgumentException (
-               "FixedDec scale must be >= 0: " +
-               String.valueOf (toScale));
+               "FixedDec scale must be >= 0: " + String.valueOf (scale));
       }
    }
 
@@ -251,7 +251,6 @@ public abstract class FixedDec implements Comparable<FixedDec>
    {
       return valueOf (value, - value.getExponent ()); 
    }
-
    
    /**
       Creates a fixedDec({@code scale}) instance from a Decimal
@@ -394,74 +393,434 @@ public abstract class FixedDec implements Comparable<FixedDec>
 
    public static final class _0 extends FixedDec
    {
+      public final static int Scale = 0;
       public _0 (long sig) { super (sig); }
       @Override public int getScale () { return 0; }
+      public static _0 valueOf (long value)
+      {
+         return new _0 (value);
+      }
+
+      public static _0 valueOf (Decimal v)
+      {
+         return new _0 (rescale (v.getSignificand (), - v.getExponent (), 0));
+      }
+   
+      public static _0 valueOf (FixedDec v)
+      {
+         if (v instanceof _0)
+            return (_0)v;
+         else
+            return new _0 (rescale (v.getSignificand (), v.getScale (), 0));
+      }
+   
+      public static _0 valueOf (String s)
+      {
+         BigDecimal bd = new BigDecimal (s);
+         bd.setScale (0);
+         return new _0 (bd.unscaledValue ().longValue ());
+      }
+
+      public static _0 getInstance (long significand)
+      {
+         return new _0 (significand);
+      }
    }
 
    public static final class _1 extends FixedDec
    {
+      public final static int Scale = 1;
       public _1 (long sig) { super (sig); }
       @Override public int getScale () { return 1; }
-   }
+      public static _1 valueOf (long value)
+      {
+         return new _1 (rescale (value, 0, 1));
+      }
+
+      public static _1 valueOf (Decimal v)
+      {
+         return new _1 (rescale (v.getSignificand (), - v.getExponent (), 1));
+      }
    
+      public static _1 valueOf (FixedDec v)
+      {
+         if (v instanceof _1)
+            return (_1)v;
+         else
+            return new _1 (rescale (v.getSignificand (), v.getScale (), 1));
+      }
+   
+      public static _1 valueOf (String s)
+      {
+         BigDecimal bd = new BigDecimal (s);
+         bd.setScale (1);
+         return new _1 (bd.unscaledValue ().longValue ());
+      }
+
+      public static _1 getInstance (long significand)
+      {
+         return new _1 (significand);
+      }
+   }
+
    public static final class _2 extends FixedDec
    {
+      public final static int Scale = 2;
       public _2 (long sig) { super (sig); }
       @Override public int getScale () { return 2; }
-   }
+      public static _2 valueOf (long value)
+      {
+         return new _2 (rescale (value, 0, 2));
+      }
+
+      public static _2 valueOf (Decimal v)
+      {
+         return new _2 (rescale (v.getSignificand (), - v.getExponent (), 2));
+      }
    
+      public static _2 valueOf (FixedDec v)
+      {
+         if (v instanceof _2)
+            return (_2)v;
+         else
+            return new _2 (rescale (v.getSignificand (), v.getScale (), 2));
+      }
+   
+      public static _2 valueOf (String s)
+      {
+         BigDecimal bd = new BigDecimal (s);
+         bd.setScale (2);
+         return new _2 (bd.unscaledValue ().longValue ());
+      }
+
+      public static _2 getInstance (long significand)
+      {
+         return new _2 (significand);
+      }
+   }
+
    public static final class _3 extends FixedDec
    {
+      public final static int Scale = 3;
       public _3 (long sig) { super (sig); }
       @Override public int getScale () { return 3; }
-   }
+      public static _3 valueOf (long value)
+      {
+         return new _3 (rescale (value, 0, 3));
+      }
+
+      public static _3 valueOf (Decimal v)
+      {
+         return new _3 (rescale (v.getSignificand (), - v.getExponent (), 3));
+      }
    
+      public static _3 valueOf (FixedDec v)
+      {
+         if (v instanceof _3)
+            return (_3)v;
+         else
+            return new _3 (rescale (v.getSignificand (), v.getScale (), 3));
+      }
+   
+      public static _3 valueOf (String s)
+      {
+         BigDecimal bd = new BigDecimal (s);
+         bd.setScale (3);
+         return new _3 (bd.unscaledValue ().longValue ());
+      }
+
+      public static _3 getInstance (long significand)
+      {
+         return new _3 (significand);
+      }
+   }
+
    public static final class _4 extends FixedDec
    {
+      public final static int Scale = 4;
       public _4 (long sig) { super (sig); }
       @Override public int getScale () { return 4; }
-   }
+      public static _4 valueOf (long value)
+      {
+         return new _4 (rescale (value, 0, 4));
+      }
+
+      public static _4 valueOf (Decimal v)
+      {
+         return new _4 (rescale (v.getSignificand (), - v.getExponent (), 4));
+      }
    
+      public static _4 valueOf (FixedDec v)
+      {
+         if (v instanceof _4)
+            return (_4)v;
+         else
+            return new _4 (rescale (v.getSignificand (), v.getScale (), 4));
+      }
+   
+      public static _4 valueOf (String s)
+      {
+         BigDecimal bd = new BigDecimal (s);
+         bd.setScale (4);
+         return new _4 (bd.unscaledValue ().longValue ());
+      }
+
+      public static _4 getInstance (long significand)
+      {
+         return new _4 (significand);
+      }
+   }
+
    public static final class _5 extends FixedDec
    {
+      public final static int Scale = 5;
       public _5 (long sig) { super (sig); }
       @Override public int getScale () { return 5; }
+      public static _5 valueOf (long value)
+      {
+         return new _5 (rescale (value, 0, 5));
+      }
+
+      public static _5 valueOf (Decimal v)
+      {
+         return new _5 (rescale (v.getSignificand (), - v.getExponent (), 5));
+      }
+   
+      public static _5 valueOf (FixedDec v)
+      {
+         if (v instanceof _5)
+            return (_5)v;
+         else
+            return new _5 (rescale (v.getSignificand (), v.getScale (), 5));
+      }
+   
+      public static _5 valueOf (String s)
+      {
+         BigDecimal bd = new BigDecimal (s);
+         bd.setScale (5);
+         return new _5 (bd.unscaledValue ().longValue ());
+      }
+
+      public static _5 getInstance (long significand)
+      {
+         return new _5 (significand);
+      }
    }
 
    public static final class _6 extends FixedDec
    {
+      public final static int Scale = 6;
       public _6 (long sig) { super (sig); }
       @Override public int getScale () { return 6; }
-   }
+      public static _6 valueOf (long value)
+      {
+         return new _6 (rescale (value, 0, 6));
+      }
+
+      public static _6 valueOf (Decimal v)
+      {
+         return new _6 (rescale (v.getSignificand (), - v.getExponent (), 6));
+      }
    
+      public static _6 valueOf (FixedDec v)
+      {
+         if (v instanceof _6)
+            return (_6)v;
+         else
+            return new _6 (rescale (v.getSignificand (), v.getScale (), 6));
+      }
+   
+      public static _6 valueOf (String s)
+      {
+         BigDecimal bd = new BigDecimal (s);
+         bd.setScale (6);
+         return new _6 (bd.unscaledValue ().longValue ());
+      }
+
+      public static _6 getInstance (long significand)
+      {
+         return new _6 (significand);
+      }
+   }
+
    public static final class _7 extends FixedDec
    {
+      public final static int Scale = 7;
       public _7 (long sig) { super (sig); }
       @Override public int getScale () { return 7; }
-   }
+      public static _7 valueOf (long value)
+      {
+         return new _7 (rescale (value, 0, 7));
+      }
+
+      public static _7 valueOf (Decimal v)
+      {
+         return new _7 (rescale (v.getSignificand (), - v.getExponent (), 7));
+      }
    
+      public static _7 valueOf (FixedDec v)
+      {
+         if (v instanceof _7)
+            return (_7)v;
+         else
+            return new _7 (rescale (v.getSignificand (), v.getScale (), 7));
+      }
+   
+      public static _7 valueOf (String s)
+      {
+         BigDecimal bd = new BigDecimal (s);
+         bd.setScale (7);
+         return new _7 (bd.unscaledValue ().longValue ());
+      }
+
+      public static _7 getInstance (long significand)
+      {
+         return new _7 (significand);
+      }
+   }
+
    public static final class _8 extends FixedDec
    {
+      public final static int Scale = 8;
       public _8 (long sig) { super (sig); }
       @Override public int getScale () { return 8; }
+      public static _8 valueOf (long value)
+      {
+         return new _8 (rescale (value, 0, 8));
+      }
+
+      public static _8 valueOf (Decimal v)
+      {
+         return new _8 (rescale (v.getSignificand (), - v.getExponent (), 8));
+      }
+   
+      public static _8 valueOf (FixedDec v)
+      {
+         if (v instanceof _8)
+            return (_8)v;
+         else
+            return new _8 (rescale (v.getSignificand (), v.getScale (), 8));
+      }
+   
+      public static _8 valueOf (String s)
+      {
+         BigDecimal bd = new BigDecimal (s);
+         bd.setScale (8);
+         return new _8 (bd.unscaledValue ().longValue ());
+      }
+
+      public static _8 getInstance (long significand)
+      {
+         return new _8 (significand);
+      }
    }
 
    public static final class _9 extends FixedDec
    {
+      public final static int Scale = 9;
       public _9 (long sig) { super (sig); }
       @Override public int getScale () { return 9; }
-   }
+      public static _9 valueOf (long value)
+      {
+         return new _9 (rescale (value, 0, 9));
+      }
+
+      public static _9 valueOf (Decimal v)
+      {
+         return new _9 (rescale (v.getSignificand (), - v.getExponent (), 9));
+      }
    
+      public static _9 valueOf (FixedDec v)
+      {
+         if (v instanceof _9)
+            return (_9)v;
+         else
+            return new _9 (rescale (v.getSignificand (), v.getScale (), 9));
+      }
+   
+      public static _9 valueOf (String s)
+      {
+         BigDecimal bd = new BigDecimal (s);
+         bd.setScale (9);
+         return new _9 (bd.unscaledValue ().longValue ());
+      }
+
+      public static _9 getInstance (long significand)
+      {
+         return new _9 (significand);
+      }
+   }
+
    public static final class _10 extends FixedDec
    {
+      public final static int Scale = 10;
       public _10 (long sig) { super (sig); }
       @Override public int getScale () { return 10; }
-   }
+      public static _10 valueOf (long value)
+      {
+         return new _10 (rescale (value, 0, 10));
+      }
+
+      public static _10 valueOf (Decimal v)
+      {
+         return new _10 (rescale (v.getSignificand (), - v.getExponent (), 10));
+      }
    
+      public static _10 valueOf (FixedDec v)
+      {
+         if (v instanceof _10)
+            return (_10)v;
+         else
+            return new _10 (rescale (v.getSignificand (), v.getScale (), 10));
+      }
+   
+      public static _10 valueOf (String s)
+      {
+         BigDecimal bd = new BigDecimal (s);
+         bd.setScale (10);
+         return new _10 (bd.unscaledValue ().longValue ());
+      }
+
+      public static _10 getInstance (long significand)
+      {
+         return new _10 (significand);
+      }
+   }
+
    public static final class _N extends FixedDec
    {
       public _N (long sig, int scale) { super (sig); this.scale = scale; }
       @Override public int getScale () { return scale; }
+
+      public static _N valueOf (long value)
+      {
+         return new _N (value, 0);
+      }
+
+      public static _N valueOf (Decimal v)
+      {
+         return new _N (v.getSignificand (), - v.getExponent ());
+      }
+   
+      public static _N valueOf (FixedDec v)
+      {
+         if (v instanceof _N)
+            return (_N)v;
+         else
+            return new _N (v.getSignificand (), v.getScale ());
+      }
+   
+      public static _N valueOf (String s)
+      {
+         BigDecimal bd = new BigDecimal (s);
+         return new _N (bd.unscaledValue ().longValue (), bd.scale ());
+      }
+
+      public static _N getInstance (long significand, int scale)
+      {
+         return new _N (significand, scale);
+      }
+
       private final int scale;
    }
 

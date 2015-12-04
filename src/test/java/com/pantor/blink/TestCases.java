@@ -1110,7 +1110,7 @@ public class TestCases
       private FixedDec px;
       private FixedDec qty;
    }
-   
+
    @Test public void boxedFixedDecimalRoundtrip ()
       throws BlinkException, IOException
    {
@@ -1130,6 +1130,138 @@ public class TestCases
       assertEquals (1000, result.getQuantity ().longValue ());
       assertEquals (7, result.getPrice ().getScale ());
       assertEquals (2, result.getQuantity ().getScale ());
+   }
+   
+   public static class Order2
+   {
+      public void setPrice (FixedDec._7 px) { this.px = px; }
+      public void setQuantity (FixedDec._2 qty) { this.qty = qty; }
+      public FixedDec._7 getPrice () { return px; }
+      public FixedDec._2 getQuantity () { return qty; }
+      private FixedDec._7 px;
+      private FixedDec._2 qty;
+   }
+
+   @Test public void boxedStaticScaleFixedDecimalRoundtrip ()
+      throws BlinkException, IOException
+   {
+      Order2 o = new Order2 ();
+      o.setPrice (FixedDec._7.valueOf (100));
+      o.setQuantity (FixedDec._2.valueOf (1000));
+
+      assertEquals (100, o.getPrice ().longValue ());
+      assertEquals (1000, o.getQuantity ().longValue ());
+      assertEquals (7, o.getPrice ().getScale ());
+      assertEquals (2, o.getQuantity ().getScale ());
+      
+      Order2 result = (Order2)compactRoundtrip (
+         "Order2 -> fixedDec(7) Price, fixedDec(2) Quantity", o);
+
+      assertEquals (100, result.getPrice ().longValue ());
+      assertEquals (1000, result.getQuantity ().longValue ());
+      assertEquals (7, result.getPrice ().getScale ());
+      assertEquals (2, result.getQuantity ().getScale ());
+   }
+   
+   public static class Order3
+   {
+      public void setPrice (FixedDec._N px) { this.px = px; }
+      public void setQuantity (FixedDec._N qty) { this.qty = qty; }
+      public FixedDec._N getPrice () { return px; }
+      public FixedDec._N getQuantity () { return qty; }
+      private FixedDec._N px;
+      private FixedDec._N qty;
+   }
+
+   @Test public void boxedGenScaleFixedDecimalRoundtrip ()
+      throws BlinkException, IOException
+   {
+      Order3 o = new Order3 ();
+      o.setPrice (FixedDec._N.valueOf (100));
+      o.setQuantity (FixedDec._N.valueOf (1000));
+
+      assertEquals (100, o.getPrice ().longValue ());
+      assertEquals (1000, o.getQuantity ().longValue ());
+      assertEquals (0, o.getPrice ().getScale ());
+      assertEquals (0, o.getQuantity ().getScale ());
+      
+      Order3 result = (Order3)compactRoundtrip (
+         "Order3 -> fixedDec(7) Price, fixedDec(2) Quantity", o);
+
+      assertEquals (100, result.getPrice ().longValue ());
+      assertEquals (1000, result.getQuantity ().longValue ());
+      assertEquals (7, result.getPrice ().getScale ());
+      assertEquals (2, result.getQuantity ().getScale ());
+   }
+
+   public static class Catalog
+   {
+      public void setPrices7 (FixedDec._7 [] prices7) { this.prices7 = prices7; }
+      public FixedDec._7 [] getPrices7 () { return prices7; }
+      private FixedDec._7 [] prices7;
+
+      public void setPricesN (FixedDec._N [] pricesN) { this.pricesN = pricesN; }
+      public FixedDec._N [] getPricesN () { return pricesN; }
+      private FixedDec._N [] pricesN;
+
+      public void setPrices (FixedDec [] prices) { this.prices = prices; }
+      public FixedDec [] getPrices () { return prices; }
+      private FixedDec [] prices;
+   }
+
+   @Test public void fixedDecimalArrayRoundtrip ()
+      throws BlinkException, IOException
+   {
+      Catalog c = new Catalog ();
+
+      FixedDec._7 [] prices7 = new FixedDec._7 [] {
+         FixedDec._7.valueOf (10),
+         FixedDec._7.valueOf (20),
+         FixedDec._7.valueOf (30)
+      };
+
+      FixedDec._N [] pricesN = new FixedDec._N [] {
+         FixedDec._N.valueOf (FixedDec.valueOf ("10")),
+         FixedDec._N.valueOf (FixedDec.valueOf ("10.0")),
+         FixedDec._N.valueOf (FixedDec.valueOf ("10.00"))
+      };
+      
+      FixedDec [] prices = new FixedDec [] {
+         FixedDec.valueOf (10),
+         FixedDec._7.valueOf (20),
+         FixedDec._N.valueOf (30)
+      };
+
+      c.setPrices7 (prices7);
+      c.setPricesN (pricesN);
+      c.setPrices (prices);
+
+      Catalog c2 = (Catalog)compactRoundtrip (
+         "Catalog -> fixedDec(7) [] Prices7, fixedDec(11) [] PricesN, " +
+         "fixedDec(2) [] Prices", c);
+
+      FixedDec._7 [] result7 = c2.getPrices7 ();
+      FixedDec._N [] resultN = c2.getPricesN ();
+      FixedDec [] result = c2.getPrices ();
+
+      assertNotNull (result7);
+      assertEquals (3, result7.length);
+
+      assertNotNull (resultN);
+      assertEquals (3, resultN.length);
+
+      assertNotNull (result);
+      assertEquals (3, result.length);
+
+      assertEquals (10, result7 [0].longValue ());
+      assertEquals (20, result7 [1].longValue ());
+      assertEquals (30, result7 [2].longValue ());
+
+      assertEquals (11, resultN [0].getScale ());
+      assertEquals (10, resultN [0].longValue ());
+
+      assertEquals (2, result [0].getScale ());
+      assertEquals (10, result [0].longValue ());
    }
    
    //////////////////////////////////////////////////////////////////////

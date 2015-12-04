@@ -39,6 +39,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 
 public final class CompactReaderCompiler
@@ -296,7 +297,7 @@ public final class CompactReaderCompiler
          compile (bnd, f, dc);
 
       dc.return_ ();
-      dc.setMaxStack (4);
+      dc.setMaxStack (6);
       dc.endMethod ();
 
       // Create an instance of the generated decoder
@@ -498,46 +499,154 @@ public final class CompactReaderCompiler
          return null;
    }
 
-   private void compileFixedDecField (Schema.TypeInfo t, DynClass dc,
-                                      String methodName, String retType)
+   private static int getScaleConstant (Class<?> c)
    {
-      Schema.FixedDecType ft = (Schema.FixedDecType)t.getType ();
-      int scale = ft.getScale ();
-      dc.aload0 (); // src, #depth: 2
-      if (scale >= 0 && scale < 10)
+      try
       {
-         dc.invokeStatic ("com/pantor/blink/CompactReader", methodName + "_" +
-                          String.valueOf (scale),
-                          "(Lcom/pantor/blink/ByteSource;)" + retType);
+         return c.getField ("Scale").getInt (null);
       }
-      else
+      catch (Throwable e)
       {
-         dc.ldc (ft.getScale ()); // #depth: 3
-         dc.invokeStatic ("com/pantor/blink/CompactReader", methodName,
-                          "(Lcom/pantor/blink/ByteSource;I)" + retType);
+         return -1;
       }
    }
    
    private void compileFixedDecField (ObjectModel.Field f, DynClass dc)
       throws BlinkException
    {
+      dc.aload0 (); // src, #depth: 2
+      invokeReader (dc, "readI64", "J");
+
+      Schema.TypeInfo t = f.getFieldType ();
+      Schema.FixedDecType ft = (Schema.FixedDecType)t.getType ();
+      int extScale = ft.getScale ();
+
       Class<?> argType = getSetterArgType (f);
-      if (argType != null && argType == FixedDec.class)
-         compileFixedDecField (f.getFieldType (), dc, "readFixedDec",
-                               "Lcom/pantor/blink/FixedDec;");
+      if (argType != null && FixedDec.class.isAssignableFrom (argType))
+      {
+         int intScale = getScaleConstant (argType);
+         if (intScale != -1)
+         {
+            if (intScale != extScale)
+            {
+               dc.ldc (extScale); // #depth: 3
+               dc.ldc (intScale); // #depth: 4
+               dc.invokeStatic (argType, "rescale", "(JII)J");
+            }
+               
+            dc.invokeStatic (argType, "getInstance",
+                             "(J)" + DynClass.getDescriptor (argType));
+         }
+         else
+         {
+            dc.ldc (extScale); // #depth: 3
+            dc.invokeStatic (argType, "getInstance",
+                             "(JI)" + DynClass.getDescriptor (argType));
+         }
+      }
       else
-         compilePrimitiveField (f.getFieldType (), dc);
+      {
+         if (argType != Long.TYPE)
+            throw new BlinkException ("Cannot use " + f.getSetter () +
+                                      "to set a fixedDec(" +
+                                      String.valueOf (extScale)+ ") value");
+      }
    }
    
    private void compileFixedDecArrayField (ObjectModel.Field f, DynClass dc)
       throws BlinkException
    {
+      Schema.TypeInfo t = f.getFieldType ();
+      Schema.FixedDecType ft = (Schema.FixedDecType)t.getType ();
+      int extScale = ft.getScale ();
+      
       Class<?> argType = getSetterArgType (f);
-      if (argType != null && argType == FixedDec [].class)
-         compileFixedDecField (f.getFieldType (), dc, "readFixedDecArray",
-                               "[Lcom/pantor/blink/FixedDec;");
+      Class<?> compType = argType != null ? argType.getComponentType () : null;
+      if (compType != null && FixedDec.class.isAssignableFrom (compType))
+      {
+         int intScale = getScaleConstant (compType);
+
+         // Generate this (not including # lines):
+         //
+         //    int size = CompactReader.readU32 (src);
+         //    T [] a = new T [size];
+         //    # if (intScale != -1)
+         //    # {
+         //    #    if (extScale == intScale)
+         //          for (int i = 0; i < size; ++ i)
+         //             a [i] = T.getInstance (CompactReader.readI64 (src));
+         //    #    else
+         //          for (int i = 0; i < size; ++ i)
+         //          {
+         //             long sig = CompactReader.readI64 (src);
+         //             sig = FixedDec.rescale (sig, extScale, intScale);
+         //             a [i] = T.getInstance (sig);
+         //          }
+         //    # }
+         //    # else
+         //    # {
+         //       for (int i = 0; i < size; ++ i)
+         //       {
+         //          long sig = CompactReader.readI64 (src);
+         //          a [i] = T.getInstance (sig, extScale);
+         //       }
+         //    # }
+            
+         int loop = dc.declareLabel ();
+         int loopEnd = dc.declareLabel ();
+
+         dc.aload0 (); // src
+         invokeReader (dc, "readU32", "I"); // size
+         dc.dup ()
+            .istore3 ()
+            .anewArray (compType)
+            .astore (4) // a
+            .iconst0 ()
+            .istore (5) // i = 0
+            .label (loop)
+            .iload (5) // i
+            .iload3 () // size
+            .ifIcmpGe (loopEnd) // jump if i >= size
+            .aload (4) // a #depth: 2
+            .iload (5) // i #depth: 3
+            .aload0 (); // src #depth: 4
+
+         invokeReader (dc, "readI64", "J"); // sig
+
+         if (intScale != -1)
+         {
+            if (intScale != extScale)
+            {
+               dc.ldc (extScale); // #depth: 5
+               dc.ldc (intScale); // #depth: 6
+               dc.invokeStatic (argType, "rescale", "(JII)J");
+            }
+
+            dc.invokeStatic (compType, "getInstance",
+                             "(J)" + DynClass.getDescriptor (compType));
+         }
+         else
+         {
+            dc.ldc (extScale); // #depth: 5
+            dc.invokeStatic (compType, "getInstance",
+                             "(JI)" + DynClass.getDescriptor (compType));
+         }
+            
+         dc.aastore () // a [i] = <instance of T>
+            .iinc (5, 1) // ++ i
+            .goto_ (loop)
+            .label (loopEnd)
+            .aload (4); // a, leave the result on the stack
+      }
       else
-         compilePrimitiveArrayField (f.getFieldType (), dc);
+      {
+         if (argType == long [].class)
+            compilePrimitiveArrayField (t, dc);
+         else
+            throw new BlinkException ("Cannot use " + f.getSetter () +
+                                      "to set a fixedDec(" +
+                                      String.valueOf (extScale)+ ") [] value");
+      }
    }
    
    private void compileGroupField (ObjectModel.Field f, DynClass dc)

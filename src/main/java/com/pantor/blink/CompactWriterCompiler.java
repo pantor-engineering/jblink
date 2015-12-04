@@ -523,7 +523,8 @@ public final class CompactWriterCompiler
    private static void compileFixedDecSeq (ObjectModel.Field f, DynClass dc)
    {
       Schema.TypeInfo t = f.getFieldType ();
-      if (FixedDec [].class.isAssignableFrom (f.getGetter ().getReturnType ()))
+      Class<?> compType = f.getGetter ().getReturnType ().getComponentType ();
+      if (FixedDec.class.isAssignableFrom (compType))
       {
          Schema.FixedDecType ft = (Schema.FixedDecType)t.getType ();
          dc.ldc (ft.getScale ()); // #depth: 2
