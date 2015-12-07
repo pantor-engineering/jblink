@@ -164,7 +164,7 @@ public class TestCases
       private int bar;
       private String baz;
    }
-    
+
    @Test public void simpleCompactDecode ()
       throws BlinkException, IOException
    {
@@ -1262,6 +1262,105 @@ public class TestCases
 
       assertEquals (2, result [0].getScale ());
       assertEquals (10, result [0].longValue ());
+   }
+
+   public static class Incompatible
+   {
+      public void setFoo (String s) { }
+      public String getFoo () { return ""; }
+   }
+   
+   @Test public void incompatibleTypes ()
+      throws IOException
+   {
+      assertReadTypeMismatch (
+         "Foo/1 -> string Bar", 
+         "-:1:15: error: Cannot use 'public void " +
+         "com.pantor.blink.TestCases$Foo.setBar(int)' to " +
+         "set field 'string Bar': type mismatch");
+
+      assertReadTypeMismatch (
+         "Foo/1 -> u32 Baz",
+         "-:1:12: error: Cannot use 'public void " +
+         "com.pantor.blink.TestCases$Foo.setBaz(java.lang.String)' to " +
+         "set field 'u32 Baz': type mismatch");
+
+      assertReadTypeMismatch (
+         "Incompatible/1 -> u32 [] Foo",
+         "-:1:21: error: Cannot use 'public void " +
+         "com.pantor.blink.TestCases$Incompatible.setFoo(java.lang.String)' " +
+         "to set field 'u32 [] Foo': type mismatch");
+
+      assertReadTypeMismatch (
+         "Incompatible/1 -> fixed(10) Foo",
+         "-:1:23: error: Cannot use 'public void " +
+         "com.pantor.blink.TestCases$Incompatible.setFoo(java.lang.String)' " +
+         "to set field 'fixed(10) Foo': type mismatch");
+
+      assertReadTypeMismatch (
+         "Incompatible/1 -> fixedDec(2) Foo",
+         "-:1:26: error: Cannot use 'public void " +
+         "com.pantor.blink.TestCases$Incompatible.setFoo(java.lang.String)' " +
+         "to set field 'fixedDec(2) Foo': type mismatch");
+
+      assertWriteTypeMismatch (
+         "Foo -> string Bar",
+         "-:1:13: error: Cannot use 'public int " +
+         "com.pantor.blink.TestCases$Foo.getBar()' " +
+         "to get field 'string Bar': type mismatch");
+
+      assertWriteTypeMismatch (
+         "Foo -> u32 Baz",
+         "-:1:10: error: Cannot use 'public " +
+         "java.lang.String com.pantor.blink.TestCases$Foo.getBaz()' " +
+         "to get field 'u32 Baz': type mismatch");
+
+      assertWriteTypeMismatch (
+         "Incompatible -> u32 [] Foo",
+         "-:1:19: error: Cannot use 'public " +
+         "java.lang.String com.pantor.blink.TestCases$Incompatible.getFoo()' " +
+         "to get field 'u32 [] Foo': type mismatch");
+
+      assertWriteTypeMismatch (
+         "Incompatible -> fixed(10) Foo",
+         "-:1:21: error: Cannot use 'public java.lang.String " +
+         "com.pantor.blink.TestCases$Incompatible.getFoo()' to " +
+         "get field 'fixed(10) Foo': type mismatch");
+
+      assertWriteTypeMismatch (
+         "Incompatible -> fixedDec(2) Foo",
+         "-:1:24: error: Cannot use 'public java.lang.String " +
+         "com.pantor.blink.TestCases$Incompatible.getFoo()' " +
+         "to get field 'fixedDec(2) Foo': type mismatch");
+   }
+
+   private static void assertReadTypeMismatch (String schema, String msg)
+      throws IOException
+   {
+      try
+      {
+         DefaultBlock ignore = new DefaultBlock ();
+         String dummy = "01 01";
+         decodeCompact (schema, dummy, ignore);
+      }
+      catch (BlinkException e)
+      {
+         assertEquals (msg, e.toString ());
+      }
+   }
+
+   private static void assertWriteTypeMismatch (String schema, String msg)
+      throws IOException
+   {
+      try
+      {
+         Object o = schema.startsWith ("Foo") ? new Foo () : new Incompatible ();
+         encodeCompact (schema, o);
+      }
+      catch (BlinkException e)
+      {
+         assertEquals (msg, e.toString ());
+      }
    }
    
    //////////////////////////////////////////////////////////////////////

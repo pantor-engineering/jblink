@@ -37,34 +37,49 @@ package com.pantor.blink;
 
 public final class CodegenUtil
 {
-   public static String mapTypeDescr (Schema.TypeCode code)
+   public static Class<?> mapType (Schema.TypeCode code)
    {
       switch (code)
       {
-       case I8:              return "B";
-       case U8:              return "B";
-       case I16:             return "S";
-       case U16:             return "S";
-       case I32:             return "I";
-       case U32:             return "I";
-       case I64:             return "J";
-       case U64:             return "J";
-       case F64:             return "D";
-       case Decimal:         return "Lcom/pantor/blink/Decimal;";
-       case FixedDec:        return "J";
-       case Date:            return "I";
-       case TimeOfDayMilli:  return "I";
-       case TimeOfDayNano:   return "J";
-       case Nanotime:        return "J";
-       case Millitime:       return "J";
-       case Bool:            return "Z";
-       case String:          return "Ljava/lang/String;";
-       case Binary:          return "[B";
-       case Fixed:           return "[B";
-       case Object:          return "Ljava/lang/Object;";
-       case Ref:             return "I";
-       case Enum:            return "I";
-       default:              return "I";
+       case I8:              return Byte.TYPE;
+       case U8:              return Byte.TYPE;
+       case I16:             return Short.TYPE;
+       case U16:             return Short.TYPE;
+       case I32:             return Integer.TYPE;
+       case U32:             return Integer.TYPE;
+       case I64:             return Long.TYPE;
+       case U64:             return Long.TYPE;
+       case F64:             return Double.TYPE;
+       case Decimal:         return Decimal.class;
+       case FixedDec:        return Long.TYPE;
+       case Date:            return Integer.TYPE;
+       case TimeOfDayMilli:  return Integer.TYPE;
+       case TimeOfDayNano:   return Long.TYPE;
+       case Nanotime:        return Long.TYPE;
+       case Millitime:       return Long.TYPE;
+       case Bool:            return Boolean.TYPE;
+       case String:          return String.class;
+       case Binary:          return byte [].class;
+       case Fixed:           return byte [].class;
+       case Object:          return Object.class;
+       case Ref:             return Integer.TYPE;
+       case Enum:            return Integer.TYPE;
+       default:              return Integer.TYPE;
       }
+   }
+
+   public static Class<?> mapArrayType (Schema.TypeCode code)
+   {
+      return DynClass.getArrayClass (mapType (code));
+   }
+
+   public static String mapTypeDescr (Schema.TypeCode code)
+   {
+      return DynClass.getDescriptor (mapType (code));
+   }
+
+   public static String mapArrayTypeDescr (Schema.TypeCode code)
+   {
+      return DynClass.getDescriptor (mapArrayType (code));
    }
 }

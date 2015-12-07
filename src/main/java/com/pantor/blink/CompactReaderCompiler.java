@@ -42,6 +42,10 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 
+import static com.pantor.blink.DynClass.getDescriptor;
+import static com.pantor.blink.CodegenUtil.mapType;
+import static com.pantor.blink.CodegenUtil.mapArrayType;
+
 public final class CompactReaderCompiler
 {
    public CompactReaderCompiler (ObjectModel om)
@@ -362,24 +366,30 @@ public final class CompactReaderCompiler
                        "(Lcom/pantor/blink/ByteSource;)" + t);
    }
 
-   private void compilePrimitiveField (Schema.TypeInfo t, DynClass dc)
+   private void compilePrimitiveField (ObjectModel.Field f, DynClass dc)
       throws BlinkException
    {
+      Schema.TypeInfo t = f.getFieldType ();
       Schema.TypeCode c = t.getType ().getCode ();
       dc.aload0 (); // src, #depth: 2
       String decMtod = "read" + c.toString ();
-      String retType = CodegenUtil.mapTypeDescr (c);
-      invokeReader (dc, decMtod, retType);
+      Class<?> retType = mapType (c);
+      requireSetterArgType (f, retType);
+      invokeReader (dc, decMtod, getDescriptor (retType));
    }
    
-   private void compilePrimitiveArrayField (Schema.TypeInfo t, DynClass dc)
+   private void compilePrimitiveArrayField (ObjectModel.Field f, DynClass dc)
+      throws BlinkException
    {
+      Schema.TypeInfo t = f.getFieldType ();
       Schema.TypeCode c = t.getType ().getCode ();
       String decMtod = "read" + c.toString () + "Array";
-      String retType = "[" + CodegenUtil.mapTypeDescr (c);
+      Class<?> retType = mapArrayType (c);
+      requireSetterArgType (f, retType);
       dc.aload0 (); // src, #depth: 2
       dc.invokeStatic ("com/pantor/blink/CompactReader", decMtod,
-                       "(Lcom/pantor/blink/ByteSource;)" + retType);
+                       "(Lcom/pantor/blink/ByteSource;)" +
+                       getDescriptor (retType));
    }
    
    private void compile (ObjectModel.Binding bnd, ObjectModel.Field f,
@@ -411,11 +421,12 @@ public final class CompactReaderCompiler
             else if (t.getType ().getCode () == Schema.TypeCode.FixedDec)
                compileFixedDecField (f, dc);
             else
-               compilePrimitiveField (t, dc);
+               compilePrimitiveField (f, dc);
          }
          else if (t.isEnum ())
          {
             ObjectModel.EnumBinding comp = f.getComponent ().toEnum ();
+            requireSetterArgType (f, comp.getTargetType ());
             primeEnum (comp);
             dc.aload0 (); // src, #depth: 2
             dc.invokeStatic (getDecoderClassName (t.getEnum ().getName ()),
@@ -430,15 +441,17 @@ public final class CompactReaderCompiler
          if (t.isPrimitive ())
          {
             if (t.getType ().getCode () == Schema.TypeCode.Fixed)
-               compileFixedArrayField (t, dc);
+               compileFixedArrayField (f, dc);
             else if (t.getType ().getCode () == Schema.TypeCode.FixedDec)
                compileFixedDecArrayField (f, dc);
             else
-               compilePrimitiveArrayField (t, dc);
+               compilePrimitiveArrayField (f, dc);
          }
          else if (t.isEnum ())
          {
             ObjectModel.EnumBinding comp = f.getComponent ().toEnum ();
+            requireSetterArgType (
+               f, DynClass.getArrayClass (comp.getTargetType ()));
             primeEnum (comp);
             dc.aload0 (); // src, #depth: 2
             dc.invokeStatic (getDecoderClassName (t.getEnum ().getName ()),
@@ -461,10 +474,12 @@ public final class CompactReaderCompiler
    private void compileFixedField (ObjectModel.Field f, DynClass dc)
       throws BlinkException
    {
+      requireSetterArgType (f, byte [].class);
+      
       Schema.TypeInfo t = f.getFieldType ();
       Schema.Field sf = f.getField ();
       Schema.FixedType ft = (Schema.FixedType)t.getType ();
-
+      
       if (sf.isOptional ())
       {
          dc.aload0 (); // src, #depth: 2
@@ -477,19 +492,41 @@ public final class CompactReaderCompiler
       dc.invokeStatic ("com/pantor/blink/CompactReader", "readFixed",
                        "(Lcom/pantor/blink/ByteSource;I)" + retType);
    }
-   
-   private void compileFixedArrayField (Schema.TypeInfo t, DynClass dc)
+
+   private void compileFixedArrayField (ObjectModel.Field f, DynClass dc)
       throws BlinkException
    {
+      requireSetterArgType (f, byte [][].class);
+      
+      Schema.TypeInfo t = f.getFieldType ();
       Schema.FixedType ft = (Schema.FixedType)t.getType ();
-      String retType = "[" + CodegenUtil.mapTypeDescr (t.getType ().getCode ());
+      String retType = CodegenUtil.mapArrayTypeDescr (t.getType ().getCode ());
       dc.aload0 (); // src, #depth: 2
       dc.ldc (ft.getSize ()); // #depth: 3
       dc.invokeStatic ("com/pantor/blink/CompactReader", "readFixedArray",
                        "(Lcom/pantor/blink/ByteSource;I)" + retType);
    }
 
-   private Class<?> getSetterArgType (ObjectModel.Field f)
+   private static BlinkException.Binding typeMismatch (ObjectModel.Field f)
+   {
+      return new BlinkException.Binding (
+         "Cannot use '" + f.getSetter () + "' to set field '" + f +
+         "': type mismatch", f.getLocation ());
+   }
+   
+   private static boolean hasSetterArgType (ObjectModel.Field f, Class<?> t)
+   {
+      return t == getSetterArgType (f);
+   }
+
+   private static void requireSetterArgType (ObjectModel.Field f, Class<?> t)
+      throws BlinkException.Binding
+   {
+      if (! hasSetterArgType (f, t))
+         throw typeMismatch (f);
+   }
+
+   private static Class<?> getSetterArgType (ObjectModel.Field f)
    {
       Method setter = f.getSetter ();
       Class<?> argType = null;
@@ -535,22 +572,17 @@ public final class CompactReaderCompiler
             }
                
             dc.invokeStatic (argType, "getInstance",
-                             "(J)" + DynClass.getDescriptor (argType));
+                             "(J)" + getDescriptor (argType));
          }
          else
          {
             dc.ldc (extScale); // #depth: 3
             dc.invokeStatic (argType, "getInstance",
-                             "(JI)" + DynClass.getDescriptor (argType));
+                             "(JI)" + getDescriptor (argType));
          }
       }
       else
-      {
-         if (argType != Long.TYPE)
-            throw new BlinkException ("Cannot use " + f.getSetter () +
-                                      "to set a fixedDec(" +
-                                      String.valueOf (extScale)+ ") value");
-      }
+         requireSetterArgType (f, Long.TYPE);
    }
    
    private void compileFixedDecArrayField (ObjectModel.Field f, DynClass dc)
@@ -623,13 +655,13 @@ public final class CompactReaderCompiler
             }
 
             dc.invokeStatic (compType, "getInstance",
-                             "(J)" + DynClass.getDescriptor (compType));
+                             "(J)" + getDescriptor (compType));
          }
          else
          {
             dc.ldc (extScale); // #depth: 5
             dc.invokeStatic (compType, "getInstance",
-                             "(JI)" + DynClass.getDescriptor (compType));
+                             "(JI)" + getDescriptor (compType));
          }
             
          dc.aastore () // a [i] = <instance of T>
@@ -639,14 +671,7 @@ public final class CompactReaderCompiler
             .aload (4); // a, leave the result on the stack
       }
       else
-      {
-         if (argType == long [].class)
-            compilePrimitiveArrayField (t, dc);
-         else
-            throw new BlinkException ("Cannot use " + f.getSetter () +
-                                      "to set a fixedDec(" +
-                                      String.valueOf (extScale)+ ") [] value");
-      }
+         compilePrimitiveArrayField (f, dc);
    }
    
    private void compileGroupField (ObjectModel.Field f, DynClass dc)

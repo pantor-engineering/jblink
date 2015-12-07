@@ -1796,6 +1796,17 @@ public final class DynClass
          return "L" + DynClass.toInternal (name) + ";";
    }
 
+   public static Class<?> getArrayClass (Class<?> comp)
+   {
+      try
+      {
+         return Class.forName ("[" + getDescriptor (comp));
+      }
+      catch (ClassNotFoundException e)
+      {
+         throw new RuntimeException (e);
+      }
+   }
    
    //////////////////////////////////////////////////////////////////////
 

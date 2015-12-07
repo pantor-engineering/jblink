@@ -42,6 +42,10 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.lang.reflect.InvocationTargetException;
 
+import static com.pantor.blink.DynClass.getDescriptor;
+import static com.pantor.blink.CodegenUtil.mapType;
+import static com.pantor.blink.CodegenUtil.mapArrayType;
+
 public final class CompactWriterCompiler
 {
    public CompactWriterCompiler (ObjectModel om)
@@ -409,10 +413,10 @@ public final class CompactWriterCompiler
                else if (t.getType ().getCode () == Schema.TypeCode.FixedDec)
                   compileFixedDec (f, dc, scx);
                else
-                  compilePrim (t, dc, scx);
+                  compilePrim (f, dc, scx);
             }
             else if (t.isEnum ())
-               compileEnum (t, f.getComponent ().toEnum (), dc, scx);
+               compileEnum (f, dc, scx);
             else // Object or Group
                compileGroupField (f, dc, scx);
          }
@@ -422,14 +426,14 @@ public final class CompactWriterCompiler
             if (t.isPrimitive ())
             {
                if (t.getType ().getCode () == Schema.TypeCode.Fixed)
-                  compileFixedSeq (t, dc);
+                  compileFixedSeq (f, dc);
                else if (t.getType ().getCode () == Schema.TypeCode.FixedDec)
                   compileFixedDecSeq (f, dc);
                else
-                  compilePrimSeq (t, dc);
+                  compilePrimSeq (f, dc);
             }
             else if (t.isEnum ())
-               compileEnumSeq (t, f.getComponent ().toEnum (), dc);
+               compileEnumSeq (f, dc);
             else // Object or Group
                compileGroupSeqField (f, dc);
             scx.addGuard (dc);
@@ -449,13 +453,16 @@ public final class CompactWriterCompiler
          compileBlankField (sf, t, 1, dc, scx);
    }
 
-   private static void compilePrim (Schema.TypeInfo t, DynClass dc,
+   private static void compilePrim (ObjectModel.Field f, DynClass dc,
                                     SizeContext scx)
+      throws BlinkException
    {
       dc.aload1 (); // sink, #depth: 2
+      Schema.TypeInfo t = f.getFieldType ();
       Schema.TypeCode code = t.getType ().getCode ();
-      invokeWriter (dc, "write" + code.toString (),
-                    CodegenUtil.mapTypeDescr (code));
+      Class<?> argType = mapType (code);
+      requireGetterRetType (f, argType);
+      invokeWriter (dc, "write" + code.toString (), getDescriptor (argType));
       if (code == Schema.TypeCode.String || code == Schema.TypeCode.Binary)
          scx.addGuard (dc);
       else
@@ -464,6 +471,7 @@ public final class CompactWriterCompiler
 
    private static void compileFixedDec (ObjectModel.Field f, DynClass dc,
                                         SizeContext scx)
+      throws BlinkException
    {
       Schema.TypeInfo t = f.getFieldType ();
       if (FixedDec.class.isAssignableFrom (f.getGetter ().getReturnType ()))
@@ -479,12 +487,15 @@ public final class CompactWriterCompiler
          scx.addSize (getMaxVlcSize (Schema.TypeCode.I64));
       }
       else
-         compilePrim (t, dc, scx);
+         compilePrim (f, dc, scx);
    }
    
    private static void compileFixed (ObjectModel.Field f, DynClass dc,
                                      SizeContext scx)
+      throws BlinkException
    {
+      requireGetterRetType (f, byte [].class);
+      
       Schema.TypeInfo t = f.getFieldType ();
       Schema.Field sf = f.getField ();
       Schema.FixedType ft = (Schema.FixedType)t.getType ();
@@ -508,8 +519,12 @@ public final class CompactWriterCompiler
       scx.addSize (fixedSize);
    }
 
-   private static void compileFixedSeq (Schema.TypeInfo t, DynClass dc)
+   private static void compileFixedSeq (ObjectModel.Field f, DynClass dc)
+      throws BlinkException
    {
+      requireGetterRetType (f, byte [][].class);
+
+      Schema.TypeInfo t = f.getFieldType ();
       Schema.FixedType ft = (Schema.FixedType)t.getType ();
       Schema.TypeCode code = t.getType ().getCode ();
       int fixedSize = ft.getSize ();
@@ -521,6 +536,7 @@ public final class CompactWriterCompiler
    }
 
    private static void compileFixedDecSeq (ObjectModel.Field f, DynClass dc)
+      throws BlinkException
    {
       Schema.TypeInfo t = f.getFieldType ();
       Class<?> compType = f.getGetter ().getReturnType ().getComponentType ();
@@ -536,13 +552,16 @@ public final class CompactWriterCompiler
                           "ILcom/pantor/blink/ByteSink;)V");
       }
       else
-         compilePrimSeq (t, dc);
+         compilePrimSeq (f, dc);
    }
    
-   private void compileEnum (Schema.TypeInfo t, ObjectModel.EnumBinding comp,
-                             DynClass dc, SizeContext scx)
+   private void compileEnum (ObjectModel.Field f, DynClass dc, SizeContext scx)
       throws BlinkException
    {
+      ObjectModel.EnumBinding comp = f.getComponent ().toEnum ();
+      Schema.TypeInfo t = f.getFieldType ();
+      requireGetterRetType (f, comp.getTargetType ());
+      
       primeEnum (comp);
       dc.aload1 (); // sink, #depth: 2
       dc.invokeStatic (getEncoderClassName (t.getEnum ().getName ()),
@@ -550,18 +569,26 @@ public final class CompactWriterCompiler
       scx.addSize (Vlc.Int32MaxSize);
    }
 
-   private static void compilePrimSeq (Schema.TypeInfo t, DynClass dc)
-   {
-      Schema.TypeCode c = t.getType ().getCode ();
-      String encMtod = "write" + c.toString () + "Array";
-      dc.aload1 (); // sink, #depth: 2
-      invokeWriter (dc, encMtod, "[" + CodegenUtil.mapTypeDescr (c));
-   }
-
-   private void compileEnumSeq (Schema.TypeInfo t, ObjectModel.EnumBinding comp,
-                                DynClass dc)
+   private static void compilePrimSeq (ObjectModel.Field f, DynClass dc)
       throws BlinkException
    {
+      Schema.TypeInfo t = f.getFieldType ();
+      Schema.TypeCode c = t.getType ().getCode ();
+
+      Class<?> argType = mapArrayType (c);
+      requireGetterRetType (f, argType);
+      
+      String encMtod = "write" + c.toString () + "Array";
+      dc.aload1 (); // sink, #depth: 2
+      invokeWriter (dc, encMtod, getDescriptor (argType));
+   }
+
+   private void compileEnumSeq (ObjectModel.Field f, DynClass dc)
+      throws BlinkException
+   {
+      ObjectModel.EnumBinding comp = f.getComponent ().toEnum ();
+      Schema.TypeInfo t = f.getFieldType ();      
+      requireGetterRetType (f, DynClass.getArrayClass (comp.getTargetType ()));
       primeEnum (comp);
       dc.aload1 (); // sink, #depth: 2
       dc.invokeStatic (getEncoderClassName (t.getEnum ().getName ()),
@@ -867,6 +894,36 @@ public final class CompactWriterCompiler
          throw new BlinkException.Binding (e);
       }
    }
+
+   private static BlinkException.Binding typeMismatch (ObjectModel.Field f)
+   {
+      return new BlinkException.Binding (
+         "Cannot use '" + f.getGetter () + "' to get field '" + f +
+         "': type mismatch", f.getLocation ());
+   }
+   
+   private static boolean hasGetterRetType (ObjectModel.Field f, Class<?> t)
+   {
+      return t == getGetterRetType (f);
+   }
+
+   private static void requireGetterRetType (ObjectModel.Field f, Class<?> t)
+      throws BlinkException.Binding
+   {
+      if (! hasGetterRetType (f, t))
+         throw typeMismatch (f);
+   }
+
+   private static Class<?> getGetterRetType (ObjectModel.Field f)
+   {
+      Method getter = f.getGetter ();
+      Class<?> argType = null;
+      if (getter != null)
+         return getter.getReturnType ();
+      else
+         return null;
+   }
+
    
    private final HashMap<Class<?>, CompactWriter.Encoder> encByClass =
       new HashMap<Class<?>, CompactWriter.Encoder> ();

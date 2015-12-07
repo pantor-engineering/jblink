@@ -798,6 +798,8 @@ public final class DefaultObjectModel extends Dependee.Impl
       @Override public Class<?> getTargetType () { return tgtType; }
       @Override public List<Field> getFields () { return fields; }
       @Override public long getCompactTypeId () { return tid; }
+      @Override public Location getLocation () { return grp.getLocation (); }
+      @Override public void setLocation (Location loc) { /* read only */ }
 
       @Override
       public Iterator<Field> iterator ()
@@ -833,6 +835,8 @@ public final class DefaultObjectModel extends Dependee.Impl
       @Override public Schema.Define getEnum () { return def; }
       @Override public Class<?> getTargetType () { return tgtType; }
       @Override public List<Symbol> getSymbols () { return syms; }
+      @Override public Location getLocation () { return def.getLocation (); }
+      @Override public void setLocation (Location loc) { /* read only */ }
       
       @Override
       public Iterator<Symbol> iterator ()
@@ -866,7 +870,9 @@ public final class DefaultObjectModel extends Dependee.Impl
       @Override public Method getSetter () { return setter; }
       @Override public Method getPredicate () { return predicate; }
       @Override public Binding getComponent () { return compBinding; }
-
+      @Override public String toString () { return field.toString (); }
+      @Override public Location getLocation () { return field.getLocation (); }
+      @Override public void setLocation (Location loc) { /* read only */ }
       private final Schema.Field field;
       private final Schema.TypeInfo fieldType;
       private final Method getter;

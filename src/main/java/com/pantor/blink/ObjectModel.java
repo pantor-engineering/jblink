@@ -108,7 +108,7 @@ public interface ObjectModel extends Dependee
    
    Schema getSchema () throws BlinkException;
    
-   public static interface Binding extends Dependee
+   public static interface Binding extends Dependee, Located
    {
       GroupBinding toGroup ();
       EnumBinding toEnum ();
@@ -123,7 +123,7 @@ public interface ObjectModel extends Dependee
       Iterator<Field> iterator ();
    }
 
-   public static interface Field
+   public static interface Field extends Located
    {
       Schema.Field getField ();
       Schema.TypeInfo getFieldType ();
