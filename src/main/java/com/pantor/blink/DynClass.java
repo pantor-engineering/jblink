@@ -1800,7 +1800,7 @@ public final class DynClass
    {
       try
       {
-         return Class.forName ("[" + getDescriptor (comp));
+         return Class.forName ("[" + getDescriptor (comp).replace ("/", "."));
       }
       catch (ClassNotFoundException e)
       {

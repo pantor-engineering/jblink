@@ -201,6 +201,25 @@ public class TestCases
       assertEquals ("Hello", result.getBaz ());
    }
 
+   public static class Strings
+   {
+      public String [] getValue () { return val; }
+      public void setValue (String [] val) { this.val = val; }
+      private String [] val;
+   }
+   
+   @Test public void stringArrayCompactRoundtrip ()
+      throws BlinkException, IOException
+   {
+      Strings s = new Strings ();
+      s.setValue (new String [] { "Foo", "Bar" });
+      Strings result =
+         (Strings)compactRoundtrip ("Strings -> string [] Value", s);
+      assertNotNull (result.getValue ());
+      assertEquals (2, result.getValue ().length);
+      assertEquals ("Foo", result.getValue () [1]);
+   }
+
    @Test public void simpleCompactRoundtripDefaultTypeId ()
       throws BlinkException, IOException
    {
