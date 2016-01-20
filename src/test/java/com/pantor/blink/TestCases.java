@@ -217,7 +217,7 @@ public class TestCases
          (Strings)compactRoundtrip ("Strings -> string [] Value", s);
       assertNotNull (result.getValue ());
       assertEquals (2, result.getValue ().length);
-      assertEquals ("Foo", result.getValue () [1]);
+      assertEquals ("Foo", result.getValue () [0]);
    }
 
    @Test public void simpleCompactRoundtripDefaultTypeId ()
