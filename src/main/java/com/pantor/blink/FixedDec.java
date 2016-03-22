@@ -417,7 +417,7 @@ public abstract class FixedDec implements Comparable<FixedDec>
       public static _0 valueOf (String s)
       {
          BigDecimal bd = new BigDecimal (s);
-         bd.setScale (0);
+         bd = bd.setScale (0);
          return new _0 (bd.unscaledValue ().longValue ());
       }
 
@@ -453,7 +453,7 @@ public abstract class FixedDec implements Comparable<FixedDec>
       public static _1 valueOf (String s)
       {
          BigDecimal bd = new BigDecimal (s);
-         bd.setScale (1);
+         bd = bd.setScale (1);
          return new _1 (bd.unscaledValue ().longValue ());
       }
 
@@ -489,7 +489,7 @@ public abstract class FixedDec implements Comparable<FixedDec>
       public static _2 valueOf (String s)
       {
          BigDecimal bd = new BigDecimal (s);
-         bd.setScale (2);
+         bd = bd.setScale (2);
          return new _2 (bd.unscaledValue ().longValue ());
       }
 
@@ -525,7 +525,7 @@ public abstract class FixedDec implements Comparable<FixedDec>
       public static _3 valueOf (String s)
       {
          BigDecimal bd = new BigDecimal (s);
-         bd.setScale (3);
+         bd = bd.setScale (3);
          return new _3 (bd.unscaledValue ().longValue ());
       }
 
@@ -561,7 +561,7 @@ public abstract class FixedDec implements Comparable<FixedDec>
       public static _4 valueOf (String s)
       {
          BigDecimal bd = new BigDecimal (s);
-         bd.setScale (4);
+         bd = bd.setScale (4);
          return new _4 (bd.unscaledValue ().longValue ());
       }
 
@@ -597,7 +597,7 @@ public abstract class FixedDec implements Comparable<FixedDec>
       public static _5 valueOf (String s)
       {
          BigDecimal bd = new BigDecimal (s);
-         bd.setScale (5);
+         bd = bd.setScale (5);
          return new _5 (bd.unscaledValue ().longValue ());
       }
 
@@ -633,7 +633,7 @@ public abstract class FixedDec implements Comparable<FixedDec>
       public static _6 valueOf (String s)
       {
          BigDecimal bd = new BigDecimal (s);
-         bd.setScale (6);
+         bd = bd.setScale (6);
          return new _6 (bd.unscaledValue ().longValue ());
       }
 
@@ -669,7 +669,7 @@ public abstract class FixedDec implements Comparable<FixedDec>
       public static _7 valueOf (String s)
       {
          BigDecimal bd = new BigDecimal (s);
-         bd.setScale (7);
+         bd = bd.setScale (7);
          return new _7 (bd.unscaledValue ().longValue ());
       }
 
@@ -705,7 +705,7 @@ public abstract class FixedDec implements Comparable<FixedDec>
       public static _8 valueOf (String s)
       {
          BigDecimal bd = new BigDecimal (s);
-         bd.setScale (8);
+         bd = bd.setScale (8);
          return new _8 (bd.unscaledValue ().longValue ());
       }
 
@@ -741,7 +741,7 @@ public abstract class FixedDec implements Comparable<FixedDec>
       public static _9 valueOf (String s)
       {
          BigDecimal bd = new BigDecimal (s);
-         bd.setScale (9);
+         bd = bd.setScale (9);
          return new _9 (bd.unscaledValue ().longValue ());
       }
 
@@ -777,7 +777,7 @@ public abstract class FixedDec implements Comparable<FixedDec>
       public static _10 valueOf (String s)
       {
          BigDecimal bd = new BigDecimal (s);
-         bd.setScale (10);
+         bd = bd.setScale (10);
          return new _10 (bd.unscaledValue ().longValue ());
       }
 
